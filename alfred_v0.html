@@ -1,0 +1,2656 @@
+<!DOCTYPE html>
+
+<html lang="de">
+
+<head>
+
+<meta charset="UTF-8">
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<title>ALFRED — Repo-Intelligence, Discovery & Rights Clearance</title>
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+
+<link href="https://fonts.googleapis.com/css2?family=UnifrakturMaguntia&family=Spectral:ital,wght@0,300;0,400;0,500;0,600;1,400;1,500&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+
+<style>
+
+:root{
+
+  --frak:'UnifrakturMaguntia',serif;
+
+  --serif:'Spectral',Georgia,serif;
+
+  --mono:'IBM Plex Mono',monospace;
+
+  --crimson:#b01818; --crimson-bright:#d8232a; --blood:#7a0f17;
+
+  --bone:#e9ddc7; --bone-dim:#b7a988; --parch:#d8c4a0;
+
+  --velvet:#0c0507; --soot:#14080b; --ink:#e7dcc8;
+
+  --gold:#caa24a; --gold-soft:#9c7d3a;
+
+  /* room spectrum: orange (top) -> bordeaux (bottom) */
+
+  --r-obs:#f0a93a;   --r-obs-bg:#1c1206;
+
+  --r-cart:#cda24c;  --r-cart-bg:#171104;
+
+  --r-scout:#37a094; --r-scout-bg:#04140f;
+
+  --r-cur:#c8a06a;   --r-cur-bg:#160e06;
+
+  --r-stew:#cf4636;  --r-stew-bg:#1a0706;
+
+  --r-led:#9c2230;   --r-led-bg:#160409;
+
+  --r-but:#c01f33;   --r-but-bg:#120207;
+
+  --line:rgba(233,221,199,.10);
+
+}
+
+*{box-sizing:border-box}
+
+html{scroll-behavior:smooth}
+
+body{
+
+  margin:0;color:var(--ink);font-family:var(--serif);font-size:17px;line-height:1.62;
+
+  background:
+
+    radial-gradient(120% 80% at 82% -10%, rgba(176,24,24,.10), transparent 55%),
+
+    linear-gradient(180deg,#160709 0%, #100507 38%, #0b0305 72%, #070203 100%);
+
+  background-attachment:fixed;overflow-x:hidden;
+
+}
+
+::selection{background:var(--crimson);color:#fff}
+
+::-webkit-scrollbar{width:11px}::-webkit-scrollbar-track{background:#0a0305}
+
+::-webkit-scrollbar-thumb{background:#3a1418;border-radius:0}::-webkit-scrollbar-thumb:hover{background:var(--blood)}
+
+#motes{position:fixed;inset:0;z-index:1;pointer-events:none}
+
+.grain{position:fixed;inset:0;z-index:60;pointer-events:none;opacity:.05;mix-blend-mode:overlay;
+
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E")}
+
+.vignette{position:fixed;inset:0;z-index:2;pointer-events:none;
+
+  background:radial-gradient(120% 100% at 50% 30%, transparent 55%, rgba(0,0,0,.55) 100%)}
+
+.wrap{max-width:1180px;margin:0 auto;padding:0 clamp(1.1rem,4vw,3rem);position:relative;z-index:5}
+
+.mono{font-family:var(--mono)}
+
+.hide{display:none!important}
+
+.kicker{font-family:var(--mono);font-size:10.5px;letter-spacing:.34em;text-transform:uppercase;color:var(--bone-dim)}
+
+.rule{height:1px;background:linear-gradient(90deg,transparent,var(--gold-soft),transparent);border:0;margin:0;opacity:.5}
+
+
+
+/* ---------- room nav ---------- */
+
+#roomnav{position:sticky;top:0;z-index:40;background:rgba(8,3,4,.86);backdrop-filter:blur(8px);
+
+  border-bottom:1px solid var(--line)}
+
+#roomnav .wrap{display:flex;align-items:stretch;gap:0;overflow-x:auto;scrollbar-width:none}
+
+#roomnav .wrap::-webkit-scrollbar{display:none}
+
+.rn{flex:none;display:flex;align-items:center;gap:.55rem;padding:.7rem 1.05rem;cursor:pointer;
+
+  border-right:1px solid var(--line);color:var(--bone-dim);text-decoration:none;transition:.25s;position:relative}
+
+.rn:hover{color:var(--bone);background:rgba(233,221,199,.03)}
+
+.rn .ini{font-family:var(--frak);font-size:1.5rem;line-height:1;color:var(--rc);transition:.25s}
+
+.rn .nm{font-family:var(--mono);font-size:10px;letter-spacing:.18em;text-transform:uppercase;white-space:nowrap}
+
+.rn.on{color:var(--bone)}
+
+.rn.on::after{content:'';position:absolute;left:0;right:0;bottom:-1px;height:2px;background:var(--rc);box-shadow:0 0 12px var(--rc)}
+
+.rn.on .ini{text-shadow:0 0 16px var(--rc)}
+
+
+
+/* ---------- vestibule ---------- */
+
+.vest{position:relative;min-height:92vh;display:flex;align-items:center;overflow:hidden;padding:5rem 0 3rem}
+
+.spot{position:absolute;top:-30%;right:-6%;width:70vw;height:130vh;pointer-events:none;
+
+  background:radial-gradient(closest-side at 70% 18%, rgba(255,244,224,.16), rgba(255,244,224,.05) 38%, transparent 66%);
+
+  filter:blur(2px)}
+
+.tableau{position:absolute;left:4%;bottom:7%;display:flex;gap:1.4rem;align-items:flex-end;opacity:.5;pointer-events:none}
+
+.glass{width:14px;height:46px;border:1px solid rgba(233,221,199,.18);border-radius:0 0 50% 50%/0 0 30% 30%;
+
+  position:relative}
+
+.glass::before{content:'';position:absolute;top:-12px;left:-5px;width:24px;height:14px;border:1px solid rgba(233,221,199,.16);border-radius:50%}
+
+.glass::after{content:'';position:absolute;bottom:-10px;left:3px;width:8px;height:10px;border-left:1px solid rgba(233,221,199,.14);border-right:1px solid rgba(233,221,199,.14)}
+
+.glass.tall{height:62px}.glass.short{height:34px}
+
+.vest-grid{display:grid;grid-template-columns:1.1fr .9fr;gap:2rem;align-items:center;width:100%}
+
+@media(max-width:860px){.vest-grid{grid-template-columns:1fr}.vest-portrait{display:none}}
+
+.alfred-mark{font-family:var(--frak);color:var(--crimson-bright);font-size:clamp(4.5rem,15vw,11rem);line-height:.82;
+
+  letter-spacing:.01em;position:relative;display:inline-block;
+
+  text-shadow:0 2px 0 #5e0a10, 0 0 38px rgba(176,24,24,.45)}
+
+.alfred-mark::after{content:'Alfred';position:absolute;inset:0;color:transparent;
+
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120'%3E%3Cfilter id='r'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.7' numOctaves='3'/%3E%3CfeColorMatrix values='0 0 0 0 0  0 0 0 0 0  0 0 0 0 0  0 0 0 5 -2.6'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23r)'/%3E%3C/svg%3E");
+
+  -webkit-background-clip:text;background-clip:text;mix-blend-mode:color-burn;opacity:.5;pointer-events:none}
+
+.vest-sub{font-family:var(--serif);font-style:italic;font-size:clamp(1.05rem,2.2vw,1.5rem);color:var(--bone);
+
+  max-width:30ch;margin-top:.4rem}
+
+.vest-credo{font-family:var(--serif);font-size:1.02rem;color:var(--bone-dim);max-width:46ch;margin-top:1.6rem;
+
+  border-left:2px solid var(--crimson);padding-left:1.1rem}
+
+.vest-credo b{color:var(--parch);font-weight:600}
+
+.vest-portrait{position:relative;align-self:stretch;min-height:60vh;display:flex;justify-content:center}
+
+.portrait-frame{position:relative;width:100%;max-width:340px;
+
+  background:radial-gradient(closest-side at 64% 22%, rgba(255,240,214,.20), rgba(40,18,16,.4) 46%, rgba(8,3,4,.9) 78%);
+
+  border:1px solid rgba(202,162,74,.25);box-shadow:inset 0 0 80px rgba(0,0,0,.7), 0 30px 80px rgba(0,0,0,.6)}
+
+.portrait-frame .silh{position:absolute;right:8%;top:14%;width:62%;height:74%;
+
+  background:radial-gradient(60% 40% at 60% 16%, rgba(233,221,199,.5), transparent 60%),
+
+             linear-gradient(180deg, transparent 30%, rgba(20,8,8,.6));
+
+  -webkit-mask:radial-gradient(40% 22% at 58% 14%, #000 99%, transparent), linear-gradient(180deg,#000 30%,#000);
+
+  filter:contrast(1.1)}
+
+.portrait-frame .glove{position:absolute;right:30%;top:34%;width:34px;height:34px;border-radius:50% 50% 46% 46%;
+
+  background:radial-gradient(circle at 40% 35%, #f3ecdd, #b9ad92);box-shadow:0 0 22px rgba(255,244,224,.35)}
+
+.portrait-cap{position:absolute;bottom:0;left:0;right:0;padding:.7rem 1rem;
+
+  font-family:var(--mono);font-size:9.5px;letter-spacing:.22em;text-transform:uppercase;color:var(--bone-dim);
+
+  background:linear-gradient(0deg,rgba(8,3,4,.9),transparent);text-align:center}
+
+.stats-row{display:flex;flex-wrap:wrap;gap:0;margin-top:2.4rem;border-top:1px solid var(--line);border-bottom:1px solid var(--line)}
+
+.stat{padding:1rem 1.6rem 1rem 0;margin-right:1.6rem;border-right:1px solid var(--line)}
+
+.stat:last-child{border-right:none}
+
+.stat b{display:block;font-family:var(--frak);font-size:clamp(1.8rem,4vw,2.8rem);color:var(--gold);line-height:1}
+
+.stat span{font-family:var(--mono);font-size:9.5px;letter-spacing:.2em;text-transform:uppercase;color:var(--bone-dim)}
+
+
+
+/* ---------- rooms ---------- */
+
+.room{position:relative;padding:5.5rem 0 2rem;scroll-margin-top:54px;
+
+  border-top:1px solid var(--line)}
+
+.room::before{content:'';position:absolute;inset:0;pointer-events:none;z-index:0;
+
+  background:radial-gradient(80% 50% at 88% 0%, color-mix(in srgb,var(--rc) 9%, transparent), transparent 60%)}
+
+.room .wrap{position:relative;z-index:2}
+
+.room-head{display:grid;grid-template-columns:auto 1fr;gap:1.4rem 2rem;align-items:start;margin-bottom:2.4rem}
+
+.room-ini{font-family:var(--frak);font-size:clamp(3.4rem,8vw,6rem);line-height:.8;color:var(--rc);
+
+  text-shadow:0 0 30px color-mix(in srgb,var(--rc) 40%,transparent)}
+
+.room-no{font-family:var(--mono);font-size:10px;letter-spacing:.3em;color:var(--bone-dim)}
+
+.room-no b{color:var(--rc)}
+
+.room-title{font-family:var(--frak);font-size:clamp(1.7rem,4vw,2.8rem);color:var(--bone);line-height:1;margin:.2rem 0 .5rem}
+
+.room-desc{color:var(--bone-dim);max-width:64ch;font-size:1rem}
+
+.panel{border:1px solid color-mix(in srgb,var(--rc) 30%, var(--line));background:rgba(10,4,5,.55);
+
+  box-shadow:inset 0 1px 0 rgba(233,221,199,.04), 0 24px 60px rgba(0,0,0,.4)}
+
+.panel-head{display:flex;align-items:center;gap:.8rem;padding:.85rem 1.2rem;cursor:pointer;user-select:none;
+
+  border-bottom:1px solid var(--line)}
+
+.panel.closed .panel-head{border-bottom-color:transparent}
+
+.led{width:9px;height:9px;border-radius:50%;background:var(--rc);box-shadow:0 0 10px var(--rc);animation:pulse 2.4s infinite;flex:none}
+
+.led.busy{animation:pulse .7s infinite}
+
+@keyframes pulse{50%{opacity:.3}}
+
+.panel-title{font-family:var(--mono);font-size:11px;letter-spacing:.2em;text-transform:uppercase;color:var(--parch)}
+
+.panel-state{margin-left:auto;font-family:var(--mono);font-size:10.5px;color:var(--bone-dim);text-align:right}
+
+.panel-tog{background:none;border:1px solid color-mix(in srgb,var(--rc) 40%,transparent);color:var(--bone-dim);
+
+  width:26px;height:26px;cursor:pointer;font-size:12px;transition:.25s;flex:none}
+
+.panel-tog:hover{color:var(--rc);border-color:var(--rc)}
+
+.panel.closed .panel-tog{transform:rotate(-90deg)}
+
+.panel-body{padding:1.2rem;display:grid;gap:1rem}
+
+.panel.closed .panel-body{display:none}
+
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:.9rem}
+
+.field label{display:block;font-family:var(--mono);font-size:9.5px;letter-spacing:.2em;text-transform:uppercase;color:var(--bone-dim);margin-bottom:.4rem}
+
+.field input,.field select,.field textarea{width:100%;background:rgba(0,0,0,.35);border:1px solid var(--line);
+
+  color:var(--ink);font-family:var(--mono);font-size:12.5px;padding:.6rem .75rem;outline:none;transition:.2s}
+
+.field input:focus,.field select:focus,.field textarea:focus{border-color:var(--rc);box-shadow:0 0 0 2px color-mix(in srgb,var(--rc) 22%,transparent)}
+
+.field textarea{resize:vertical;min-height:56px;font-family:var(--serif);font-size:14px}
+
+.field .hint{font-family:var(--mono);font-size:9.5px;color:#7d6f57;margin-top:.35rem}
+
+.seg{display:flex;border:1px solid var(--line)}
+
+.seg button{flex:1;background:transparent;border:none;color:var(--bone-dim);font-family:var(--mono);font-size:11px;
+
+  padding:.6rem .3rem;cursor:pointer;transition:.2s;letter-spacing:.05em}
+
+.seg button+button{border-left:1px solid var(--line)}
+
+.seg button.on{background:color-mix(in srgb,var(--rc) 16%,transparent);color:var(--rc)}
+
+.seg button:hover:not(.on){color:var(--bone)}
+
+.tgl{display:inline-flex;align-items:center;gap:.6rem;font-family:var(--mono);font-size:11.5px;color:var(--bone-dim);cursor:pointer}
+
+.tgl input{display:none}
+
+.tgl i{width:14px;height:14px;border:1px solid var(--line);transition:.2s;flex:none;position:relative}
+
+.tgl input:checked+i{background:var(--rc);border-color:var(--rc)}
+
+.tgl input:checked+i::after{content:'';position:absolute;inset:3px;background:#1a0608}
+
+.actions{display:flex;flex-wrap:wrap;gap:.6rem;align-items:center}
+
+.btn{font-family:var(--mono);font-size:11px;letter-spacing:.08em;padding:.62rem 1.05rem;cursor:pointer;
+
+  border:1px solid transparent;transition:.2s;background:transparent}
+
+.btn:disabled{opacity:.4;cursor:not-allowed}
+
+.btn-seal{background:var(--crimson);color:#fff;border-color:var(--crimson);font-weight:600}
+
+.btn-seal:hover:not(:disabled){background:var(--crimson-bright);box-shadow:0 6px 20px rgba(176,24,24,.4)}
+
+.btn-line{border-color:color-mix(in srgb,var(--rc) 45%,transparent);color:var(--parch)}
+
+.btn-line:hover:not(:disabled){border-color:var(--rc);color:#fff;background:color-mix(in srgb,var(--rc) 12%,transparent)}
+
+.btn-ghost{border-color:var(--line);color:var(--bone-dim)}
+
+.btn-ghost:hover:not(:disabled){border-color:var(--gold-soft);color:var(--gold)}
+
+.btn-danger{border-color:rgba(176,24,24,.4);color:#d97a7a}
+
+.btn-danger:hover:not(:disabled){background:rgba(176,24,24,.12)}
+
+.progress{height:6px;background:rgba(0,0,0,.4);border:1px solid var(--line);overflow:hidden}
+
+.progress i{display:block;height:100%;width:0;background:linear-gradient(90deg,var(--blood),var(--rc),var(--gold));transition:width .35s}
+
+.log{background:rgba(0,0,0,.45);border:1px solid var(--line);padding:.7rem .9rem;font-family:var(--mono);
+
+  font-size:11px;color:#9fbf9a;max-height:120px;overflow-y:auto;line-height:1.7}
+
+.log .warn{color:var(--gold)}.log .err{color:#d97a7a}.log .dim{color:#6f6450}
+
+.log::after{content:'▌';animation:blink 1s steps(1) infinite;color:#3a4a36}
+
+@keyframes blink{50%{opacity:0}}
+
+
+
+/* repo rows */
+
+.toolbar{display:flex;flex-wrap:wrap;gap:.7rem 1rem;align-items:center;margin-bottom:.8rem}
+
+#search{flex:1;min-width:200px;max-width:380px;background:rgba(0,0,0,.35);border:1px solid var(--line);
+
+  color:var(--ink);font-family:var(--mono);font-size:12.5px;padding:.6rem .8rem;outline:none}
+
+#search:focus{border-color:var(--r-obs)}
+
+.chips{display:flex;gap:.45rem;overflow-x:auto;padding-bottom:.4rem;scrollbar-width:none}
+
+.chips::-webkit-scrollbar{display:none}
+
+.chip{font-family:var(--mono);font-size:10.5px;padding:.36rem .8rem;border:1px solid var(--line);color:var(--bone-dim);
+
+  background:transparent;cursor:pointer;display:inline-flex;align-items:center;gap:.45rem;white-space:nowrap;transition:.2s}
+
+.chip i{width:7px;height:7px;background:var(--cc);box-shadow:0 0 7px var(--cc);flex:none}
+
+.chip:hover{border-color:var(--cc);color:var(--bone)}
+
+.chip.active{background:color-mix(in srgb,var(--cc) 16%,transparent);border-color:var(--cc);color:var(--cc)}
+
+.filterbar{display:flex;flex-wrap:wrap;gap:.4rem;align-items:center;margin:.4rem 0 1rem}
+
+.filterbar .fl{font-family:var(--mono);font-size:9px;letter-spacing:.18em;text-transform:uppercase;color:#7d6f57;margin-right:.2rem}
+
+.fchip{font-family:var(--mono);font-size:10px;padding:.26rem .6rem;border:1px solid var(--line);color:var(--bone-dim);
+
+  background:transparent;cursor:pointer;transition:.2s}
+
+.fchip:hover{border-color:var(--r-obs);color:var(--bone)}
+
+.fchip.on{background:color-mix(in srgb,var(--r-obs) 16%,transparent);border-color:var(--r-obs);color:var(--r-obs)}
+
+.row{display:grid;grid-template-columns:64px 1fr;gap:1rem;padding:1rem .7rem;border-bottom:1px solid var(--line);
+
+  position:relative;transition:.25s}
+
+.row::before{content:'';position:absolute;left:0;top:16%;bottom:16%;width:2px;background:var(--r-obs);transform:scaleY(0);transform-origin:top;transition:.3s}
+
+.row:hover{background:linear-gradient(90deg,color-mix(in srgb,var(--r-obs) 7%,transparent),transparent 60%)}
+
+.row:hover::before{transform:scaleY(1)}
+
+.mag{display:flex;justify-content:center;padding-top:.2rem}
+
+.mag i{display:block;border-radius:50%;
+
+  background:radial-gradient(circle at 32% 30%,#fff 0%,var(--r-obs) 44%,color-mix(in srgb,var(--r-obs) 22%,transparent) 80%);
+
+  box-shadow:0 0 9px color-mix(in srgb,var(--r-obs) 55%,transparent);transition:.3s}
+
+.row:hover .mag i{transform:scale(1.16)}
+
+.rline1{display:flex;align-items:baseline;gap:.7rem;flex-wrap:wrap}
+
+.rname{font-family:var(--serif);font-weight:600;font-size:1.12rem;color:var(--bone);text-decoration:none;transition:.2s}
+
+.rname:hover{color:var(--r-obs)}
+
+.rown{font-family:var(--mono);font-size:11px;color:#8a7c63}
+
+.badge{font-family:var(--mono);font-size:8.5px;letter-spacing:.12em;text-transform:uppercase;padding:.14rem .45rem;color:var(--bone-dim);border:1px solid var(--line)}
+
+.badge.lic{color:#9fc7a0;border-color:rgba(120,180,120,.3)}
+
+.badge.lic.bad{color:#d99a7a;border-color:rgba(200,120,90,.3)}
+
+.badge.role{color:var(--r-scout);border-color:rgba(55,160,148,.3)}
+
+.badge.role.ok{color:#9fc7a0;border-color:rgba(120,180,120,.3)}
+
+.badge.proj{color:var(--gold);border-color:rgba(202,162,74,.3)}
+
+.badge.rights{color:var(--r-stew);border-color:rgba(207,70,54,.3)}
+
+.hp{font-family:var(--mono);font-size:10px;color:#9bb6c4;text-decoration:none;border-bottom:1px dotted #9bb6c4}
+
+.mini-btn{margin-left:auto;background:none;border:1px solid var(--line);color:var(--bone-dim);width:22px;height:22px;
+
+  line-height:1;cursor:pointer;font-size:12px;transition:.2s;flex:none;align-self:center}
+
+.mini-btn:hover{border-color:var(--r-obs);color:var(--r-obs)}
+
+.mini-btn.has{background:color-mix(in srgb,var(--gold) 14%,transparent);border-color:var(--gold-soft);color:var(--gold)}
+
+.rdesc{margin:.35rem 0 .5rem;color:var(--bone-dim);font-size:.95rem;max-width:88ch}
+
+.rmeta{display:flex;flex-wrap:wrap;gap:.35rem 1.1rem;font-family:var(--mono);font-size:11px;color:#8a7c63}
+
+.rmeta .lang i{display:inline-block;width:8px;height:8px;border-radius:50%;margin-right:.35rem;vertical-align:-1px}
+
+.rmeta .st{color:var(--gold)}
+
+.rtags{display:flex;flex-wrap:wrap;gap:.3rem;margin-top:.5rem}
+
+.rtags span{font-family:var(--mono);font-size:9.5px;padding:.14rem .5rem;border:1px solid var(--line);color:#8a7c63}
+
+.rextra,.annbox,.rightbox{display:none;margin-top:.8rem;padding:.9rem 1rem;border-left:2px solid var(--r-obs);background:rgba(0,0,0,.25)}
+
+.row.open .rextra{display:block;animation:rise .3s both}
+
+.annbox.open{display:block;animation:rise .3s both;border-left-color:var(--gold)}
+
+.rightbox.open{display:block;animation:rise .3s both;border-left-color:var(--r-stew)}
+
+.rextra pre{white-space:pre-wrap;font-family:var(--mono);font-size:11.5px;color:#a99c83;max-height:240px;overflow-y:auto;margin:.2rem 0 0}
+
+@keyframes rise{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:none}}
+
+.ann-tags{display:flex;flex-wrap:wrap;gap:.3rem;margin-top:.4rem}
+
+.atag{font-family:var(--mono);font-size:9.5px;padding:.2rem .5rem;cursor:pointer;transition:.2s}
+
+.atag.sug{color:var(--r-scout);border:1px dashed rgba(55,160,148,.4)}
+
+.atag.ok{color:#9fc7a0;border:1px solid rgba(120,180,120,.4)}
+
+.atag:hover{transform:scale(1.05)}
+
+.projrow{display:flex;gap:.5rem;align-items:center;padding:.3rem 0;border-bottom:1px solid var(--line);font-family:var(--mono);font-size:10.5px}
+
+.projrow .pn{color:var(--gold);min-width:84px}.projrow .pc{color:#8a7c63;flex:1}
+
+.saved-msg{font-family:var(--serif);font-style:italic;font-size:.85rem;color:#9fc7a0;opacity:0;transition:.3s}
+
+.saved-msg.show{opacity:1}
+
+
+
+/* cartographer matrix */
+
+.projcard{border:1px solid color-mix(in srgb,var(--r-cart) 28%,var(--line));padding:1rem 1.1rem;margin-bottom:.7rem;
+
+  background:rgba(0,0,0,.25);transition:.25s}
+
+.projcard:hover{border-color:var(--r-cart);background:rgba(205,162,76,.04)}
+
+.projcard h4{font-family:var(--frak);font-size:1.5rem;color:var(--r-cart);margin:0 0 .15rem;line-height:1}
+
+.projcard .pd{font-family:var(--serif);font-size:.9rem;color:var(--bone-dim);margin:0 0 .6rem;max-width:70ch}
+
+.projcard .members{display:flex;flex-wrap:wrap;gap:.35rem}
+
+.projcard .members a{font-family:var(--mono);font-size:10px;padding:.2rem .5rem;border:1px solid var(--line);color:var(--bone-dim);text-decoration:none;transition:.2s}
+
+.projcard .members a:hover{border-color:var(--r-cart);color:var(--bone)}
+
+.projcard .members a .conf{color:var(--r-cart)}
+
+
+
+/* scout results */
+
+.sr{display:grid;grid-template-columns:auto 1fr;gap:.9rem;padding:.7rem .9rem;border:1px solid color-mix(in srgb,var(--r-scout) 22%,var(--line));
+
+  margin-bottom:.5rem;background:rgba(0,0,0,.2);transition:.25s}
+
+.sr:hover{border-color:var(--r-scout)}
+
+.sr .sc{font-family:var(--frak);font-size:1.6rem;color:var(--r-scout);line-height:1}
+
+.sr a{font-family:var(--serif);font-weight:600;color:var(--bone);text-decoration:none}
+
+.sr a:hover{color:var(--r-scout)}
+
+.sr small{font-family:var(--mono);font-size:10px;color:#8a7c63;display:block;margin-top:.2rem}
+
+.disc-user{display:grid;grid-template-columns:1fr auto;gap:.5rem;padding:.7rem .9rem;border:1px solid color-mix(in srgb,var(--r-scout) 22%,var(--line));margin-bottom:.5rem}
+
+.disc-user .un{font-family:var(--mono);font-size:12px;color:var(--r-scout)}
+
+.disc-user .um{font-family:var(--mono);font-size:9.5px;color:#8a7c63;margin-top:.2rem}
+
+.disc-user .us{font-family:var(--frak);font-size:1.5rem;color:var(--r-scout);align-self:center}
+
+
+
+/* curator board */
+
+.cur-row{display:grid;grid-template-columns:1fr auto;gap:1rem;align-items:center;padding:.7rem .9rem;border-bottom:1px solid var(--line)}
+
+.cur-row .cn{font-family:var(--serif);font-weight:600;color:var(--bone)}
+
+.cur-row .cm{font-family:var(--mono);font-size:10px;color:#8a7c63;margin-top:.2rem}
+
+.cur-row .cb{display:flex;gap:.3rem;flex-wrap:wrap;justify-content:flex-end}
+
+.prio{font-family:var(--mono);font-size:9px;letter-spacing:.1em;padding:.14rem .45rem;border:1px solid var(--line)}
+
+.prio.P0{color:#d97a7a;border-color:rgba(200,90,90,.4)}.prio.P1{color:var(--gold);border-color:rgba(202,162,74,.4)}
+
+.prio.P2{color:var(--r-scout);border-color:rgba(55,160,148,.3)}.prio.WATCH{color:var(--bone-dim)}
+
+
+
+/* ledger */
+
+.led-row{padding:.8rem 1rem;border:1px solid color-mix(in srgb,var(--r-led) 26%,var(--line));margin-bottom:.6rem;background:rgba(0,0,0,.25)}
+
+.led-row .lh{display:flex;justify-content:space-between;align-items:center}
+
+.led-row .lr{font-family:var(--serif);font-weight:600;color:var(--parch)}
+
+.seal{font-family:var(--mono);font-size:8.5px;letter-spacing:.12em;text-transform:uppercase;padding:.16rem .5rem}
+
+.seal.NO_RESPONSE{color:var(--bone-dim);border:1px solid var(--line)}
+
+.seal.PERMISSION_WITH_CONDITIONS,.seal.FULL_REQUESTED_PERMISSION,.seal.LICENSE_ADDED{color:#9fc7a0;border:1px solid rgba(120,180,120,.4)}
+
+.seal.DECLINED,.seal.WITHDRAWN{color:#d97a7a;border:1px solid rgba(200,90,90,.4)}
+
+.seal.VAGUE_APPROVAL,.seal.PARTIAL_PERMISSION{color:var(--gold);border:1px solid rgba(202,162,74,.4)}
+
+.led-row .lm{font-family:var(--mono);font-size:10px;color:#8a7c63;margin-top:.3rem}
+
+
+
+/* BUTLER console */
+
+.butler-stage{position:relative;border:1px solid color-mix(in srgb,var(--r-but) 40%,var(--line));
+
+  background:radial-gradient(90% 120% at 50% -10%, rgba(192,31,51,.10), transparent 60%), rgba(8,2,3,.7);
+
+  box-shadow:inset 0 0 90px rgba(0,0,0,.6), 0 30px 80px rgba(0,0,0,.5)}
+
+.butler-stage::before{content:'';position:absolute;top:0;left:50%;transform:translateX(-50%);width:60%;height:120px;pointer-events:none;
+
+  background:radial-gradient(closest-side at 50% 0%, rgba(255,238,210,.10), transparent 70%)}
+
+.butler-prompt{padding:1.6rem 1.4rem 1rem;position:relative}
+
+.butler-ask{font-family:var(--frak);font-size:1.4rem;color:var(--bone);margin:0 0 .8rem}
+
+.butler-ask em{color:var(--r-but);font-style:normal}
+
+#butlerInput{width:100%;background:rgba(0,0,0,.5);border:1px solid color-mix(in srgb,var(--r-but) 40%,var(--line));
+
+  color:var(--parch);font-family:var(--serif);font-size:1.15rem;font-style:italic;padding:.85rem 1rem;outline:none;transition:.25s}
+
+#butlerInput:focus{border-color:var(--r-but);box-shadow:0 0 0 2px rgba(192,31,51,.2)}
+
+#butlerInput::placeholder{color:#6f5a48;font-style:italic}
+
+.butler-ex{display:flex;flex-wrap:wrap;gap:.4rem;margin-top:.8rem}
+
+.butler-ex button{font-family:var(--serif);font-style:italic;font-size:.85rem;color:var(--bone-dim);background:transparent;
+
+  border:1px solid var(--line);padding:.3rem .7rem;cursor:pointer;transition:.2s}
+
+.butler-ex button:hover{border-color:var(--r-but);color:var(--parch)}
+
+.butler-reply{padding:0 1.4rem 1.6rem}
+
+.butler-voice{font-family:var(--serif);font-style:italic;font-size:1.1rem;color:var(--bone);border-left:2px solid var(--r-but);
+
+  padding-left:1rem;margin:0 0 1.2rem;min-height:1.4em}
+
+.butler-voice .sir{color:var(--r-but);font-style:normal;font-family:var(--frak);font-size:1.3rem;vertical-align:-2px}
+
+.truth-legend{display:flex;flex-wrap:wrap;gap:.7rem;margin-bottom:1rem;font-family:var(--mono);font-size:9px;letter-spacing:.1em}
+
+.truth-legend span{display:inline-flex;align-items:center;gap:.35rem;color:#8a7c63}
+
+.truth-legend i{width:8px;height:8px}
+
+.t-SOURCE{background:#9c8a6a}.t-INFERENCE{background:var(--r-scout)}.t-ASSESSMENT{background:#7fae7f}
+
+.t-EVIDENCE{background:var(--gold)}.t-PERMISSION{background:var(--r-but)}
+
+.bcard{border:1px solid color-mix(in srgb,var(--r-but) 30%,var(--line));padding:.9rem 1rem;margin-bottom:.7rem;
+
+  background:rgba(0,0,0,.3);position:relative;transition:.25s}
+
+.bcard:hover{border-color:var(--r-but);background:rgba(192,31,51,.04)}
+
+.bcard .bn{font-family:var(--serif);font-weight:600;font-size:1.1rem;color:var(--parch)}
+
+.bcard .bo{font-family:var(--mono);font-size:10px;color:#8a7c63}
+
+.bcard .btruth{display:flex;flex-wrap:wrap;gap:.3rem;margin:.5rem 0}
+
+.bcard .btruth span{font-family:var(--mono);font-size:8px;letter-spacing:.1em;padding:.12rem .4rem;color:#1a0608}
+
+.bcard .bprose{font-family:var(--serif);font-size:.92rem;color:var(--bone-dim);font-style:italic}
+
+.bcard .bprose b{color:var(--parch);font-style:normal}
+
+.bcard .bacts{margin-top:.6rem;display:flex;gap:.4rem}
+
+.bcard .bacts button{font-family:var(--mono);font-size:9.5px;letter-spacing:.08em;padding:.3rem .6rem;border:1px solid var(--line);
+
+  color:var(--bone-dim);background:transparent;cursor:pointer;transition:.2s}
+
+.bcard .bacts button:hover{border-color:var(--r-but);color:var(--parch)}
+
+.butler-empty{font-family:var(--serif);font-style:italic;color:#6f5a48;padding:1rem 0}
+
+
+
+/* misc */
+
+#toast{position:fixed;left:50%;bottom:1.5rem;transform:translate(-50%,18px);z-index:80;opacity:0;
+
+  background:#1a0608;border:1px solid var(--crimson);color:var(--parch);font-family:var(--serif);font-style:italic;
+
+  font-size:.95rem;padding:.7rem 1.3rem;pointer-events:none;transition:.3s;box-shadow:0 12px 34px rgba(0,0,0,.6);max-width:90vw}
+
+#toast.show{opacity:1;transform:translate(-50%,0)}
+
+#drop{position:fixed;inset:0;z-index:70;display:none;align-items:center;justify-content:center;background:rgba(8,2,3,.9);
+
+  border:2px dashed var(--crimson);pointer-events:none}
+
+#drop.show{display:flex}
+
+#drop div{font-family:var(--frak);font-size:clamp(1.4rem,4vw,2.6rem);color:var(--crimson-bright)}
+
+#toTop{position:fixed;right:1.3rem;bottom:1.3rem;width:44px;height:44px;border:1px solid var(--crimson);
+
+  background:rgba(12,3,4,.9);color:var(--crimson-bright);font-family:var(--frak);font-size:1.4rem;cursor:pointer;
+
+  opacity:0;pointer-events:none;transition:.3s;z-index:50}
+
+#toTop.show{opacity:1;pointer-events:auto}
+
+#toTop:hover{background:var(--crimson);color:#fff}
+
+footer{border-top:1px solid var(--line);margin-top:3rem;padding:2.4rem 0 4rem;position:relative;z-index:5}
+
+footer .wrap{display:flex;flex-wrap:wrap;gap:1rem 2.2rem;justify-content:space-between;font-family:var(--mono);font-size:10px;letter-spacing:.12em;color:#6f5a48}
+
+footer b{color:var(--gold-soft)}
+
+.js .reveal{opacity:0;transform:translateY(18px)}
+
+.js .reveal.in{animation:rise .6s cubic-bezier(.2,.7,.3,1) both}
+
+@media(max-width:760px){
+
+  .room-head{grid-template-columns:1fr}.row{grid-template-columns:1fr}.mag{display:none}
+
+  .stat{margin-right:1rem;padding-right:1rem}
+
+}
+
+@media(prefers-reduced-motion:reduce){*,*::before,*::after{animation:none!important;transition:none!important}.js .reveal{opacity:1;transform:none}html{scroll-behavior:auto}}
+
+</style>
+
+</head>
+
+<body>
+
+<canvas id="motes"></canvas>
+
+<div class="grain"></div>
+
+<div class="vignette"></div>
+
+
+
+<!-- room navigation -->
+
+<nav id="roomnav"><div class="wrap">
+
+  <a class="rn" href="#vestibule" style="--rc:var(--crimson)"><span class="ini">A</span><span class="nm">Alfred</span></a>
+
+  <a class="rn" href="#room-observatory" style="--rc:var(--r-obs)"><span class="ini">O</span><span class="nm">Observatory</span></a>
+
+  <a class="rn" href="#room-cartographer" style="--rc:var(--r-cart)"><span class="ini">C</span><span class="nm">Cartographer</span></a>
+
+  <a class="rn" href="#room-scout" style="--rc:var(--r-scout)"><span class="ini">S</span><span class="nm">Scout</span></a>
+
+  <a class="rn" href="#room-curator" style="--rc:var(--r-cur)"><span class="ini">C</span><span class="nm">Curator</span></a>
+
+  <a class="rn" href="#room-steward" style="--rc:var(--r-stew)"><span class="ini">S</span><span class="nm">Steward</span></a>
+
+  <a class="rn" href="#room-ledger" style="--rc:var(--r-led)"><span class="ini">L</span><span class="nm">Ledger</span></a>
+
+  <a class="rn" href="#room-butler" style="--rc:var(--r-but)"><span class="ini">B</span><span class="nm">Butler</span></a>
+
+</div></nav>
+
+
+
+<!-- VESTIBULE -->
+
+<header class="vest" id="vestibule">
+
+  <div class="spot"></div>
+
+  <div class="tableau"><span class="glass short"></span><span class="glass tall"></span><span class="glass"></span></div>
+
+  <div class="wrap">
+
+    <div class="vest-grid">
+
+      <div>
+
+        <div class="kicker" style="margin-bottom:.6rem">Repo-Intelligence · Discovery · Rights Clearance</div>
+
+        <div class="alfred-mark">Alfred</div>
+
+        <p class="vest-sub">Sehr wohl, Sir. Das Archiv ist gedeckt.</p>
+
+        <p class="vest-credo">Ich führe Buch über jedes Werkzeug in Ihrem Besitz — <b>was es ist</b>, <b>wofür es taugt</b>,
+
+          <b>woher es stammt</b> und <b>ob Sie das Recht haben, es zu führen</b>. Die Sternkarte ist mein Lesesaal;
+
+          hinter der letzten Tür nehme ich Ihre Fragen entgegen.</p>
+
+        <div class="stats-row">
+
+          <div class="stat"><b data-k="repos">0</b><span>Repos im Archiv</span></div>
+
+          <div class="stat"><b data-k="stars">0</b><span>Sterne gesamt</span></div>
+
+          <div class="stat"><b data-k="proj">0</b><span>Projekte</span></div>
+
+          <div class="stat"><b data-k="annotated">0</b><span>Einordnungen</span></div>
+
+          <div class="stat"><b data-k="rights">0</b><span>Rechteprüfungen</span></div>
+
+        </div>
+
+      </div>
+
+      <div class="vest-portrait">
+
+        <div class="portrait-frame">
+
+          <div class="silh"></div><div class="glove"></div>
+
+          <div class="portrait-cap">Der Butler · im Dienst seit dem ersten Stern</div>
+
+        </div>
+
+      </div>
+
+    </div>
+
+  </div>
+
+</header>
+
+
+
+<!-- OBSERVATORY -->
+
+<section class="room" id="room-observatory" style="--rc:var(--r-obs)">
+
+  <div class="wrap">
+
+    <div class="room-head reveal">
+
+      <div class="room-ini">O</div>
+
+      <div>
+
+        <div class="room-no">Raum <b>I</b> · Lesesaal & Fernrohr</div>
+
+        <h2 class="room-title">Observatory</h2>
+
+        <p class="room-desc">Die Sternkarte. Hier liegt das Archiv offen: Spektralklassen, Helligkeit nach Sternen,
+
+          Volltext, READMEs. Der helle Raum oben im Haus — Bernstein auf Samt.</p>
+
+      </div>
+
+    </div>
+
+
+
+    <div class="panel reveal" id="p-con">
+
+      <div class="panel-head" data-collapse="p-con"><span class="led" id="led"></span>
+
+        <span class="panel-title">Beobachtungskonsole · GitHub-API</span>
+
+        <span class="panel-state" id="conState">kein lokaler Cache</span><button class="panel-tog">▾</button></div>
+
+      <div class="panel-body">
+
+        <div class="grid">
+
+          <div class="field"><label>Quelle</label><div class="seg" id="segSrc">
+
+            <button data-src="starred" class="on">★ Starred</button><button data-src="repos">Eigene Repos</button></div></div>
+
+          <div class="field"><label>GitHub-Username</label><input id="ghUser" placeholder="z. B. Lootz" autocomplete="off"></div>
+
+          <div class="field"><label>Seiten (×100)</label><input type="number" id="ghPages" min="1" max="100" value="9">
+
+            <div class="hint">9 Seiten ≈ 900 Repos</div></div>
+
+          <div class="field"><label>Personal Access Token</label><input type="password" id="pat" placeholder="ghp_… (optional)">
+
+            <div class="hint">bleibt nur im Tab · 60 → 5.000/h</div></div>
+
+        </div>
+
+        <label class="tgl"><input type="checkbox" id="autoReadme"><i></i>READMEs im Hintergrund nachladen</label>
+
+        <div class="actions">
+
+          <button class="btn btn-seal" id="btnStart">▶ Start</button>
+
+          <button class="btn btn-line" id="btnSql">⛃ SQLite</button>
+
+          <button class="btn btn-line" id="btnJson">⤓ JSON</button>
+
+          <button class="btn btn-line" id="btnAnn">✦ Einordnungen</button>
+
+          <button class="btn btn-danger" id="btnReset">↺ Reset</button>
+
+        </div>
+
+        <div><div class="progress"><i id="pbar"></i></div></div>
+
+        <div class="log" id="plog"></div>
+
+      </div>
+
+    </div>
+
+
+
+    <div class="panel reveal" id="p-dbm" style="margin-top:1rem">
+
+      <div class="panel-head" data-collapse="p-dbm"><span class="led"></span>
+
+        <span class="panel-title">DB-Manager · SQLite-Import</span>
+
+        <span class="panel-state" id="dbState">lädt …</span><button class="panel-tog">▾</button></div>
+
+      <div class="panel-body">
+
+        <div class="actions"><button class="btn btn-line" id="btnDbImport">⛁ Datenbank laden (.sqlite / .db)</button>
+
+          <span class="mono" style="font-size:10px;color:#7d6f57">oder Datei hierher ziehen — erkennt starred_repos (title/link/readme)</span></div>
+
+        <div id="dbList"></div><div id="dbSchema"></div>
+
+      </div>
+
+    </div>
+
+
+
+    <div class="reveal" style="margin-top:1.4rem">
+
+      <div class="toolbar">
+
+        <input id="search" type="search" placeholder="Name, Besitzer, Thema, Sprache …  [/]">
+
+        <span id="hitcount" class="mono" style="font-size:10.5px;color:#8a7c63"></span>
+
+        <span class="mono" style="font-size:9.5px;letter-spacing:.14em;color:#7d6f57">SORTIERUNG</span>
+
+        <select id="sort" style="background:rgba(0,0,0,.35);border:1px solid var(--line);color:var(--ink);font-family:var(--mono);font-size:11px;padding:.4rem .5rem">
+
+          <option value="s">★ Helligkeit</option><option value="p">Zuletzt aktiv</option><option value="n">A – Z</option><option value="ann">Einordnung</option></select>
+
+        <button class="btn btn-seal" id="importBtn">⤒ Datei laden</button>
+
+        <input type="file" id="fileIn" accept=".json,.md,.txt,.sqlite,.db,.sqlite3" hidden multiple>
+
+      </div>
+
+      <div class="chips" id="chips"></div>
+
+      <div class="filterbar" id="filterbar">
+
+        <span class="fl">Projekt</span><span id="projFilters"></span>
+
+        <span class="fl" style="margin-left:.8rem">Rolle</span><span id="roleFilters"></span>
+
+        <span class="fl" style="margin-left:.8rem">Status</span><span id="statusFilters"></span>
+
+      </div>
+
+      <main id="catalog"></main>
+
+    </div>
+
+  </div>
+
+</section>
+
+
+
+<!-- CARTOGRAPHER -->
+
+<section class="room" id="room-cartographer" style="--rc:var(--r-cart)">
+
+  <div class="wrap">
+
+    <div class="room-head reveal">
+
+      <div class="room-ini">C</div>
+
+      <div>
+
+        <div class="room-no">Raum <b>II</b> · Karten & Zuordnung</div>
+
+        <h2 class="room-title">Cartographer</h2>
+
+        <p class="room-desc">Ich zeichne die Landkarte: technische Domänen, mögliche Rollen, Projekt-Fits.
+
+          Vorschläge trage ich in Messing ein — Ihre Bestätigung in Grün, Ihr Verwerfen durchgestrichen.
+
+          Ein Repo darf vielen Ländern zugleich angehören.</p>
+
+      </div>
+
+    </div>
+
+    <div class="reveal" id="projMatrix"></div>
+
+  </div>
+
+</section>
+
+
+
+<!-- SCOUT -->
+
+<section class="room" id="room-scout" style="--rc:var(--r-scout)">
+
+  <div class="wrap">
+
+    <div class="room-head reveal">
+
+      <div class="room-ini">S</div>
+
+      <div>
+
+        <div class="room-no">Raum <b>III</b> · Späher & Entdeckung</div>
+
+        <h2 class="room-title">Scout</h2>
+
+        <p class="room-desc">Ich suche nach Absicht, nicht nach Wörtern — drei getrennte Vektoren pro Repo
+
+          (Inhalt, Beweggrund, Projekt-Fit). Und ich spähe ähnlichen Kuratoren nach, um Sterne zu finden,
+
+          die Sie noch nicht kennen.</p>
+
+      </div>
+
+    </div>
+
+    <div class="panel reveal" id="p-sem">
+
+      <div class="panel-head" data-collapse="p-sem"><span class="led"></span>
+
+        <span class="panel-title">Semantische Suche · TF-IDF, lokal</span>
+
+        <span class="panel-state" id="searchState">Index nicht gebaut</span><button class="panel-tog">▾</button></div>
+
+      <div class="panel-body">
+
+        <div class="actions"><button class="btn btn-line" id="btnBuildIndex">⚡ Index bauen</button></div>
+
+        <div class="field"><label>Suchanfrage (Absicht)</label>
+
+          <input id="semQuery" placeholder="z. B. visueller Node-Editor mit Undo als Architektur-Spender für SPIN"></div>
+
+        <div class="grid">
+
+          <div class="field"><label>Modus</label><select id="semMode">
+
+            <option value="combined">Kombiniert</option><option value="content">Nur Inhalt</option>
+
+            <option value="intent">Nur Beweggrund</option><option value="project">Nur Projekt-Fit</option></select></div>
+
+          <div class="field"><label>Projekt-Filter</label><select id="semProject"><option value="">Alle</option></select></div>
+
+          <div class="field"><label>Treffer</label><select id="semLimit"><option value="10">10</option><option value="20">20</option><option value="50">50</option></select></div>
+
+        </div>
+
+        <div class="actions"><button class="btn btn-seal" id="btnSemSearch">🔍 Suchen</button></div>
+
+        <div id="semResults"></div>
+
+      </div>
+
+    </div>
+
+    <div class="panel reveal" id="p-disc" style="margin-top:1rem">
+
+      <div class="panel-head" data-collapse="p-disc"><span class="led"></span>
+
+        <span class="panel-title">Kuratoren-Radar · Discovery</span>
+
+        <span class="panel-state" id="discState">keine Nutzer gecrawlt</span><button class="panel-tog">▾</button></div>
+
+      <div class="panel-body">
+
+        <div class="grid">
+
+          <div class="field"><label>Nutzer crawlen (Starred)</label><input id="discUser" placeholder="GitHub-Username"></div>
+
+          <div class="field"><label>Seiten</label><input type="number" id="discPages" min="1" max="30" value="5"></div>
+
+        </div>
+
+        <div class="actions">
+
+          <button class="btn btn-line" id="btnCrawlUser">📡 Crawlen</button>
+
+          <button class="btn btn-ghost" id="btnFindSimilar">🧭 Ähnliche finden</button>
+
+          <button class="btn btn-ghost" id="btnDiscover">✦ Neue Repos vorschlagen</button>
+
+        </div>
+
+        <div id="discUsers"></div><div id="discRecs"></div>
+
+      </div>
+
+    </div>
+
+  </div>
+
+</section>
+
+
+
+<!-- CURATOR -->
+
+<section class="room" id="room-curator" style="--rc:var(--r-cur)">
+
+  <div class="wrap">
+
+    <div class="room-head reveal">
+
+      <div class="room-ini">C</div>
+
+      <div>
+
+        <div class="room-no">Raum <b>IV</b> · Bewertungstafel</div>
+
+        <h2 class="room-title">Curator</h2>
+
+        <p class="room-desc">Hier entscheide ich mit Ihnen: warum gestarred, welche Priorität, wie tief geprüft,
+
+          welcher Stand. Sepia auf dunklem Holz — die Tafel, an der ich Ihre Urteile festhalte.</p>
+
+      </div>
+
+    </div>
+
+    <div class="panel reveal">
+
+      <div class="panel-head"><span class="led"></span><span class="panel-title">Bewertungsregister</span>
+
+        <span class="panel-state" id="curState"></span></div>
+
+      <div class="panel-body" style="padding:0"><div id="curBoard"></div></div>
+
+    </div>
+
+  </div>
+
+</section>
+
+
+
+<!-- STEWARD -->
+
+<section class="room" id="room-steward" style="--rc:var(--r-stew)">
+
+  <div class="wrap">
+
+    <div class="room-head reveal">
+
+      <div class="room-ini">S</div>
+
+      <div>
+
+        <div class="room-no">Raum <b>V</b> · Rechte & Siegel</div>
+
+        <h2 class="room-title">Steward</h2>
+
+        <p class="room-desc">„Ask for Allowance.“ Ich prüfe die Lizenzlage, ermittle den Kontaktweg und setze
+
+          eine menschliche Anfrage auf — niemals blind gesendet. Siegelrot, wie das Wachs auf dem Brief.</p>
+
+      </div>
+
+    </div>
+
+    <div class="panel reveal" id="p-rights">
+
+      <div class="panel-head" data-collapse="p-rights"><span class="led"></span>
+
+        <span class="panel-title">Rechteprüfung vorbereiten</span><span class="panel-state"></span><button class="panel-tog">▾</button></div>
+
+      <div class="panel-body">
+
+        <div class="grid">
+
+          <div class="field"><label>Repository</label><select id="rfRepo"></select></div>
+
+          <div class="field"><label>Lizenzstatus (erkannt)</label><select id="rfLic">
+
+            <option>NO_LICENSE_FOUND</option><option>LICENSE_DETECTED</option><option>README_LICENSE_ONLY</option>
+
+            <option>CUSTOM_LICENSE</option><option>CONFLICTING_LICENSE_INFORMATION</option></select></div>
+
+          <div class="field"><label>Ziel-Projekt</label><select id="rfProject"></select></div>
+
+          <div class="field"><label>Komponente / Datei</label><input id="rfComp" placeholder="z. B. src/editor/node-registry.ts"></div>
+
+          <div class="field"><label>Verwendung</label><select id="rfUse">
+
+            <option>lokal verwenden</option><option>verändern</option><option>integrieren</option><option>weitergeben</option>
+
+            <option>veröffentlichen</option><option>kommerziell nutzen</option><option>für Modelltraining</option></select></div>
+
+          <div class="field"><label>Commit / Release</label><input id="rfRef" placeholder="a61d8c4 oder v2.1.0"></div>
+
+          <div class="field"><label>Kontaktweg</label><select id="rfChan">
+
+            <option>README / CONTRIBUTING</option><option>Website / E-Mail</option><option>GitHub Discussions</option>
+
+            <option>GitHub Issue</option><option>Profiladresse</option><option>Keine Möglichkeit</option></select></div>
+
+          <div class="field"><label>Attribution</label><input id="rfAttr" placeholder="Credits in README + NOTICE"></div>
+
+        </div>
+
+        <div class="field"><label>Begründung (warum gerade dieses Stück)</label>
+
+          <textarea id="rfWhy" rows="2" placeholder="Die Trennung aus Core, Viewer und Editor ist genau die Architektur, die ich für SPIN prüfe …"></textarea></div>
+
+        <div class="field"><label>Generierte Nachricht (Vorschau)</label>
+
+          <textarea id="rfMsg" rows="8" readonly style="color:#a99c83"></textarea></div>
+
+        <div class="actions">
+
+          <button class="btn btn-ghost" id="btnGenMsg">Nachricht setzen</button>
+
+          <button class="btn btn-seal" id="btnSaveRights">✦ Ins Ledger legen</button>
+
+          <span class="saved-msg" id="rightsSaved">— ins Wachssiegel gedrückt.</span>
+
+        </div>
+
+      </div>
+
+    </div>
+
+  </div>
+
+</section>
+
+
+
+<!-- LEDGER -->
+
+<section class="room" id="room-ledger" style="--rc:var(--r-led)">
+
+  <div class="wrap">
+
+    <div class="room-head reveal">
+
+      <div class="room-ini">L</div>
+
+      <div>
+
+        <div class="room-no">Raum <b>VI</b> · Das Buch der Erlaubnisse</div>
+
+        <h2 class="room-title">Ledger</h2>
+
+        <p class="room-desc">Jede Anfrage, jede Antwort, jede Bedingung — unverändert abgeschrieben, mit Siegel.
+
+          Weinrot, der tiefere Keller. Hier steht, worauf sich ein Bauteil berufen darf.</p>
+
+      </div>
+
+    </div>
+
+    <div class="panel reveal">
+
+      <div class="panel-head"><span class="led"></span><span class="panel-title">Permission-Ledger</span>
+
+        <span class="panel-state" id="ledState">0 Einträge</span></div>
+
+      <div class="panel-body">
+
+        <div class="actions"><button class="btn btn-line" id="btnExportLedger">⤓ Ledger exportieren</button></div>
+
+        <div id="rightsLedger"></div>
+
+      </div>
+
+    </div>
+
+  </div>
+
+</section>
+
+
+
+<!-- BUTLER -->
+
+<section class="room" id="room-butler" style="--rc:var(--r-but)">
+
+  <div class="wrap">
+
+    <div class="room-head reveal">
+
+      <div class="room-ini">B</div>
+
+      <div>
+
+        <div class="room-no">Raum <b>VII</b> · Der tiefste Keller · Query-Engine</div>
+
+        <h2 class="room-title">Butler</h2>
+
+        <p class="room-desc">Hier sprechen Sie mich an. Ich übersetze Ihre Absicht in Filter über das ganze Haus
+
+          und antworte mit Buch, Beleg und Siegel — jede Aussage trägt ihre Wahrheitsschicht.
+
+          Bordeaux, das Herzstück.</p>
+
+      </div>
+
+    </div>
+
+    <div class="butler-stage reveal">
+
+      <div class="butler-prompt">
+
+        <p class="butler-ask">Fragen Sie <em>Alfred</em>.</p>
+
+        <input id="butlerInput" placeholder="„Node-Editor mit Undo für SPIN, kompatible Lizenz, mindestens Code-Scan …“">
+
+        <div class="butler-ex" id="butlerEx"></div>
+
+      </div>
+
+      <div class="butler-reply">
+
+        <p class="butler-voice" id="butlerVoice">Ich stehe bereit, Sir. Eine Frage genügt.</p>
+
+        <div class="truth-legend">
+
+          <span><i class="t-SOURCE"></i>SOURCE · GitHub behauptet</span>
+
+          <span><i class="t-INFERENCE"></i>INFERENCE · ich schließe</span>
+
+          <span><i class="t-ASSESSMENT"></i>ASSESSMENT · Sie entschieden</span>
+
+          <span><i class="t-EVIDENCE"></i>EVIDENCE · Beleg</span>
+
+          <span><i class="t-PERMISSION"></i>PERMISSION · Rechteinhaber</span>
+
+        </div>
+
+        <div id="butlerResults"></div>
+
+      </div>
+
+    </div>
+
+  </div>
+
+</section>
+
+
+
+<div id="drop"><div>Reichen Sie mir die Datei, Sir.</div></div>
+
+<div id="toast"></div>
+
+<button id="toTop" title="Nach oben">↑</button>
+
+
+
+<footer><div class="wrap">
+
+  <span><b>ALFRED</b> · Repo-Intelligence, Discovery & Rights Clearance</span>
+
+  <span>Observatory · Cartographer · Scout · Curator · Steward · Ledger · Butler</span>
+
+  <span>SOURCE · INFERENCE · ASSESSMENT · EVIDENCE · PERMISSION</span>
+
+</div></footer>
+
+
+
+<script>
+
+/* ═══════════════════ KONSTANTEN ═══════════════════ */
+
+const CATS=[
+
+{id:'agents',k:'G',n:'KI-Agenten & Automation',c:'#f0a93a'},
+
+{id:'genai',k:'M',n:'KI-Modelle & Generative Medien',c:'#e8743a'},
+
+{id:'llm',k:'O',n:'LLM-Training & Evaluation',c:'#d98a3a'},
+
+{id:'threejs',k:'A',n:'Three.js & Web-Grafik',c:'#caa24a'},
+
+{id:'glsl',k:'B',n:'Shader-Handwerk & GLSL',c:'#b9923f'},
+
+{id:'reshade',k:'K',n:'ReShade & Post-Processing',c:'#c97a3a'},
+
+{id:'mcshader',k:'F',n:'Minecraft-Shaderpacks',c:'#a8923a'},
+
+{id:'engine',k:'W',n:'Grafik-Engines & 3D',c:'#9c7d3a'},
+
+{id:'sim',k:'S',n:'Simulation: Wasser & Physik',c:'#8a9a4a'},
+
+{id:'mctools',k:'R',n:'Minecraft-Tools & Server',c:'#7fae5a'},
+
+{id:'music',k:'L',n:'Musik, MIDI & Sound',c:'#c06a8a'},
+
+{id:'anim',k:'T',n:'Animation & Kreative Tools',c:'#5aa89a'},
+
+{id:'retro',k:'Y',n:'Retro, Emulation & Gaming',c:'#b05aa0'},
+
+{id:'devops',k:'D',n:'DevOps, Self-Hosting & System',c:'#9a8a7a'},
+
+{id:'misc',k:'?',n:'Weitere Fundstücke',c:'#8a7c63'}
+
+];
+
+const ROM=['I','II','III','IV','V','VI','VII','VIII','IX','X','XI','XII','XIII','XIV','XV'];
+
+const ROLES=['DIRECT_USE','DEPENDENCY','SUBSYSTEM','DONOR_CODE','ARCH_REFERENCE','UX_REFERENCE','RESEARCH','INSPIRATION','WATCH','REJECTED'];
+
+const ROLE_LABELS={DIRECT_USE:'Direkt nutzbar',DEPENDENCY:'Abhängigkeit',SUBSYSTEM:'Subsystem',DONOR_CODE:'Code-Spender',ARCH_REFERENCE:'Architektur-Vorlage',UX_REFERENCE:'UX-Referenz',RESEARCH:'Forschung',INSPIRATION:'Inspiration',WATCH:'Beobachten',REJECTED:'Verworfen'};
+
+const INSPECT=['DISCOVERED','README_REVIEWED','CODE_SCANNED','LOCALLY_RUN','BENCHMARKED','INTEGRATED','REPLACED'];
+
+const DECSTATUS=['UNREVIEWED','AUTO_SUGGESTED','REVIEWED','INTEGRATION_CANDIDATE','ADOPTED','WATCH','REJECTED','REPLACED'];
+
+const PRIOS=['P0','P1','P2','P3','WATCH','UNSET'];
+
+const PROJECTS=[
+
+{id:'BARD',n:'BARD',d:'Autoren- & Weltfortschreibungssystem für lange Fiktion.',kw:['longform','story planning','agent orchestration','knowledge graph','graphrag','retrieval','lora','dpo','evaluation','anti-slop','hallucination','character memory','narrative consistency','world delta','canon','book','author']},
+
+{id:'MINIMI',n:'MINIMI',d:'Persönliche Stimme als Adapter.',kw:['lora','dora','qlora','peft','axolotl','unsloth','sft','dpo','preference','dataset curation','anti-slop','fine-tun','adapter','style transfer','voice']},
+
+{id:'REDTHREAD',n:'RED THREAD DB',d:'BARDs externes Gedächtnis.',kw:['graph database','postgresql','supabase','pgvector','neo4j','knowledge graph','graphrag','temporal graph','entity resolution','provenance','claim tracking','versioning','mcp state']},
+
+{id:'SPIN',n:'SPIN',d:'Visuelle, manipulierbare Oberfläche der Red-Thread-DB.',kw:['node editor','graph ui','canvas','direct manipulation','zustand','undo','redo','dirty nodes','visual programming','scene graph','react flow','rete','cytoscape','timeline editor','story editor']},
+
+{id:'MELLOWD',n:'MELLOW-D',d:'Verhalten der SPIN-Blöcke durch Bewegung.',kw:['animated ui','motion','state visualization','pixel agents','character interface','spatial ui','physics-based ui','behavioural animation','living interface','spring']},
+
+{id:'ANVIL',n:'ANVIL',d:'Werkzeug- & Agentenwerkstatt.',kw:['agent orchestration','mcp','workflow','node workflow','ide integration','theia','openhands','claude code','codex','plan execute verify','multi-agent','project state','task graph']},
+
+{id:'CUEAGENT',n:'CUE-AGENT',d:'Prüf- & Nachweisschicht.',kw:['test','verification','eval','benchmark','static analysis','evidence','provenance','reproducibility','validation','llm judge','rule engine','verifier']},
+
+{id:'ALFRED',n:'ALFRED',d:'Repo-Kenner & Butler (das bin ich).',kw:['github api','repo intelligence','code search','semantic search','repository map','developer assistant','project memory','documentation','mcp github','issue','pr analysis']},
+
+{id:'DRAGHUB',n:'DRAGHUB',d:'Desktop-Oberfläche für GitHub.',kw:['desktop ui','file explorer','git client','github client','multi-pane','window management','repository browser','file preview','electron','tauri','web desktop']},
+
+{id:'WIZARD',n:'WIZARD',d:'Asset- & Projektvorbereiter.',kw:['asset management','semantic asset search','image-to-3d','text-to-3d','photogrammetry','template','scene generation','model library','asset pipeline','blender automation','comfyui','generative media']},
+
+{id:'SWIFT',n:'SWIFT',d:'Geometrie-, SDF- & Konvertierungsschicht.',kw:['sdf','mesh processing','geometry','point cloud','voxel','gaussian splatting','depth estimation','normal map','reconstruction','meshing','decimation','retopology','computational geometry']},
+
+{id:'SHADED',n:'SHADED',d:'Shader-First-Weltsystem.',kw:['glsl','hlsl','wgsl','webgpu','three.js','shader graph','render graph','reshade','post-processing','gpu simulation','material','weather','water','fire','terrain','voxel lighting','texture injection','world field','shader compilation']},
+
+{id:'MUSE',n:'MUSE',d:'Zugängliches Musiksystem.',kw:['midi','audio','soundfont','pitch detection','source separation','gesture recognition','music editor','web audio','adaptive music','imuse','orchestration','audio ml','music generation']},
+
+{id:'TRIVIUM',n:'TRIVIUM',d:'Übersetzer zwischen Engines & Formaten.',kw:['converter','import','export','engine interoperability','gltf','fbx','unity','unreal','godot','asset translation','material translation','intermediate representation']},
+
+{id:'MIXTRACT',n:'MIXTRACT',d:'Extraktion & Reverse Engineering.',kw:['decompiler','binary analysis','asset extraction','rom extraction','game data','reverse engineering','apk','jar','recompilation','modding']},
+
+{id:'MYTHIC',n:'MYTHIC',d:'Eigene Deployment-Plattform.',kw:['self hosting','docker','deployment','ci/cd','vercel alternative','coolify','dokploy','buildpack','reverse proxy','domain','auto-healing']},
+
+{id:'BELLOWS',n:'BELLOWs',d:'Lokale Modell- & Inferenzschicht.',kw:['ollama','llama.cpp','vllm','gguf','quantization','local inference','model routing','api gateway','gpu scheduling']},
+
+{id:'GAIME',n:'GAIME',d:'RPG „QUEST ACCEPTED: UNFORTUNATELY“.',kw:['rpg','hd-2d','tilemap','dialogue','quest','pixel art','narrative game','korge','procedural content','game tool']},
+
+{id:'CATCHIT',n:'CATCHIT',d:'Stressarme ÖPNV-App.',kw:['transit','gtfs','journey planning','state machine','reliability','offline transit','accessibility','mobile ux','kotlin compose']},
+
+{id:'LAUNCHPAD',n:'LAUNCHPAD',d:'Kinderfreundliche Umgebung.',kw:['kiosk','parental control','child-safe','android','windows launcher','app curation','time limit','nfc','local network']}
+
+];
+
+const COMPAT_LIC=['MIT','BSD-3-Clause','BSD-2-Clause','Apache-2.0','CC0-1.0','ISC','0BSD','Unlicense'];
+
+const ROLE_KW={DIRECT_USE:['direkt','direct','nutzbar','library','bibliothek'],DEPENDENCY:['abhängigkeit','dependency','sdk'],
+
+SUBSYSTEM:['subsystem','teil'],DONOR_CODE:['code-spender','spender','donor','ausschlachten','snippet'],
+
+ARCH_REFERENCE:['architektur','vorlage','reference','blaupause','pattern'],UX_REFERENCE:['ux','oberfläche','interface','design'],
+
+RESEARCH:['forschung','research','paper','arxiv'],INSPIRATION:['inspiration','idee'],WATCH:['beobachten','watch','behalten'],
+
+REJECTED:['verworfen','rejected','nein','weg']};
+
+const INSPECT_KW={README_REVIEWED:['gelesen','readme','reviewed'],CODE_SCANNED:['code gescannt','code-scan','gescannt','scan'],
+
+LOCALLY_RUN:['lokal laufen','lokal gestartet','locally','ausprobiert'],BENCHMARKED:['benchmark','getestet','benchmarked'],
+
+INTEGRATED:['integriert','eingebaut','integrated'],DISCOVERED:['ungeprüft','unreviewed','entdeckt','discover']};
+
+const STATUS_KW={ADOPTED:['angenommen','adopted','genutzt'],INTEGRATION_CANDIDATE:['kandidat','candidate'],
+
+REVIEWED:['geprüft','reviewed'],WATCH:['beobachtet','watch'],REJECTED:['verworfen','rejected'],UNREVIEWED:['unreviewed','ungeprüft']};
+
+
+
+/* ═══════════════════ EINGEBETTETES ARCHIV (aus starred.md) ═══════════════════ */
+
+const INITIAL=[
+
+{n:'OpenMontage',o:'calesthio',d:"World's first open-source, agentic video production system.",l:'Python',s:42750,f:5157,p:'2026-07-24',t:['agent','agentic-ai','claude','video-production'],c:'agents',hp:'https://www.openmontage.video/',lic:'AGPL-3.0'},
+
+{n:'Star-Office-UI',o:'ringhyacinth',d:'A pixel office for your OpenClaw.',l:'HTML',s:7400,f:795,p:'2026-03-11',t:['pixel-art','multi-agent'],c:'agents',lic:'NOASSERTION'},
+
+{n:'gpt-author',o:'mshumer',d:'Keine Beschreibung hinterlegt.',l:'Jupyter Notebook',s:2528,f:349,p:'2024-04-03',t:[],c:'agents',lic:'MIT'},
+
+{n:'OpenDeepResearcher',o:'mshumer',d:'Keine Beschreibung hinterlegt.',l:'Jupyter Notebook',s:2776,f:359,p:'2025-05-02',t:[],c:'agents',lic:'MIT'},
+
+{n:'gpt-investor',o:'mshumer',d:'Keine Beschreibung hinterlegt.',l:'Jupyter Notebook',s:2260,f:278,p:'2024-03-26',t:[],c:'agents',lic:'MIT'},
+
+{n:'infinite-bookshelf',o:'Bklieger',d:'Generate entire books in seconds using Groq and Llama3.',l:'Python',s:1432,f:310,p:'2025-10-09',t:['ai','groq','llama3'],c:'agents',lic:'MIT'},
+
+{n:'ai-researcher',o:'mshumer',d:'Keine Beschreibung hinterlegt.',l:'Jupyter Notebook',s:949,f:104,p:'2024-04-29',t:[],c:'agents',lic:'MIT'},
+
+{n:'ai-journalist',o:'mshumer',d:'Keine Beschreibung hinterlegt.',l:'Jupyter Notebook',s:779,f:104,p:'2024-03-25',t:[],c:'agents',lic:'MIT'},
+
+{n:'gpt-pro-mode',o:'mshumer',d:'Keine Beschreibung hinterlegt.',l:'Jupyter Notebook',s:688,f:79,p:'2025-09-10',t:[],c:'agents'},
+
+{n:'unslop',o:'mshumer',d:'Keine Beschreibung hinterlegt.',l:'Python',s:500,f:28,p:'2026-03-18',t:[],c:'agents',lic:'MIT'},
+
+{n:'OpenReasoningEngine',o:'mshumer',d:'Keine Beschreibung hinterlegt.',l:'Python',s:191,f:17,p:'2024-11-27',t:[],c:'agents',lic:'MIT'},
+
+{n:'claude-code-os',o:'Hostingglobal-Tech',d:'Bootable LiveCD where Claude Code is the OS.',l:'Shell',s:104,f:25,p:'2026-06-21',t:[],c:'agents',lic:'MIT'},
+
+{n:'buildomator',o:'buildomator',d:'Structured plan/execute/verify coding workflow for Claude Code.',l:'TypeScript',s:84,f:10,p:'2026-07-27',t:[],c:'agents',lic:'MIT'},
+
+{n:'podcast-shorts-factory',o:'krakonjac300-pixel',d:'Ten cooperating AI agents turn podcasts into short-form videos.',l:'Python',s:80,f:29,p:'2026-07-23',t:['ai-agents','ffmpeg','llm'],c:'agents',lic:'MIT'},
+
+{n:'gpt-podcast',o:'mshumer',d:'Keine Beschreibung hinterlegt.',l:'Jupyter Notebook',s:47,f:10,p:'2023-09-06',t:[],c:'agents'},
+
+{n:'portal',o:'mshumer',d:'Keine Beschreibung hinterlegt.',l:'HTML',s:31,f:5,p:'2024-12-03',t:[],c:'agents',lic:'MIT'},
+
+{n:'DStudio',o:'sk8erboi17',d:'Run DeepSeek V4 fully local.',l:'HTML',s:21,f:0,p:'2026-07-22',t:['deepseek','local-ai'],c:'agents',lic:'BSD-3-Clause'},
+
+{n:'opencode-termux',o:'C04-wq',d:'OpenCode AI for Android Termux.',l:'Shell',s:20,f:2,p:'2026-07-27',t:[],c:'agents',lic:'MIT'},
+
+{n:'omni',o:'stevancarlon',d:'Open-source Android computer-use agent.',l:'Kotlin',s:9,f:3,p:'2026-07-26',t:['ai-agent','android'],c:'agents',lic:'Apache-2.0'},
+
+{n:'pixel-agents-web-ui',o:'JeerasakAnanta',d:'Pixel art office where Claude Code agents come to life.',l:'TypeScript',s:2,f:0,p:'2026-07-20',t:['pixel-art','claude'],c:'agents',lic:'NOASSERTION'},
+
+{n:'game-master-mcp',o:'theferalcode-pixel',d:'MCP game server with six rule-enforcing engines.',l:'Python',s:2,f:1,p:'2026-07-21',t:['mcp','chess'],c:'agents',lic:'MIT'},
+
+{n:'lingbot-map',o:'Robbyant',d:'Feed-forward 3D foundation model for scene reconstruction.',l:'Python',s:15687,f:1657,p:'2026-07-23',t:[],c:'genai',lic:'Apache-2.0'},
+
+{n:'LibreTranslate',o:'LibreTranslate',d:'Free and Open Source Machine Translation API.',l:'Python',s:15534,f:1576,p:'2026-07-25',t:['api','translation'],c:'genai',hp:'https://libretranslate.com',lic:'AGPL-3.0'},
+
+{n:'Depth-Anything-V2',o:'DepthAnything',d:'Foundation Model for Monocular Depth Estimation.',l:'Python',s:8542,f:890,p:'2026-03-24',t:['monocular-depth-estimation'],c:'genai',lic:'Apache-2.0'},
+
+{n:'modly',o:'lightningpixel',d:'Desktop app to generate 3D models from images using local AI.',l:'TypeScript',s:4732,f:514,p:'2026-07-25',t:['3d','ai-local','desktop-app'],c:'genai',hp:'https://modly3d.app',lic:'NOASSERTION'},
+
+{n:'zero123plus',o:'SUDO-AI-3D',d:'Single Image to Consistent Multi-view Diffusion.',l:'Python',s:2088,f:147,p:'2024-02-23',t:['diffusion-models','image-to-3d'],c:'genai',lic:'Apache-2.0'},
+
+{n:'DeepBump',o:'HugoTini',d:'Normal & height maps from single pictures.',l:'Python',s:1387,f:58,p:'2025-03-17',t:['blender','heightmap','normalmap'],c:'genai',lic:'GPL-3.0'},
+
+{n:'terrain-diffusion',o:'xandergos',d:"Procedural generation with diffusion models (SIGGRAPH '26).",l:'Python',s:1247,f:76,p:'2026-07-21',t:[],c:'genai',lic:'MIT'},
+
+{n:'PixelFlow',o:'ShoufaChen',d:'Pixel-Space Generative Models.',l:'Python',s:316,f:16,p:'2025-05-11',t:[],c:'genai',lic:'MIT'},
+
+{n:'interactive-sora',o:'mshumer',d:'Keine Beschreibung hinterlegt.',l:'Python',s:175,f:19,p:'2025-12-24',t:[],c:'genai'},
+
+{n:'Motionly',o:'COPPSARY',d:'AI-native motion graphics editor.',l:'TypeScript',s:68,f:6,p:'2026-07-27',t:[],c:'genai',hp:'https://www.motionly.site',lic:'Apache-2.0'},
+
+{n:'BlenderXAlpha-3DGenSkill',o:'ig-shadow-walker',d:'Agent Skill: text to 3D in Blender via Alpha3D + MCP.',l:'JavaScript',s:19,f:1,p:'2026-07-21',t:['text-to-3d','blender','mcp'],c:'genai',lic:'MIT'},
+
+{n:'MatAnyone2Kit',o:'flowtyone',d:'Keine Beschreibung hinterlegt.',l:'Swift',s:8,f:0,p:'2026-06-17',t:[],c:'genai',lic:'GPL-3.0'},
+
+{n:'gpt-llm-trainer',o:'mshumer',d:'Keine Beschreibung hinterlegt.',l:'Jupyter Notebook',s:4167,f:555,p:'2025-05-02',t:[],c:'llm',lic:'MIT'},
+
+{n:'openbench',o:'groq',d:'Provider-agnostic evaluation infrastructure for LLMs.',l:'Python',s:795,f:102,p:'2026-06-26',t:['managed-by-terraform'],c:'llm',hp:'https://openbench.dev',lic:'MIT'},
+
+{n:'rl-opus',o:'am-will',d:'Keine Beschreibung hinterlegt.',l:'TypeScript',s:27,f:10,p:'2026-07-27',t:[],c:'llm'},
+
+{n:'verifiers',o:'mshumer',d:'Verifiers for LLM Reinforcement Learning.',l:'Python',s:2,f:0,p:'2025-02-17',t:[],c:'llm',k:1,lic:'MIT'},
+
+{n:'Claude-of-Duty',o:'mshumer',d:'A CoD-quality FPS in Three.js from a single prompt.',l:'JavaScript',s:1033,f:206,p:'2026-07-25',t:[],c:'threejs',lic:'MIT'},
+
+{n:'ProceduralTerrains',o:'ZyFou',d:'Three.js procedural terrain generator.',l:'JavaScript',s:385,f:52,p:'2026-07-27',t:['threejs','procedural-generation','volumetric-clouds'],c:'threejs',hp:'https://terrains.zyfod.dev',lic:'MIT'},
+
+{n:'three-shaderlib-skim',o:'ycw',d:'Skim GLSL sources w/ foldable shader chunks.',l:'Vue',s:111,f:7,p:'2022-03-07',t:['threejs','webgl'],c:'threejs',lic:'MIT'},
+
+{n:'stylized-components',o:'cortiz2894',d:'Anime-inspired rendering systems for the web.',l:'TypeScript',s:91,f:16,p:'2026-07-17',t:[],c:'threejs',lic:'MIT'},
+
+{n:'r3arxiv-react3-archive',o:'auratech-lab',d:'Keine Beschreibung hinterlegt.',l:'TypeScript',s:41,f:3,p:'2026-06-05',t:[],c:'threejs'},
+
+{n:'three-materials-compiled',o:'Jonathan-J8',d:'Compiled shaders from threejs materials.',l:'GLSL',s:19,f:0,p:'2025-10-09',t:[],c:'threejs'},
+
+{n:'Threejs-Geometry-Multiple-Window-3D-Scene',o:'4btin',d:'3D scene across multiple browser windows.',l:'JavaScript',s:15,f:4,p:'2023-12-06',t:['threejs'],c:'threejs',hp:'https://4bt.in'},
+
+{n:'awesome-glsl',o:'vanrez-nez',d:'Best resources to learn OpenGL Shaders.',l:null,s:1361,f:91,p:'2023-08-21',t:['glsl','opengl','webgl'],c:'glsl',lic:'MIT'},
+
+{n:'Graphlit',o:'z3y',d:'Node shader editor for Toon and PBR shaders.',l:'C#',s:119,f:10,p:'2026-07-05',t:['shader','unity'],c:'glsl',hp:'https://z3y.github.io/Graphlit/',lic:'MIT'},
+
+{n:'ShaderMake',o:'NVIDIA-RTX',d:'Shader Compilation Tool.',l:'C++',s:115,f:37,p:'2026-06-03',t:[],c:'glsl',lic:'MIT'},
+
+{n:'ShaderPackager',o:'slipster216',d:'Packaging shaders for different Unity pipelines.',l:'C#',s:95,f:12,p:'2023-07-10',t:[],c:'glsl',lic:'MIT'},
+
+{n:'CgFX-Shader-Compilation',o:'steaklive',d:'CgFX shaders: Fur, Tessellation, SSS.',l:'ShaderLab',s:59,f:14,p:'2020-07-16',t:['cgfx','fur-shader','unity'],c:'glsl'},
+
+{n:'fire-box-experiment',o:'fablegrounds',d:'Box catch fire effect using Three.js and GLSL.',l:'TypeScript',s:1,f:0,p:'2026-07-27',t:[],c:'glsl',hp:'https://fablegrounds.com/labs/fire/'},
+
+{n:'reshade',o:'crosire',d:'Generic post-processing injector for games.',l:'C++',s:5305,f:685,p:'2026-06-28',t:['d3d11','glsl','vulkan','post-processing'],c:'reshade',hp:'https://reshade.me',lic:'BSD-3-Clause'},
+
+{n:'GShade',o:'Mortalitas',d:'Modified ReShade fork for 300+ games.',l:'HLSL',s:525,f:114,p:'2026-03-02',t:[],c:'reshade',hp:'https://www.gshade.org',lic:'NOASSERTION'},
+
+{n:'iMMERSE',o:'martymcmodding',d:"Marty's Mods Epic ReShade Effects.",l:'HLSL',s:444,f:37,p:'2026-07-08',t:[],c:'reshade',lic:'NOASSERTION'},
+
+{n:'AstrayFX',o:'BlueSkyDefender',d:'Shaders for ReShade.',l:'HLSL',s:190,f:47,p:'2026-05-26',t:[],c:'reshade'},
+
+{n:'NiceGuy-Shaders',o:'mj-ehsan',d:'A collection of ReShade shaders.',l:'HLSL',s:181,f:29,p:'2024-10-08',t:[],c:'reshade',lic:'CC0-1.0'},
+
+{n:'Eclipse-Shader',o:'Merlin1809',d:'Minecraft Shader for Iris (edit of Chocapic13 V9/Bliss).',l:'GLSL',s:918,f:60,p:'2026-07-18',t:[],c:'mcshader',k:1},
+
+{n:'Revelation',o:'HaringPro',d:'Explorative shaderpack for Minecraft: Java Edition.',l:'GLSL',s:600,f:33,p:'2026-07-24',t:[],c:'mcshader',lic:'Apache-2.0'},
+
+{n:'rethinking-voxels',o:'gri573',d:'Voxelisation, ray traced occlusion, flood fill block light.',l:'GLSL',s:443,f:33,p:'2026-02-11',t:[],c:'mcshader',k:1,lic:'NOASSERTION'},
+
+{n:'Solas-Shader',o:'Septonious',d:'Fantasy stylised shaderpack with fancy visuals.',l:'GLSL',s:155,f:36,p:'2026-07-02',t:[],c:'mcshader',lic:'NOASSERTION'},
+
+{n:'Prismarine-Shader',o:'Septonious',d:'Fantasy stylised shaderpack.',l:'GLSL',s:6,f:0,p:'2026-02-13',t:[],c:'mcshader',lic:'NOASSERTION'},
+
+{n:'editor',o:'pascalorg',d:'Create and share 3D architectural projects.',l:'TypeScript',s:18109,f:2484,p:'2026-07-27',t:[],c:'engine',hp:'https://editor.pascal.app',lic:'MIT'},
+
+{n:'meshoptimizer',o:'zeux',d:'Mesh optimization library.',l:'C++',s:8168,f:739,p:'2026-07-26',t:['gltf','mesh-processing','optimization'],c:'engine',hp:'https://meshoptimizer.org/',lic:'MIT'},
+
+{n:'scanseqjs',o:'jeonghopark',d:'Keine Beschreibung hinterlegt.',l:'JavaScript',s:223,f:131,p:'2026-02-28',t:[],c:'engine'},
+
+{n:'spirulae-splat',o:'harry7557558',d:'3D Gaussian Splatting training.',l:'C++',s:66,f:4,p:'2026-07-27',t:['3d-gaussian-splatting','cuda','vulkan'],c:'engine',lic:'GPL-3.0'},
+
+{n:'Lumo',o:'aiekick',d:'Realtime lab for 3D model experimentation.',l:'C++',s:59,f:13,p:'2024-09-22',t:['vulkan','procedural'],c:'engine',a:1,lic:'Apache-2.0'},
+
+{n:'reed-framework',o:'Reedbeta',d:'D3D11 init, model loading, shader compilation.',l:'C',s:35,f:4,p:'2022-06-17',t:[],c:'engine'},
+
+{n:'tinyrenderer',o:'Mr-Robot-err-404',d:'Software rasterizer from scratch.',l:'Odin',s:10,f:0,p:'2026-07-25',t:[],c:'engine'},
+
+{n:'ppf-contact-solver',o:'st-tech',d:'Contact solver for shells, solids, rods, rigid bodies, sand.',l:'Python',s:4365,f:321,p:'2026-07-26',t:['cloth','physics','simulation'],c:'sim',lic:'Apache-2.0'},
+
+{n:'PixelFlow',o:'diwi',d:'GPU-Computing: Fluid, SoftBody, Optical Flow.',l:'Java',s:1283,f:134,p:'2018-01-10',t:['fluid-simulation','glsl','softbody-dynamics'],c:'sim',hp:'https://diwi.github.io/PixelFlow',lic:'MIT'},
+
+{n:'Water',o:'GarrettGunnell',d:'Sum of sines and FFT fluid simulation.',l:'C#',s:563,f:49,p:'2023-12-30',t:[],c:'sim',lic:'MIT'},
+
+{n:'DynamicWaterDemo',o:'CaptainProton42',d:'Dynamic water simulation in Godot.',l:'GDScript',s:251,f:27,p:'2022-06-14',t:[],c:'sim',lic:'MIT'},
+
+{n:'webgpu-water',o:'jeantimex',d:'Real-time water simulation using WebGPU.',l:'TypeScript',s:232,f:15,p:'2026-06-21',t:['fluid-simulation','webgpu'],c:'sim',hp:'https://jeantimex.github.io/webgpu-water/',lic:'MIT'},
+
+{n:'Pumpkin',o:'Pumpkin-MC',d:'Fast and efficient Minecraft servers in Rust.',l:'Rust',s:10214,f:688,p:'2026-07-27',t:['minecraft','rust','server'],c:'mctools',hp:'https://pumpkinmc.org/',lic:'GPL-3.0'},
+
+{n:'MinecraftDecompiler',o:'MaxPixelStudios',d:'Deobfuscate and decompile Minecraft.',l:'Java',s:478,f:24,p:'2026-02-20',t:['deobfuscate','minecraft'],c:'mctools',lic:'GPL-3.0'},
+
+{n:'DramaticShapeVoxelMod',o:'DramaticShape',d:'Keine Beschreibung hinterlegt.',l:'Lua',s:47,f:1,p:'2026-07-27',t:[],c:'mctools'},
+
+{n:'Fabricator',o:'philderks',d:'Self-hosted web UI for Minecraft servers via Modrinth.',l:'Python',s:42,f:3,p:'2026-07-26',t:['minecraft','modrinth','self-hosted'],c:'mctools',hp:'https://fabricator.site',lic:'AGPL-3.0'},
+
+{n:'fluidsynth',o:'FluidSynth',d:'Software synthesizer based on SoundFont 2.',l:'C',s:2432,f:325,p:'2026-07-26',t:['midi','soundfonts','synthesizer'],c:'music',hp:'https://www.fluidsynth.org',lic:'LGPL-2.1'},
+
+{n:'signal',o:'ryohey',d:'Online MIDI Editor.',l:'TypeScript',s:2347,f:242,p:'2026-05-21',t:['audio','midi','music'],c:'music',hp:'https://signalmidi.app',lic:'MIT'},
+
+{n:'VSCO-2-CE',o:'sgossner',d:'Open-source orchestral library.',l:null,s:664,f:86,p:'2021-04-06',t:[],c:'music',lic:'CC0-1.0'},
+
+{n:'VCSL',o:'sgossner',d:'Open CC0 sample library.',l:null,s:326,f:39,p:'2026-01-14',t:[],c:'music',lic:'CC0-1.0'},
+
+{n:'soundfont2',o:'Mrtenz',d:'SoundFont2 parser for Node.js and browsers.',l:'TypeScript',s:54,f:10,p:'2024-10-08',t:[],c:'music',hp:'https://mrtenz.github.io/soundfont2/',lic:'MIT'},
+
+{n:'musichammer',o:'mimrock',d:'Split songs into parts and practice along.',l:'Python',s:50,f:6,p:'2026-07-24',t:[],c:'music',lic:'MIT'},
+
+{n:'ImmersiveMelodies',o:'Luke100000',d:'Play custom melodies in Minecraft.',l:'Java',s:49,f:21,p:'2026-07-12',t:['minecraft','minecraft-mod'],c:'music',lic:'NOASSERTION'},
+
+{n:'Midi2Text',o:'BrianMcKeever',d:'Extract MIDI data to tab-delimited text.',l:'Java',s:9,f:2,p:'2015-08-30',t:[],c:'music',lic:'NOASSERTION'},
+
+{n:'ultimate-guitar-downloader',o:'moottier',d:'Download tabs from ultimate-guitar.com.',l:'Python',s:7,f:6,p:'2022-03-16',t:[],c:'music',lic:'Apache-2.0'},
+
+{n:'SkelForm',o:'Retropaint',d:'2D skeletal animation editor.',l:'Rust',s:79,f:11,p:'2026-07-18',t:['animation','skeletal-animation'],c:'anim',hp:'https://skelform.org',lic:'GPL-3.0'},
+
+{n:'PixelCraft',o:'gitstq',d:'Web-based pixel art editor with animation.',l:'JavaScript',s:1,f:0,p:'2026-06-04',t:['pixel-art','sprite-sheet'],c:'anim',lic:'MIT'},
+
+{n:'skelform-js',o:'Retropaint',d:'SkelForm runtime for Javascript.',l:'JavaScript',s:3,f:0,p:'2026-06-26',t:[],c:'anim',lic:'MIT'},
+
+{n:'skelform_mobile',o:'Retropaint',d:'Mobile SkelForm using Capacitor.',l:'JavaScript',s:1,f:0,p:'2025-06-21',t:[],c:'anim'},
+
+{n:'skelform_python',o:'Retropaint',d:'SkelForm runtime for Python.',l:'Python',s:1,f:0,p:'2026-06-26',t:[],c:'anim'},
+
+{n:'DrawnInterfaces',o:'andy9040',d:'Sketch-based interaction experiments.',l:'Python',s:1,f:0,p:'2025-04-15',t:[],c:'anim',lic:'MIT'},
+
+{n:'romm',o:'rommapp',d:'Self-hosted rom manager and player.',l:'Python',s:11468,f:633,p:'2026-07-27',t:['emulation','retrogaming','self-hosted'],c:'retro',hp:'https://romm.app',lic:'AGPL-3.0'},
+
+{n:'decky-loader',o:'SteamDeckHomebrew',d:'Plugin loader for the Steam Deck.',l:'TypeScript',s:7070,f:250,p:'2026-07-25',t:['steam','steamdeck'],c:'retro',hp:'https://decky.xyz',lic:'GPL-2.0'},
+
+{n:'bottleship',o:'jenissimo',d:'Run classic Windows games in browser via WebGPU.',l:'TypeScript',s:84,f:5,p:'2026-07-27',t:['emulator','webgpu','retrogaming'],c:'retro',hp:'https://bottleship.pages.dev',lic:'Apache-2.0'},
+
+{n:'Hyprland',o:'hyprwm',d:'Dynamic tiling Wayland compositor.',l:'C++',s:37552,f:1894,p:'2026-07-27',t:['compositor','wayland'],c:'devops',hp:'https://hypr.land',lic:'BSD-3-Clause'},
+
+{n:'dokploy',o:'Dokploy',d:'Open Source Alternative to Vercel, Netlify, Heroku.',l:'TypeScript',s:36131,f:2793,p:'2026-07-27',t:['deployment','docker','self-hosted'],c:'devops',hp:'https://dokploy.com/',lic:'NOASSERTION'},
+
+{n:'plasmo',o:'PlasmoHQ',d:'The Browser Extension Framework.',l:'TypeScript',s:13118,f:463,p:'2026-07-25',t:['browser-extension','reactjs','typescript'],c:'devops',hp:'https://www.plasmo.com',lic:'MIT'},
+
+{n:'reorder',o:'reorder-js',d:'Medusa.js Subscription Plugin.',l:'TypeScript',s:37,f:7,p:'2026-07-05',t:['e-commerce','medusa'],c:'devops',hp:'https://reorderjs.com',lic:'MIT'},
+
+{n:'fibertoy',o:'NabilNYMansour',d:'Keine Beschreibung hinterlegt.',l:'TypeScript',s:4,f:0,p:'2026-07-22',t:[],c:'devops',lic:'MIT'},
+
+{n:'autodeploy-web',o:'BaptisteTellier',d:'Keine Beschreibung hinterlegt.',l:'Go',s:3,f:0,p:'2026-07-24',t:[],c:'devops',lic:'MIT'}
+
+];
+
+
+
+/* ═══════════════════ HELFER ═══════════════════ */
+
+const LANG={JavaScript:'#f1e05a',TypeScript:'#4d8fd1',Python:'#4b8bbe',Java:'#c98a3d',C:'#9aa7b4','C++':'#f34b7d','C#':'#46a758',Rust:'#dea584',GLSL:'#7aa5c9',HLSL:'#8d7ae0',Lua:'#7b7fe0',GDScript:'#4f7fa3',Go:'#00add8',Shell:'#89e051',Kotlin:'#a97bff',Swift:'#f05138',Vue:'#41b883','Jupyter Notebook':'#f37626',Odin:'#60affe',ShaderLab:'#c9b458',HTML:'#e34c26'};
+
+const FALL='#8a7c63';
+
+const $=q=>document.querySelector(q);
+
+const $$=q=>[...document.querySelectorAll(q)];
+
+const fmt=n=>n.toLocaleString('de-DE');
+
+const fdate=s=>{if(!s||String(s).length<10)return '—';const[a,b,c]=String(s).split('-');return c+'.'+b+'.'+a};
+
+const reduced=matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+const catById=id=>CATS.find(c=>c.id===id)||CATS[CATS.length-1];
+
+const gurl=r=>'https://github.com/'+r.o+'/'+r.n;
+
+const keyOf=r=>(r.o+'/'+r.n).toLowerCase();
+
+const esc=s=>String(s==null?'':s).replace(/&/g,'&').replace(/</g,'<').replace(/>/g,'>');
+
+const mag=r=>Math.min(48,Math.round(11+Math.log10((r.s||0)+1)*7.5));
+
+function parseGitHubRepoUrl(url){if(!url)return null;let u=String(url).trim().replace(/^https?:\/\/(www\.)?/,'').replace(/^api\./,'').replace(/^github\.com\//,'');
+
+  u=u.split(/[?#]/)[0].replace(/\.git$/,'').replace(/\/$/,'');const p=u.split('/').filter(Boolean);if(p.length<2)return null;
+
+  let o=p[0],n=p[1];if(o==='repos'&&p.length>=3){o=p[1];n=p[2]}if(!o||!n||o.includes('.')||n.includes('.'))return null;return{owner:o,name:n,full_name:o+'/'+n,html_url:'https://github.com/'+o+'/'+n}}
+
+
+
+let R=INITIAL.map(r=>({...r}));
+
+let dataSource='embedded',liveUser='',liveSrc='starred',activeDbName='';
+
+const readmeCache=new Map();
+
+const annotations=new Map();
+
+const rightsLedger=new Map();
+
+let activeFilters={project:null,role:null,status:null};
+
+const CURATED={};INITIAL.forEach(r=>CURATED[keyOf(r)]=r.c);
+
+const OWNER_HINTS={mshumer:'agents',retropaint:'anim',septonious:'mcshader',haringpro:'mcshader',gri573:'mcshader',merlin1809:'mcshader',crosire:'reshade',mortalitas:'reshade',blueskydefender:'reshade',martymcmodding:'reshade','mj-ehsan':'reshade',sgossner:'music',fluidsynth:'music',ryohey:'music',pumpkinmc:'mctools',maxpixelstudios:'mctools',hyprwm:'devops',dokploy:'devops',plasmohq:'devops'};
+
+
+
+function classify(r){const k=keyOf(r);if(CURATED[k])return CURATED[k];const oh=OWNER_HINTS[r.o.toLowerCase()];if(oh)return oh;
+
+  const hay=((r.n||'')+' '+(r.d||'')+' '+(r.t||[]).join(' ')+' '+(r.l||'')).toLowerCase();const has=(...w)=>w.some(x=>hay.includes(x));
+
+  if(has('shaderpack')||(has('minecraft')&&has('shader','iris','optifine','sodium')))return 'mcshader';
+
+  if(has('minecraft','fabric','forge','modrinth','curseforge','spigot','bukkit','papermc','datapack'))return 'mctools';
+
+  if(has('reshade','gshade'))return 'reshade';
+
+  if(has('threejs','three-js','three.js','r3f','react-three','webgpu','webgl','babylon'))return 'threejs';
+
+  if(has('glsl','hlsl','wgsl','shader','spir-v','cgfx','post-processing'))return 'glsl';
+
+  if(has('fluid','water sim','physics','simulation','cloth','softbody','particle system','contact solver','rigid bod'))return 'sim';
+
+  if(has('gaussian splat','3dgs','raytrac','rasterizer','renderer','vulkan','opengl','directx','d3d11','mesh optim','voxel','point cloud','photogrammetry','3d engine'))return 'engine';
+
+  if(has('diffusion','text-to','image-to','depth estimation','monocular','segmentation','matting','machine translation','generative','stable diffusion','comfyui','lora','nerf','splat'))return 'genai';
+
+  if(has('agent','agentic','claude code','claude-code','opencode','mcp','copilot','automation','autonomous','workflow'))return 'agents';
+
+  if(has('llm','fine-tun','finetun','rlhf','reinforcement','benchmark','evaluation','reasoning','transformer','inference','quantiz'))return 'llm';
+
+  if(has('midi','soundfont','synthesizer','audio','music','daw','sound','piano','guitar','karaoke'))return 'music';
+
+  if(has('animation','pixel art','pixel-art','sprite','skeletal','keyframe','rigging'))return 'anim';
+
+  if(has('emulat','rom ','retro','steamdeck','steam deck','arcade','console'))return 'retro';
+
+  if(has('docker','kubernetes','self-hosted','selfhosted','deployment','devops','homelab','vps','wayland','compositor','nginx','reverse proxy','terraform','e-commerce','medusa'))return 'devops';
+
+  return 'misc';}
+
+function suggestProjects(r){const hay=((r.n||'')+' '+(r.d||'')+' '+(r.t||[]).join(' ')+' '+(r.l||'')+' '+(readmeCache.get(keyOf(r))||'').slice(0,1800)).toLowerCase();
+
+  const hits=[];PROJECTS.forEach(p=>{let sc=0;p.kw.forEach(k=>{if(hay.includes(k))sc++});if(sc>0)hits.push({project:p.id,score:sc})});
+
+  hits.sort((a,b)=>b.score-a.score);return hits.slice(0,4).map(h=>({p:h.project,c:Math.min(1,h.score/3)}));}
+
+function suggestRoles(r){const hay=((r.n||'')+' '+(r.d||'')+' '+(r.t||[]).join(' ')).toLowerCase();const roles=[];
+
+  if(hay.includes('library')||hay.includes('framework')||hay.includes('sdk'))roles.push('DEPENDENCY');
+
+  if(hay.includes('example')||hay.includes('demo')||hay.includes('tutorial'))roles.push('ARCH_REFERENCE');
+
+  if(hay.includes('editor')||hay.includes('ui')||hay.includes('interface'))roles.push('UX_REFERENCE');
+
+  if(hay.includes('paper')||hay.includes('research')||hay.includes('arxiv'))roles.push('RESEARCH');
+
+  if(r.s>5000)roles.push('DIRECT_USE');if(r.s<10)roles.push('WATCH');return[...new Set(roles)].slice(0,3);}
+
+function ensureAnn(key){if(annotations.has(key))return annotations.get(key);
+
+  const a={key,whyStarred:'',confirmedRoles:[],suggestedRoles:[],projectFits:[],priority:'UNSET',decisionStatus:'UNREVIEWED',inspectionLevel:'DISCOVERED',notes:'',updatedAt:new Date().toISOString()};
+
+  annotations.set(key,a);return a;}
+
+function runAuto(r){const key=keyOf(r);const a=ensureAnn(key);
+
+  suggestProjects(r).forEach(({p,c})=>{if(!a.projectFits.find(x=>x.project===p))a.projectFits.push({project:p,component:'',relevance:Math.max(1,Math.round(c*5)),status:'AUTO_SUGGESTED'})});
+
+  suggestRoles(r).forEach(rl=>{if(!a.confirmedRoles.includes(rl)&&!a.suggestedRoles.includes(rl))a.suggestedRoles.push(rl)});}
+
+function licClass(lic){if(!lic)return 'none';if(lic==='NOASSERTION')return 'bad';if(COMPAT_LIC.includes(lic))return 'ok';return 'bad';}
+
+
+
+/* ═══════════════════ INDEXEDDB v3 ═══════════════════ */
+
+const IDB='alfred_dbs',IDBV=3;
+
+function openIdb(){return new Promise((res,rej)=>{const r=indexedDB.open(IDB,IDBV);
+
+  r.onupgradeneeded=e=>{const db=e.target.result;['dbs','annotations','rights'].forEach(s=>{if(!db.objectStoreNames.contains(s))db.createObjectStore(s,{keyPath:s==='annotations'?'key':s==='rights'?'id':'id'})});};
+
+  r.onsuccess=()=>res(r.result);r.onerror=()=>rej(r.error);});}
+
+async function idbPut(store,rec){const d=await openIdb();return new Promise((res,rej)=>{const t=d.transaction(store,'readwrite');t.objectStore(store).put(rec);t.oncomplete=res;t.onerror=()=>rej(t.error);});}
+
+async function idbAll(store){const d=await openIdb();return new Promise((res,rej)=>{const q=d.transaction(store).objectStore(store).getAll();q.onsuccess=()=>res(q.result||[]);q.onerror=()=>rej(q.error);});}
+
+async function idbDel(store,id){const d=await openIdb();return new Promise((res,rej)=>{const t=d.transaction(store,'readwrite');t.objectStore(store).delete(id);t.oncomplete=res;t.onerror=()=>rej(t.error);});}
+
+async function saveAnn(){const d=await openIdb();const t=d.transaction('annotations','readwrite');const s=t.objectStore('annotations');annotations.forEach(v=>s.put(v));return new Promise((res,rej)=>{t.oncomplete=res;t.onerror=()=>rej(t.error);});}
+
+async function saveRights(){const d=await openIdb();const t=d.transaction('rights','readwrite');const s=t.objectStore('rights');rightsLedger.forEach(v=>s.put(v));return new Promise((res,rej)=>{t.oncomplete=res;t.onerror=()=>rej(t.error);});}
+
+
+
+/* ═══════════════════ OBSERVATORY RENDER ═══════════════════ */
+
+const sorters={s:(a,b)=>b.s-a.s,p:(a,b)=>String(b.p||'').localeCompare(String(a.p||'')),n:(a,b)=>a.n.localeCompare(b.n),
+
+  ann:(a,b)=>{const sc=x=>{const a=annotations.get(keyOf(x));return a?(a.decisionStatus==='ADOPTED'?6:a.decisionStatus==='INTEGRATION_CANDIDATE'?5:a.decisionStatus==='REVIEWED'?4:a.decisionStatus==='AUTO_SUGGESTED'?2:1):0};return sc(b)-sc(a);}};
+
+function rowHTML(r){const c=catById(r.c),lc=LANG[r.l]||FALL,key=keyOf(r),a=annotations.get(key),rg=rightsLedger.get(key);
+
+  const hasAnn=a&&(a.decisionStatus!=='UNREVIEWED'||a.confirmedRoles.length||a.projectFits.length||a.notes);
+
+  const tags=(r.t||[]).slice(0,4).map(t=>'<span>'+esc(t)+'</span>').join('');
+
+  const licb=r.lic?'<span class="badge lic '+licClass(r.lic)+'">'+esc(r.lic==='NOASSERTION'?'ungeklärt':r.lic)+'</span>':'';
+
+  const forkb=r.k?'<span class="badge">Fork</span>':'';const archb=r.a?'<span class="badge">Archiviert</span>':'';
+
+  let rb='';if(a){a.confirmedRoles.slice(0,2).forEach(x=>rb+='<span class="badge role ok">✓ '+ROLE_LABELS[x]+'</span>');
+
+    a.suggestedRoles.slice(0,1).forEach(x=>rb+='<span class="badge role">✦ '+ROLE_LABELS[x]+'</span>');
+
+    a.projectFits.filter(p=>p.status==='CONFIRMED'||p.status==='ADOPTED').slice(0,1).forEach(p=>rb+='<span class="badge proj">'+esc(p.project)+'</span>');}
+
+  if(rg)rb+='<span class="badge rights">⚖ '+rg.responseStatus.replace(/_/g,' ')+'</span>';
+
+  const hp=r.hp?'<a class="hp" href="'+esc(r.hp)+'" target="_blank" rel="noopener">Demo ↗</a>':'';
+
+  const hay=((r.n||'')+' '+(r.o||'')+' '+(r.d||'')+' '+(r.l||'')+' '+(r.t||[]).join(' ')+' '+(a?a.projectFits.map(p=>p.project).join(' '):'')).toLowerCase();
+
+  return '<article class="row" data-key="'+esc(key)+'" data-hay="'+esc(hay)+'">'+
+
+    '<div class="mag"><i style="width:'+mag(r)+'px;height:'+mag(r)+'px" title="★ '+fmt(r.s)+'"></i></div>'+
+
+    '<div><div class="rline1"><a class="rname" href="'+gurl(r)+'" target="_blank" rel="noopener">'+esc(r.n)+'</a>'+
+
+    '<span class="rown">'+esc(r.o)+'</span>'+forkb+archb+licb+rb+hp+
+
+    '<button class="mini-btn rb'+(rg?' has':'')+'" title="Rechte">⚖</button>'+
+
+    '<button class="mini-btn ab'+(hasAnn?' has':'')+'" title="Einordnung">✦</button>'+
+
+    '<button class="mini-btn re" title="README">+</button></div>'+
+
+    '<p class="rdesc">'+esc(r.d)+'</p>'+
+
+    '<div class="rmeta"><span class="lang"><i style="background:'+lc+'"></i>'+esc(r.l||'—')+'</span>'+
+
+    '<span class="st">★ '+fmt(r.s)+'</span><span>⑂ '+fmt(r.f)+'</span><span>aktiv '+fdate(r.p)+'</span></div>'+
+
+    (tags?'<div class="rtags">'+tags+'</div>':'')+
+
+    '<div class="rextra"></div>'+annHTML(r,a)+rightsHTML(r,rg)+'</div></article>';}
+
+function annHTML(r,a){const key=keyOf(r);const x=a||{whyStarred:'',confirmedRoles:[],suggestedRoles:[],projectFits:[],priority:'UNSET',decisionStatus:'UNREVIEWED',inspectionLevel:'DISCOVERED',notes:''};
+
+  const rtags=[...x.confirmedRoles.map(rl=>'<span class="atag ok" data-role="'+rl+'">✓ '+ROLE_LABELS[rl]+'</span>'),
+
+    ...x.suggestedRoles.map(rl=>'<span class="atag sug" data-role="'+rl+'">✦ '+ROLE_LABELS[rl]+'</span>')].join('');
+
+  const pr=x.projectFits.map(p=>'<div class="projrow"><span class="pn">'+esc(p.project)+'</span><span class="pc">'+esc(p.component||'—')+'</span><span style="color:var(--gold)">'+'★'.repeat(p.relevance||1)+'</span><span style="font-size:8px;color:'+(p.status==='CONFIRMED'?'#9fc7a0':'var(--r-scout)')+'">'+p.status+'</span></div>').join('');
+
+  return '<div class="annbox" data-ann="'+esc(key)+'"><div class="grid">'+
+
+    '<div class="field"><label>Warum gestarred</label><textarea data-f="whyStarred">'+esc(x.whyStarred)+'</textarea></div>'+
+
+    '<div class="field"><label>Decision-Status</label><select data-f="decisionStatus">'+DECSTATUS.map(s=>'<option'+(x.decisionStatus===s?' selected':'')+'>'+s+'</option>').join('')+'</select></div>'+
+
+    '<div class="field"><label>Priorität</label><select data-f="priority">'+PRIOS.map(s=>'<option'+(x.priority===s?' selected':'')+'>'+s+'</option>').join('')+'</select></div>'+
+
+    '<div class="field"><label>Prüftiefe</label><select data-f="inspectionLevel">'+INSPECT.map(s=>'<option'+(x.inspectionLevel===s?' selected':'')+'>'+s+'</option>').join('')+'</select></div></div>'+
+
+    '<div class="field" style="margin-top:.5rem"><label>Rollen (klicken: ✦→✓, ✓→entfernen)</label><div class="ann-tags">'+rtags+'</div></div>'+
+
+    (pr?'<div style="margin-top:.5rem"><span class="kicker">Projekt-Fits</span>'+pr+'</div>':'')+
+
+    '<div class="field" style="margin-top:.5rem"><label>Notiz</label><textarea data-f="notes">'+esc(x.notes)+'</textarea></div>'+
+
+    '<div class="actions"><button class="btn btn-seal annsave">✦ Festhalten</button><span class="saved-msg">— notiert, Sir.</span></div></div>';}
+
+function rightsHTML(r,rg){const ls=rg?rg.licenseStatus:detectLic(r);
+
+  return '<div class="rightbox" data-rg="'+esc(keyOf(r))+'"><div class="grid">'+
+
+    '<div class="field"><label>Lizenzstatus</label><input value="'+esc(ls)+'" readonly style="color:'+(ls==='NO_LICENSE_FOUND'?'#d97a7a':'#9fc7a0')+'"></div>'+
+
+    '<div class="field"><label>Erkannte Lizenz</label><input value="'+esc(r.lic||'keine')+'" readonly></div>'+
+
+    '<div class="field"><label>Antwort-Status</label><input value="'+esc(rg?rg.responseStatus:'—')+'" readonly></div></div>'+
+
+    (rg&&rg.message?'<div class="field" style="margin-top:.5rem"><label>Gespeicherte Nachricht</label><textarea readonly rows="3" style="color:#a99c83">'+esc(rg.message)+'</textarea></div>':'')+
+
+    '<div class="kicker" style="margin-top:.5rem">Vollständige Prüfung im Raum V · Steward</div></div>';}
+
+function detectLic(r){if(!r.lic)return 'NO_LICENSE_FOUND';if(r.lic==='NOASSERTION')return 'CUSTOM_LICENSE';return 'LICENSE_DETECTED';}
+
+
+
+function renderCatalog(){const mode=$('#sort').value;const active=CATS.filter(c=>R.some(r=>r.c===c.id));
+
+  $('#catalog').innerHTML=active.map((c,i)=>{const items=R.filter(r=>r.c===c.id).sort(sorters[mode]);const sum=items.reduce((a,r)=>a+r.s,0);
+
+    return '<section class="kat" id="kat-'+c.id+'" style="margin-bottom:2.4rem"><div style="display:flex;align-items:baseline;gap:1rem;border-bottom:1px solid var(--line);padding-bottom:.7rem;margin-bottom:.3rem">'+
+
+      '<span style="font-family:var(--frak);font-size:2.6rem;color:'+c.c+';line-height:.8">'+c.k+'</span>'+
+
+      '<div><div class="kicker">Abteilung <b style="color:'+c.c+'">'+(ROM[i]||'·')+'</b> · '+items.length+' Repos · Σ '+fmt(sum)+' ★</div>'+
+
+      '<div style="font-family:var(--serif);font-size:1.2rem;color:var(--bone)">'+c.n+'</div></div></div>'+
+
+      items.map(rowHTML).join('')+'</section>';}).join('');
+
+  observeReveals();applyFilter();}
+
+function renderChips(){const counts={};R.forEach(r=>counts[r.c]=(counts[r.c]||0)+1);
+
+  $('#chips').innerHTML='<button class="chip" data-t="top" style="--cc:var(--r-obs)"><i></i>Alle · '+R.length+'</button>'+
+
+    CATS.filter(c=>counts[c.id]).map(c=>'<button class="chip" data-t="kat-'+c.id+'" style="--cc:'+c.c+'"><i></i>'+c.n.split(' ')[0].replace(',','')+' · '+counts[c.id]+'</button>').join('');
+
+  $$('#chips .chip').forEach(ch=>ch.addEventListener('click',()=>{const t=ch.dataset.t==='top'?$('#room-observatory'):document.getElementById(ch.dataset.t);if(t)t.scrollIntoView({behavior:reduced?'auto':'smooth',block:'start'});}))}
+
+function renderFilterbar(){
+
+  $('#projFilters').innerHTML=PROJECTS.slice(0,10).map(p=>'<button class="fchip'+(activeFilters.project===p.id?' on':'')+'" data-proj="'+p.id+'">'+p.n+'</button>').join('');
+
+  $('#roleFilters').innerHTML=ROLES.slice(0,5).map(rl=>'<button class="fchip'+(activeFilters.role===rl?' on':'')+'" data-role="'+rl+'">'+ROLE_LABELS[rl]+'</button>').join('');
+
+  $('#statusFilters').innerHTML=DECSTATUS.slice(0,4).map(s=>'<button class="fchip'+(activeFilters.status===s?' on':'')+'" data-status="'+s+'">'+s.replace(/_/g,' ')+'</button>').join('');
+
+  $$('[data-proj]').forEach(b=>b.onclick=()=>{activeFilters.project=activeFilters.project===b.dataset.proj?null:b.dataset.proj;renderFilterbar();applyFilter();});
+
+  $$('[data-role]').forEach(b=>b.onclick=()=>{activeFilters.role=activeFilters.role===b.dataset.role?null:b.dataset.role;renderFilterbar();applyFilter();});
+
+  $$('[data-status]').forEach(b=>b.onclick=()=>{activeFilters.status=activeFilters.status===b.dataset.status?null:b.dataset.status;renderFilterbar();applyFilter();});}
+
+function applyFilter(){const q=$('#search').value.trim().toLowerCase();let vis=0;
+
+  $$('#catalog .kat').forEach(sec=>{let any=false;sec.querySelectorAll('.row').forEach(row=>{const key=row.dataset.key,a=annotations.get(key);
+
+    let hit=!q||row.dataset.hay.includes(q);
+
+    if(hit&&activeFilters.project)hit=a&&a.projectFits.some(p=>p.project===activeFilters.project);
+
+    if(hit&&activeFilters.role)hit=a&&(a.confirmedRoles.includes(activeFilters.role)||a.suggestedRoles.includes(activeFilters.role));
+
+    if(hit&&activeFilters.status)hit=a&&a.decisionStatus===activeFilters.status;
+
+    row.classList.toggle('hide',!hit);if(hit){any=true;vis++;}});sec.classList.toggle('hide',!any);});
+
+  $('#hitcount').textContent=(q||activeFilters.project||activeFilters.role||activeFilters.status)?vis+' / '+R.length:R.length+' Repos';}
+
+
+
+/* Katalog-Delegation */
+
+$('#catalog').addEventListener('click',async e=>{
+
+  const re=e.target.closest('.re');if(re){const row=re.closest('.row'),box=row.querySelector('.rextra');const open=row.classList.toggle('open');
+
+    if(open&&!box.dataset.filled){const r=R.find(x=>keyOf(x)===row.dataset.key);if(!r)return;const k=keyOf(r);
+
+      if(readmeCache.has(k)){box.dataset.filled='1';box.innerHTML='<pre>'+esc(mdToText(readmeCache.get(k)))+'</pre>';}
+
+      else{box.innerHTML='<pre style="color:#7d6f57">▌ Ich hole das README …</pre>';const v=await fetchReadme(r);if(row.classList.contains('open')){box.dataset.filled='1';box.innerHTML=v?'<pre>'+esc(mdToText(v))+'</pre>':'<pre style="color:#7d6f57">— keines hinterlegt.</pre>';}runAuto(r);}}return;}
+
+  const ab=e.target.closest('.ab');if(ab){ab.closest('.row').querySelector('.annbox').classList.toggle('open');return;}
+
+  const rb=e.target.closest('.rb');if(rb){rb.closest('.row').querySelector('.rightbox').classList.toggle('open');return;}
+
+  const sv=e.target.closest('.annsave');if(sv){const box=sv.closest('.annbox'),key=box.dataset.ann,a=ensureAnn(key);
+
+    box.querySelectorAll('[data-f]').forEach(el=>a[el.dataset.f]=el.value);a.updatedAt=new Date().toISOString();
+
+    saveAnn().then(()=>{const m=box.querySelector('.saved-msg');m.classList.add('show');setTimeout(()=>m.classList.remove('show'),1800);animateCounters();renderCurator();});return;}
+
+  const at=e.target.closest('.atag');if(at){const box=at.closest('.annbox'),key=at.dataset.ann,a=ensureAnn(key),role=at.dataset.role;
+
+    if(at.classList.contains('sug')){a.suggestedRoles=a.suggestedRoles.filter(x=>x!==role);a.confirmedRoles.push(role);}
+
+    else a.confirmedRoles=a.confirmedRoles.filter(x=>x!==role);
+
+    a.updatedAt=new Date().toISOString();saveAnn();renderCatalog();renderCartographer();renderCurator();return;}
+
+});
+
+function mdToText(md){return String(md).replace(/<!--[\s\S]*?-->/g,'').replace(/!\[[^\]]*\]\([^)]*\)/g,'').replace(/\[([^\]]+)\]\([^)]*\)/g,'$1').replace(/^#{1,6}\s+/gm,'').replace(/(\*\*|__)(.*?)\1/g,'$2').replace(/<[^>]+>/g,'').replace(/\n{3,}/g,'\n\n').trim().slice(0,2200);}
+
+async function fetchReadme(r){const k=keyOf(r);if(readmeCache.has(k))return readmeCache.get(k);
+
+  for(const b of[...new Set([r.br||'HEAD','main','master'])]){try{const res=await fetch('https://raw.githubusercontent.com/'+encodeURIComponent(r.o)+'/'+encodeURIComponent(r.n)+'/'+b+'/README.md');
+
+    if(res.ok){const v=await res.text();readmeCache.set(k,v);return v;}if(res.status===404)continue;}catch(e){}}
+
+  readmeCache.set(k,null);return null;}
+
+async function readmeSweep(){const todo=R.filter(r=>!readmeCache.has(keyOf(r)));if(!todo.length)return;let done=0;const tot=todo.length;
+
+  log('README-Sweep: '+tot+' Repos …','warn');const w=async()=>{while(todo.length){const r=todo.shift();await fetchReadme(r);done++;$('#pbar').style.width=(done/tot*100)+'%';}};
+
+  await Promise.all([w(),w(),w(),w()]);log('✔ README-Sweep fertig.','');R.forEach(runAuto);}
+
+
+
+/* ═══════════════════ CARTOGRAPHER ═══════════════════ */
+
+function renderCartographer(){$('#projMatrix').innerHTML=PROJECTS.map(p=>{
+
+  const members=R.filter(r=>{const a=annotations.get(keyOf(r));const auto=suggestProjects(r).some(x=>x.p===p.id);
+
+    const conf=a&&a.projectFits.some(x=>x.project===p.id);return auto||conf;}).map(r=>{const a=annotations.get(keyOf(r));
+
+    const cf=a&&a.projectFits.find(x=>x.project===p.id);const sc=cf?cf.relevance:Math.max(1,Math.round((suggestProjects(r).find(x=>x.p===p.id)||{c:.3}).c*5));
+
+    return {r,sc,conf:cf&&cf.status==='CONFIRMED'};}).sort((a,b)=>b.sc-a.sc);
+
+  return '<div class="projcard reveal"><h4>'+esc(p.n)+'</h4><p class="pd">'+esc(p.d)+' · <b style="color:var(--r-cart)">'+members.length+'</b> zugeordnete Repos</p>'+
+
+    '<div class="members">'+(members.length?members.slice(0,16).map(m=>'<a href="'+gurl(m.r)+'" target="_blank" rel="noopener">'+esc(m.r.n)+(m.conf?' ✓':' <span class="conf">✦'+m.sc+'</span>')+'</a>').join(''):'<span class="mono" style="font-size:10px;color:#7d6f57">noch keine Zuordnung</span>')+'</div></div>';}).join('');
+
+  observeReveals();}
+
+
+
+/* ═══════════════════ SCOUT: semantische Suche ═══════════════════ */
+
+let searchIndex=null;
+
+const STOP=new Set('the a an is are was were be been have has had do does did of in to for on with at by from as into and or not no'.split(' '));
+
+function tok(t){return String(t||'').toLowerCase().replace(/[^a-z0-9\s\-_.]/g,' ').split(/\s+/).filter(w=>w.length>2&&!STOP.has(w));}
+
+function buildTfIdf(docs){const N=docs.length,df={},tfs=[];docs.forEach(tokens=>{const tf={};tokens.forEach(t=>tf[t]=(tf[t]||0)+1);const mx=Math.max(...Object.values(tf),1);const nm={};for(const t in tf)nm[t]=tf[t]/mx;tfs.push(nm);const seen=new Set(tokens);seen.forEach(t=>df[t]=(df[t]||0)+1);});
+
+  const idf={};for(const t in df)idf[t]=Math.log((N+1)/(df[t]+1))+1;return{vecs:tfs.map(tf=>{const v={};for(const t in tf)v[t]=tf[t]*(idf[t]||1);return v;}),idf};}
+
+function qvec(q,idf){const tf={};tok(q).forEach(t=>tf[t]=(tf[t]||0)+1);const mx=Math.max(...Object.values(tf),1);const v={};for(const t in tf)v[t]=(tf[t]/mx)*(idf[t]||1);return v;}
+
+function cos(a,b){let d=0,na=0,nb=0;for(const k in a){na+=a[k]*a[k];if(b[k])d+=a[k]*b[k];}for(const k in b)nb+=b[k]*b[k];return na&&nb?d/(Math.sqrt(na)*Math.sqrt(nb)):0;}
+
+function buildSearchIndex(){const cd=[],id=[],pd=[];R.forEach(r=>{const a=annotations.get(keyOf(r));const rm=(readmeCache.get(keyOf(r))||'').slice(0,2500);
+
+  cd.push(tok(r.n+' '+r.d+' '+(r.t||[]).join(' ')+' '+(r.l||'')+' '+rm));
+
+  id.push(tok((a?a.whyStarred:'')+' '+(a?a.notes:'')+' '+(a?a.confirmedRoles.join(' '):'')+' '+suggestRoles(r).join(' ')+' '+r.d));
+
+  pd.push(tok((a?a.projectFits.map(p=>p.project+' '+p.component).join(' '):'')+' '+suggestProjects(r).map(x=>x.p).join(' ')));});
+
+  searchIndex={c:buildTfIdf(cd),i:buildTfIdf(id),p:buildTfIdf(pd)};$('#searchState').textContent='Index gebaut · '+R.length+' Repos · 3 Vektoren';toast('Der Index steht, Sir.');}
+
+function semSearch(q,mode,proj,lim){if(!searchIndex)buildSearchIndex();
+
+  const qc=mode==='content'||mode==='combined'?qvec(q,searchIndex.c.idf):null;
+
+  const qi=mode==='intent'||mode==='combined'?qvec(q,searchIndex.i.idf):null;
+
+  const qp=mode==='project'||mode==='combined'?qvec(q,searchIndex.p.idf):null;
+
+  const out=[];R.forEach((r,idx)=>{if(proj){const a=annotations.get(keyOf(r));if(!(a&&a.projectFits.some(p=>p.project===proj))&&!suggestProjects(r).some(x=>x.p===proj))return;}
+
+    let s=0;if(qc)s+=cos(qc,searchIndex.c.vecs[idx])*.4;if(qi)s+=cos(qi,searchIndex.i.vecs[idx])*.3;if(qp)s+=cos(qp,searchIndex.p.vecs[idx])*.3;
+
+    if(mode==='content')s=cos(qc,searchIndex.c.vecs[idx]);if(mode==='intent')s=cos(qi,searchIndex.i.vecs[idx]);if(mode==='project')s=cos(qp,searchIndex.p.vecs[idx]);
+
+    if(s>.01)out.push({r,s});});out.sort((a,b)=>b.s-a.s);return out.slice(0,lim);}
+
+$('#btnBuildIndex').onclick=buildSearchIndex;
+
+$('#btnSemSearch').onclick=()=>{const q=$('#semQuery').value.trim();if(!q){toast('Eine Anfrage, Sir.');return;}if(!searchIndex)buildSearchIndex();
+
+  const res=semSearch(q,$('#semMode').value,$('#semProject').value,parseInt($('#semLimit').value)||10);
+
+  $('#semResults').innerHTML=res.length?res.map(({r,s})=>'<div class="sr"><span class="sc">'+Math.round(s*100)+'</span><div><a href="'+gurl(r)+'" target="_blank" rel="noopener">'+esc(r.o+'/'+r.n)+'</a><small>'+esc(r.d||catById(r.c).n)+'</small></div></div>').join(''):'<div class="butler-empty">Nichts Treffendes im Archiv, Sir.</div>';};
+
+
+
+/* SCOUT: Discovery */
+
+const crawledUsers=new Map();
+
+async function crawlUserStars(u,pages){const repos=[];for(let p=1;p<=pages;p++){const res=await fetch('https://api.github.com/users/'+encodeURIComponent(u)+'/starred?per_page=100&page='+p,{headers:ghHeaders()});if(!res.ok)break;const arr=await res.json();if(!arr.length)break;
+
+  arr.forEach(raw=>repos.push({full_name:raw.full_name,name:raw.name,owner:(raw.owner||{}).login||'',description:raw.description||'',language:raw.language,stars:raw.stargazers_count||0,topics:raw.topics||[]}));}return repos;}
+
+function userProfile(u,repos){const dd={};repos.forEach(r=>{const c=classify({n:r.name,o:r.owner,d:r.description,t:r.topics,l:r.language});dd[c]=(dd[c]||0)+1;});const tot=repos.length||1;const dist={};for(const k in dd)dist[k]=dd[k]/tot;
+
+  return{login:u,repos:repos.map(r=>r.full_name),repoCount:repos.length,domainDistribution:dist,top:Object.entries(dist).sort((a,b)=>b[1]-a[1]).slice(0,3).map(([k,v])=>k+':'+Math.round(v*100)+'%')};}
+
+function lootzProfile(){const dd={};R.forEach(r=>dd[r.c]=(dd[r.c]||0)+1);const tot=R.length||1;const dist={};for(const k in dd)dist[k]=dd[k]/tot;return{repos:R.map(keyOf),repoCount:R.length,domainDistribution:dist};}
+
+function userSim(a,b){const A=new Set(a.repos.map(x=>x.toLowerCase())),B=new Set(b.repos.map(x=>x.toLowerCase()));let ov=0;A.forEach(x=>{if(B.has(x))ov++;});const exact=A.size?ov/A.size:0;
+
+  let sem=0;for(const k in a.domainDistribution)if(b.domainDistribution[k])sem+=Math.min(a.domainDistribution[k],b.domainDistribution[k]);
+
+  return{total:Math.min(.6*sem+.4*exact,1),exact,shared:ov};}
+
+function discoverReps(sims){const mine=new Set(R.map(keyOf));const cands=new Map();sims.forEach(({user,sim})=>{user.repos.forEach(fn=>{const k=fn.toLowerCase();if(mine.has(k))return;if(!cands.has(k))cands.set(k,{fn,users:[],score:0});const c=cands.get(k);c.users.push(user.login);c.score+=sim.total;});});
+
+  return[...cands.values()].sort((a,b)=>b.score-a.score).slice(0,24);}
+
+$('#btnCrawlUser').onclick=async()=>{const u=$('#discUser').value.trim();if(!u){toast('Ein Username, Sir.');return;}const pages=Math.max(1,Math.min(30,parseInt($('#discPages').value)||5));
+
+  $('#discState').textContent='crawle '+u+' …';try{const repos=await crawlUserStars(u,pages);if(!repos.length){toast('Keine öffentlichen Sterne.');$('#discState').textContent='leer';return;}
+
+    const prof=userProfile(u,repos);crawledUsers.set(u,prof);await idbPut('users',prof);$('#discState').textContent=crawledUsers.size+' Nutzer';renderDiscUsers();toast(u+': '+repos.length+' Sterne erfasst.');}catch(e){toast('Fehler: '+e.message);}};
+
+$('#btnFindSimilar').onclick=()=>{if(!crawledUsers.size){toast('Zuerst einen Kurator crawlen.');return;}const me=lootzProfile();const sims=[];crawledUsers.forEach((p,l)=>sims.push({login:l,user:p,sim:userSim(me,p)}));sims.sort((a,b)=>b.sim.total-a.sim.total);
+
+  $('#discUsers').innerHTML='<div class="kicker" style="margin:.6rem 0">Ähnliche Kuratoren</div>'+sims.map(({login,user,sim})=>'<div class="disc-user"><div><span class="un">'+esc(login)+'</span><div class="um">'+user.repoCount+' Sterne · '+user.top.join(' · ')+' · gemeinsam: '+sim.shared+'</div></div><span class="us">'+Math.round(sim.total*100)+'%</span></div>').join('');};
+
+$('#btnDiscover').onclick=()=>{if(!crawledUsers.size){toast('Zuerst Kuratoren crawlen & vergleichen.');return;}const me=lootzProfile();const sims=[];crawledUsers.forEach((p,l)=>sims.push({user:p,sim:userSim(me,p)}));sims.sort((a,b)=>b.sim.total-a.sim.total);
+
+  const recs=discoverReps(sims.slice(0,10));$('#discRecs').innerHTML='<div class="kicker" style="margin:.8rem 0">✦ Von ähnlichen Kuratoren — Ihnen noch unbekannt</div>'+(recs.length?recs.map(r=>'<div class="sr"><span class="sc">'+r.users.length+'</span><div><a href="https://github.com/'+esc(r.fn)+'" target="_blank" rel="noopener">'+esc(r.fn)+'</a><small>'+r.users.length+' ähnliche Kuratoren · Score '+r.score.toFixed(2)+'</small></div></div>').join(''):'<div class="butler-empty">Keine neuen Funde.</div>');};
+
+function renderDiscUsers(){if(!crawledUsers.size)return;$('#discUsers').innerHTML='<div class="kicker" style="margin:.4rem 0">Gecrawlt</div>'+[...crawledUsers.values()].map(p=>'<div class="disc-user"><div><span class="un">'+esc(p.login)+'</span><div class="um">'+p.repoCount+' Sterne · '+p.top.join(' · ')+'</div></div><span class="us">'+p.repoCount+'</span></div>').join('');}
+
+
+
+/* ═══════════════════ CURATOR ═══════════════════ */
+
+function renderCurator(){const rows=R.map(r=>({r,a:annotations.get(keyOf(r))})).sort((x,y)=>{const o={P0:0,P1:1,P2:2,P3:3,WATCH:4,UNSET:5};return (o[x.a?.priority]??5)-(o[y.a?.priority]??5);});
+
+  $('#curState').textContent=annotations.size+' Einordnungen';
+
+  $('#curBoard').innerHTML=rows.map(({r,a})=>{const x=a||{priority:'UNSET',decisionStatus:'UNREVIEWED',inspectionLevel:'DISCOVERED'};
+
+    return '<div class="cur-row"><div><span class="cn">'+esc(r.n)+'</span> <span class="mono" style="font-size:10px;color:#8a7c63">'+esc(r.o)+'</span>'+
+
+      '<div class="cm">'+esc(x.whyStarred||'— kein „warum" notiert —')+'</div></div>'+
+
+      '<div class="cb"><span class="prio '+x.priority+'">'+x.priority+'</span><span class="badge">'+x.inspectionLevel.replace(/_/g,' ')+'</span><span class="badge role'+(x.decisionStatus==='ADOPTED'?' ok':'')+'">'+x.decisionStatus.replace(/_/g,' ')+'</span></div></div>';}).join('');}
+
+
+
+/* ═══════════════════ STEWARD ═══════════════════ */
+
+function genMessage(r,o){const a=annotations.get(keyOf(r));const why=o.why||(a?a.whyStarred:'')||'I found this repository while researching tools for my project.';
+
+  return `Hi,
+
+
+
+I found ${r.o}/${r.n} while researching tools for ${o.project||'a personal project'}.
+
+
+
+The part I am particularly interested in is ${o.comp||'the overall architecture'}, because
+
+${why}
+
+
+
+I could not find a clear license covering the repository. Would you be comfortable granting me permission to:
+
+
+
+- use and modify ${o.comp||'the relevant components'},
+
+- include the modified version in ${o.project||'my project'},
+
+- distribute it ${o.use||'non-commercially'},
+
+- under the following attribution: ${o.attr||'visible credit in README and NOTICE'}?
+
+
+
+The version I refer to is: ${o.ref||'latest main branch'}
+
+
+
+A simple reply confirming these points is enough for my records. Adding a license would of course help everyone. No problem at all if you would rather not allow this.
+
+
+
+Thank you,
+
+Lootz`;}
+
+function fillProjSelects(){const opts=PROJECTS.map(p=>'<option value="'+p.id+'">'+p.n+'</option>').join('');
+
+  $('#rfProject').innerHTML='<option value="">—</option>'+opts;$('#semProject').innerHTML='<option value="">Alle</option>'+opts;
+
+  $('#rfRepo').innerHTML=R.map(r=>'<option value="'+keyOf(r)+'">'+esc(r.o+'/'+r.n)+'</option>').join('');}
+
+$('#btnGenMsg').onclick=()=>{const r=R.find(x=>keyOf(x)===$('#rfRepo').value);if(!r)return;
+
+  $('#rfMsg').value=genMessage(r,{project:$('#rfProject').value,comp:$('#rfComp').value,use:$('#rfUse').value,ref:$('#rfRef').value,attr:$('#rfAttr').value,why:$('#rfWhy').value});};
+
+$('#btnSaveRights').onclick=()=>{const r=R.find(x=>keyOf(x)===$('#rfRepo').value);if(!r)return;
+
+  if(!$('#rfMsg').value)$('#btnGenMsg').click();
+
+  const entry={id:keyOf(r),fullName:r.o+'/'+r.n,project:$('#rfProject').value,component:$('#rfComp').value,use:$('#rfUse').value,ref:$('#rfRef').value,channel:$('#rfChan').value,attribution:$('#rfAttr').value,why:$('#rfWhy').value,licenseStatus:$('#rfLic').value,responseStatus:'NO_RESPONSE',message:$('#rfMsg').value,createdAt:new Date().toISOString()};
+
+  rightsLedger.set(keyOf(r),entry);saveRights().then(()=>{renderLedger();renderCatalog();animateCounters();
+
+    const m=$('#rightsSaved');m.classList.add('show');setTimeout(()=>m.classList.remove('show'),2200);toast('Ins Ledger gelegt, Sir.');});};
+
+function renderLedger(){$('#ledState').textContent=rightsLedger.size+' Einträge';
+
+  $('#rightsLedger').innerHTML=rightsLedger.size?[...rightsLedger.values()].sort((a,b)=>(b.createdAt||'').localeCompare(a.createdAt||'')).map(e=>
+
+    '<div class="led-row"><div class="lh"><span class="lr">'+esc(e.fullName)+'</span><span class="seal '+e.responseStatus+'">'+e.responseStatus.replace(/_/g,' ')+'</span></div>'+
+
+    '<div class="lm">Projekt: '+esc(e.project||'—')+' · Komponente: '+esc(e.component||'—')+' · Verwendung: '+esc(e.use||'—')+' · Kontakt: '+esc(e.channel||'—')+' · '+(e.createdAt?new Date(e.createdAt).toLocaleDateString('de-DE'):'')+'</div>'+
+
+    (e.message?'<details style="margin-top:.4rem"><summary style="font-family:var(--mono);font-size:9.5px;color:#7d6f57;cursor:pointer">Nachricht</summary><pre style="font-family:var(--mono);font-size:10px;color:#a99c83;white-space:pre-wrap;margin-top:.3rem">'+esc(e.message)+'</pre></details>':'')+'</div>').join('')
+
+    :'<div class="butler-empty">Noch kein Siegel gesetzt, Sir.</div>';}
+
+$('#btnExportLedger').onclick=()=>{const out=[...rightsLedger.values()];download(new Blob([JSON.stringify(out,null,1)],{type:'application/json'}),'alfred_ledger.json');toast('Ledger exportiert.');};
+
+
+
+/* ═══════════════════ BUTLER QUERY ENGINE ═══════════════════ */
+
+const BUTLER_EX=[
+
+  'Node-Editor mit Undo für SPIN, kompatible Lizenz, mindestens Code-Scan',
+
+  'Shader-Repos für SHADED, die ich noch nicht geprüft habe',
+
+  'Musik-Tools mit MIT oder CC0',
+
+  'Architektur-Vorlagen mit mehr als 500 Sternen',
+
+  'Was darf ich bereits kommerziell nutzen?',
+
+  'Minecraft-Shader, die ich beobachte'
+
+];
+
+function parseButler(q){const t=q.toLowerCase();const f={projects:[],roles:[],lic:[],inspect:[],status:[],langs:[],minStars:null,maxStars:null,compat:false,commercial:false,unreviewed:false,recent:false,unknown:[]};
+
+  PROJECTS.forEach(p=>{if(t.includes(p.n.toLowerCase())||t.includes(p.id.toLowerCase()))f.projects.push(p.id);});
+
+  for(const rl in ROLE_KW)if(ROLE_KW[rl].some(k=>t.includes(k)))f.roles.push(rl);
+
+  ['MIT','GPL-3.0','GPL-2.0','AGPL-3.0','Apache-2.0','CC0-1.0','BSD-3-Clause','LGPL-2.1'].forEach(l=>{if(t.includes(l.toLowerCase().replace('-','').replace('.','')))f.lic.push(l);});
+
+  if(/cc0|creative commons/.test(t))f.lic.push('CC0-1.0');
+
+  for(const ins in INSPECT_KW)if(INSPECT_KW[ins].some(k=>t.includes(k)))f.inspect.push(ins);
+
+  for(const st in STATUS_KW)if(STATUS_KW[st].some(k=>t.includes(k)))f.status.push(st);
+
+  Object.keys(LANG).forEach(l=>{if(t.includes(l.toLowerCase()))f.langs.push(l);});
+
+  const gt=t.match(/>\s*(\d+)/);if(gt)f.minStars=+gt[1];const lt=t.match(/<\s*(\d+)/);if(lt)f.maxStars=+lt[1];
+
+  if(/populär|popular|viele sterne|groß/.test(t))f.minStars=f.minStars||1000;
+
+  if(/nische|klein|wenig sterne/.test(t))f.maxStars=f.maxStars||100;
+
+  if(/kompatibel|compatible|erlaubt|freie lizenz|permissiv/.test(t))f.compat=true;
+
+  if(/kommerziell|commercial|verkaufen/.test(t)){f.commercial=true;f.compat=true;}
+
+  if(/ungeprüft|unreviewed|noch nicht|nicht geprüft/.test(t))f.unreviewed=true;
+
+  if(/aktiv 2026|kürzlich|recent|neu\b/.test(t))f.recent=true;
+
+  if(/musik|music|midi|sound/.test(t)&&!f.projects.length&&!Object.keys(LANG).some(l=>t.includes(l.toLowerCase())))f._cat='music';
+
+  if(/shader|glsl|hlsl/.test(t)&&!f.projects.length)f._cat=f._cat||'glsl';
+
+  if(/minecraft shader|shaderpack/.test(t))f._cat='mcshader';
+
+  return f;}
+
+function butlerMatch(r,f){const a=annotations.get(keyOf(r)),rg=rightsLedger.get(keyOf(r));
+
+  if(f.projects.length&&!f.projects.some(p=>(a&&a.projectFits.some(x=>x.project===p))||suggestProjects(r).some(x=>x.p===p)))return false;
+
+  if(f.roles.length&&!f.roles.some(rl=>a&&(a.confirmedRoles.includes(rl)||a.suggestedRoles.includes(rl))))return false;
+
+  if(f.lic.length&&!f.lic.includes(r.lic))return false;
+
+  if(f.inspect.length&&!f.inspect.includes(a?a.inspectionLevel:'DISCOVERED'))return false;
+
+  if(f.status.length&&!f.status.includes(a?a.decisionStatus:'UNREVIEWED'))return false;
+
+  if(f.langs.length&&!f.langs.includes(r.l))return false;
+
+  if(f._cat&&r.c!==f._cat)return false;
+
+  if(f.minStars!=null&&r.s<f.minStars)return false;
+
+  if(f.maxStars!=null&&r.s>f.maxStars)return false;
+
+  if(f.compat){const ok=COMPAT_LIC.includes(r.lic)||(rg&&/PERMISSION|LICENSE_ADDED/.test(rg.responseStatus));if(!ok)return false;}
+
+  if(f.commercial){const ok=(COMPAT_LIC.includes(r.lic)&&!['GPL-3.0','AGPL-3.0','GPL-2.0','LGPL-2.1'].includes(r.lic))||(rg&&/PERMISSION/.test(rg.responseStatus));if(!ok)return false;}
+
+  if(f.unreviewed){if(a&&a.inspectionLevel!=='DISCOVERED'&&a.decisionStatus!=='UNREVIEWED')return false;}
+
+  if(f.recent){if(!r.p||r.p<'2026-01-01')return false;}
+
+  return true;}
+
+function truthTags(r){const a=annotations.get(keyOf(r)),rg=rightsLedger.get(keyOf(r));const t=['SOURCE'];
+
+  if(suggestProjects(r).length||suggestRoles(r).length)t.push('INFERENCE');
+
+  if(a&&(a.confirmedRoles.length||a.decisionStatus!=='UNREVIEWED'||a.priority!=='UNSET'))t.push('ASSESSMENT');
+
+  if(readmeCache.has(keyOf(r))||a&&a.notes)t.push('EVIDENCE');
+
+  if(rg||COMPAT_LIC.includes(r.lic))t.push('PERMISSION');
+
+  return t;}
+
+function butlerProse(r){const a=annotations.get(keyOf(r)),rg=rightsLedger.get(keyOf(r));const parts=[];
+
+  parts.push('Quelle sagt: <b>'+esc(catById(r.c).n)+'</b>, '+esc(r.l||'unbekannte Sprache')+', '+fmt(r.s)+' ★.');
+
+  const sp=suggestProjects(r).map(x=>x.p);if(sp.length)parts.push('Ich vermute Fit für <b>'+esc(sp.join(', '))+'</b>.');
+
+  if(a&&a.confirmedRoles.length)parts.push('Sie bestimmten: <b>'+esc(a.confirmedRoles.map(x=>ROLE_LABELS[x]).join(', '))+'</b>.');
+
+  if(a&&a.inspectionLevel!=='DISCOVERED')parts.push('Prüftiefe <b>'+esc(a.inspectionLevel.replace(/_/g,' '))+'</b>.');
+
+  if(rg)parts.push('Rechte: <b>'+esc(rg.responseStatus.replace(/_/g,' '))+'</b>.');
+
+  else if(COMPAT_LIC.includes(r.lic))parts.push('Lizenz <b>'+esc(r.lic)+'</b> — frei nutzbar.');
+
+  else if(r.lic==='NOASSERTION'||!r.lic)parts.push('Lizenzlage <b>ungeklärt</b> — Steward konsultieren.');
+
+  return parts.join(' ');}
+
+const BUTLER_VOICE=[
+
+  (n)=>`<span class="sir">Sir</span>, ich habe ${n} Kandidat${n===1?'en':'en'} aus dem Archiv gezogen, die Ihrer Anfrage entsprechen.`,
+
+  (n)=>`<span class="sir">Sehr wohl.</span> ${n} Eintrag${n===1?'':'e'} passen — ich reiche sie mit Buch und Beleg.`,
+
+  (n)=>`<span class="sir">Gestatten.</span> Nach Durchsicht aller Räume: ${n} Treffer, jeder mit seiner Wahrheitsschicht.`
+
+];
+
+function runButler(){const q=$('#butlerInput').value.trim();if(!q){$('#butlerVoice').innerHTML='Ich stehe bereit, Sir. Eine Frage genügt.';$('#butlerResults').innerHTML='';return;}
+
+  const f=parseButler(q);const hits=R.filter(r=>butlerMatch(r,f));
+
+  const notes=[];if(f.projects.length)notes.push('Projekt '+f.projects.join('/'));if(f.roles.length)notes.push('Rolle '+f.roles.map(x=>ROLE_LABELS[x]).join('/'));
+
+  if(f.lic.length)notes.push('Lizenz '+f.lic.join('/'));if(f.inspect.length)notes.push('Prüftiefe '+f.inspect.join('/'));if(f.compat)notes.push('kompatible Lizenz');if(f.commercial)notes.push('kommerziell');if(f.unreviewed)notes.push('ungeprüft');if(f.minStars)notes.push('>'+f.minStars+'★');if(f.maxStars)notes.push('<'+f.maxStars+'★');
+
+  if(!hits.length){$('#butlerVoice').innerHTML=`<span class="sir">Sir</span>, ich fand nichts, das allen Bedingungen zugleich genügt${notes.length?' ('+esc(notes.join(', '))+')':''}. Soll ich eine Bedingung lockern?`;$('#butlerResults').innerHTML='';return;}
+
+  $('#butlerVoice').innerHTML=BUTLER_VOICE[hits.length%3](hits.length)+(notes.length?' <span style="font-style:normal;font-family:var(--mono);font-size:.7rem;color:#8a7c63">[ '+esc(notes.join(' · '))+' ]</span>':'');
+
+  $('#butlerResults').innerHTML=hits.sort((a,b)=>b.s-a.s).map(r=>{const tg=truthTags(r);
+
+    return '<div class="bcard"><div class="bn">'+esc(r.n)+' <span class="bo">'+esc(r.o)+'</span></div>'+
+
+      '<div class="btruth">'+tg.map(x=>'<span class="t-'+x+'">'+x+'</span>').join('')+'</div>'+
+
+      '<div class="bprose">'+butlerProse(r)+'</div>'+
+
+      '<div class="bacts"><button data-go="'+esc(keyOf(r))+'">Im Lesesaal zeigen</button><button data-ann-go="'+esc(keyOf(r))+'">Einordnung öffnen</button></div></div>';}).join('');
+
+  $$('#butlerResults [data-go]').forEach(b=>b.onclick=()=>{const row=document.querySelector('.row[data-key="'+CSS.escape(b.dataset.go)+'"]');if(row){$('#room-observatory').scrollIntoView({behavior:'smooth'});setTimeout(()=>{row.scrollIntoView({behavior:'smooth',block:'center'});row.style.background='rgba(192,31,51,.12)';setTimeout(()=>row.style.background='',1400);},400);}});
+
+  $$('#butlerResults [data-ann-go]').forEach(b=>b.onclick=()=>{const row=document.querySelector('.row[data-key="'+CSS.escape(b.dataset.annGo)+'"]');if(row){$('#room-observatory').scrollIntoView({behavior:'smooth'});setTimeout(()=>{row.scrollIntoView({behavior:'smooth',block:'center'});const ab=row.querySelector('.annbox');if(ab)ab.classList.add('open');},400);}});}
+
+$('#butlerInput').addEventListener('keydown',e=>{if(e.key==='Enter')runButler();});
+
+$('#butlerEx').innerHTML=BUTLER_EX.map(x=>'<button>'+esc(x)+'</button>').join('');
+
+$$('#butlerEx button').forEach(b=>b.onclick=()=>{$('#butlerInput').value=b.textContent;runButler();});
+
+
+
+/* ═══════════════════ KONSOLE / API / DB ═══════════════════ */
+
+const CK='alfred_cache_v1';let busy=false,abort=false,rate={rem:'?',lim:'?'};
+
+const loadCache=()=>{try{return JSON.parse(localStorage.getItem(CK))}catch(e){return null}};
+
+const saveCache=c=>{try{localStorage.setItem(CK,JSON.stringify(c))}catch(e){}};
+
+function log(m,cls){const L=$('#plog'),d=document.createElement('div');d.className=cls||'';d.textContent='» '+m;L.appendChild(d);while(L.children.length>50)L.removeChild(L.firstChild);L.scrollTop=L.scrollHeight;}
+
+function progress(w){$('#pbar').style.width=w+'%';}
+
+function refreshConState(){const c=loadCache();$('#conState').textContent=c?(c.user+' · '+c.repos.length+' Repos · S.'+c.fetchedPages+'/'+c.pages):'kein lokaler Cache';
+
+  $('#btnStart').textContent=(busy?'■ Stop':(c&&c.user===$('#ghUser').value.trim()&&c.source===liveSrc&&c.fetchedPages<c.pages)?'▶ Fortsetzen':'▶ Start');}
+
+function ghHeaders(){const h={'Accept':'application/vnd.github+json'};const t=$('#pat').value.trim();if(t)h['Authorization']='Bearer '+t;return h;}
+
+async function fetchPage(u,page){const path=liveSrc==='starred'?'starred':'repos';const res=await fetch('https://api.github.com/users/'+encodeURIComponent(u)+'/'+path+'?per_page=100&page='+page,{headers:ghHeaders()});
+
+  if(!res.ok){let m='HTTP '+res.status;try{const j=await res.json();m=j.message||m;}catch(e){}throw new Error(m);}
+
+  rate.rem=res.headers.get('x-ratelimit-remaining')||'?';rate.lim=res.headers.get('x-ratelimit-limit')||'?';return res.json();}
+
+function normalize(raw){return{id:raw.id||0,n:(raw.name||'').trim(),o:((raw.owner&&raw.owner.login)||'').trim(),d:raw.description?String(raw.description).trim():'Keine Beschreibung hinterlegt.',l:raw.language||null,s:raw.stargazers_count||0,f:raw.forks_count||0,p:(raw.pushed_at||'').slice(0,10),created:(raw.created_at||'').slice(0,10),t:(raw.topics||[]).map(x=>String(x).trim()).filter(Boolean).slice(0,6),k:raw.fork?1:0,a:raw.archived?1:0,hp:(raw.homepage&&String(raw.homepage).trim())||null,lic:(raw.license&&raw.license.spdx_id)?raw.license.spdx_id:null,br:raw.default_branch||'HEAD'};}
+
+$('#segSrc').addEventListener('click',e=>{const b=e.target.closest('button');if(!b)return;liveSrc=b.dataset.src;$$('#segSrc button').forEach(x=>x.classList.toggle('on',x===b));refreshConState();});
+
+$('#ghUser').addEventListener('input',refreshConState);
+
+$('#btnStart').onclick=async()=>{if(busy){abort=true;log('Stoppe nach aktueller Seite …','warn');return;}
+
+  const u=$('#ghUser').value.trim();if(!u){log('Bitte einen Username, Sir.','err');return;}
+
+  const pages=Math.max(1,Math.min(100,parseInt($('#ghPages').value)||9));let cache=loadCache(),start=1,map=new Map();
+
+  if(cache&&cache.user===u&&cache.source===liveSrc&&cache.fetchedPages<cache.pages){start=cache.fetchedPages+1;cache.repos.forEach(r=>map.set((r.o+'/'+r.n).toLowerCase(),r));log('Cache gefunden — ab Seite '+start+'.','warn');}
+
+  else log('Neuer Abruf: /users/'+u+'/'+(liveSrc==='starred'?'starred':'repos')+' · '+pages+' Seiten.');
+
+  busy=true;abort=false;$('#led').classList.add('busy');refreshConState();
+
+  try{for(let page=start;page<=pages;page++){if(abort){log('Abgebrochen — Cache gesichert.','warn');break;}log('Seite '+page+'/'+pages+' …','dim');
+
+    const arr=await fetchPage(u,page);if(!arr.length){log('Keine weiteren Repos.','');progress(100);break;}
+
+    arr.map(normalize).forEach(r=>{if(r.n)map.set((r.o+'/'+r.n).toLowerCase(),r);});progress(Math.round(page/pages*100));
+
+    saveCache({user:u,source:liveSrc,pages,fetchedPages:page,repos:[...map.values()],time:Date.now()});refreshConState();}
+
+    const all=[...map.values()];if(all.length){liveUser=u;loadRepos(all,'live');log('✔ '+all.length+' Repos katalogisiert.','');if($('#autoReadme').checked)readmeSweep();}
+
+    else{log('Keine Daten erhalten.','err');}}
+
+  catch(e){log('API-Fehler: '+e.message+' — Fortsetzen möglich.','err');}
+
+  busy=false;$('#led').classList.remove('busy');refreshConState();};
+
+$('#btnReset').onclick=()=>{localStorage.removeItem(CK);readmeCache.clear();liveUser='';dataSource='embedded';activeDbName='';
+
+  R=INITIAL.map(r=>({...r}));R.forEach(runAuto);refreshAll();progress(0);log('↺ Auf den eingebetteten Bestand zurückgesetzt.','warn');toast('Zurückgesetzt, Sir.');};
+
+$('#btnJson').onclick=()=>{const out=R.map(r=>({full_name:r.o+'/'+r.n,owner:r.o,name:r.n,description:r.d,language:r.l,stargazers_count:r.s,forks_count:r.f,pushed_at:r.p,homepage:r.hp,html_url:gurl(r),license:r.lic,topics:r.t,category:catById(r.c).n,readme:readmeCache.get(keyOf(r))||null}));download(new Blob([JSON.stringify(out,null,1)],{type:'application/json'}),'alfred_archive.json');toast('Archiv exportiert.');};
+
+$('#btnAnn').onclick=()=>{const out=[...annotations.values()].filter(a=>a.decisionStatus!=='UNREVIEWED'||a.notes||a.confirmedRoles.length||a.projectFits.length);download(new Blob([JSON.stringify(out,null,1)],{type:'application/json'}),'alfred_annotations.json');toast(out.length+' Einordnungen exportiert.');};
+
+
+
+/* sql.js + DB-Manager */
+
+let SQL=null;function loadScript(s){return new Promise((res,rej)=>{const e=document.createElement('script');e.src=s;e.onload=res;e.onerror=()=>rej(new Error('CDN'));document.head.appendChild(e);});}
+
+async function ensureSqlJs(){if(SQL)return SQL;if(!window.initSqlJs)await loadScript('https://cdnjs.cloudflare.com/ajax/libs/sql.js/1.10.2/sql-wasm.js');SQL=await window.initSqlJs({locateFile:f=>'https://cdnjs.cloudflare.com/ajax/libs/sql.js/1.10.2/'+f});return SQL;}
+
+let dbs=[],activeDbId=null;
+
+function listTables(db){const r=db.exec("SELECT name FROM sqlite_master WHERE type='table' AND name NOT LIKE 'sqlite_%'");return r.length?r[0].values.map(v=>v[0]):[];}
+
+function tableCols(db,t){const r=db.exec('PRAGMA table_info("'+t.replace(/"/g,'""')+'")');return r.length?r[0].values.map(v=>v[1]):[];}
+
+function rowCount(db,t){try{const r=db.exec('SELECT COUNT(*) FROM "'+t.replace(/"/g,'""')+'"');return r.length?r[0].values[0][0]:0;}catch(e){return 0;}}
+
+const ALIASES={n:['name','title','repo_title','repo','repo_name'],o:['owner','owner_login','login','user','author'],fn:['full_name','fullname'],d:['description','desc','about'],l:['language','lang'],s:['stars','stargazers_count','star_count','watchers'],f:['forks','forks_count'],p:['pushed_at','pushed','updated_at','updated'],cr:['created_at','created'],hp:['homepage','html_url','url','website'],lic:['license','license_spdx','spdx_id'],tp:['topics','tags','keywords'],rd:['readme','readme_content','readme_md','readme_text'],url:['link','repo_link','github_url','repository_url','repo_url']};
+
+function mapCols(cols){const m={},lc=cols.map(c=>String(c).toLowerCase().trim());for(const k in ALIASES)for(const al of ALIASES[k]){const i=lc.indexOf(al);if(i>=0){m[k]=cols[i];break;}}return m;}
+
+function scoreCols(cols){const m=mapCols(cols);let sc=Object.keys(m).length;if(m.n||m.fn)sc+=2;if(m.s)sc+=2;if(m.url)sc+=3;if(m.rd)sc+=2;return sc;}
+
+function pickTable(db,tables){let best=null;tables.forEach(t=>{const sc=scoreCols(tableCols(db,t));if(!best||sc>best.sc)best={t,sc};});return best&&best.sc>=4?best:null;}
+
+function readRepos(db,table,mapping){const cols=Object.values(mapping);const sel=cols.map(c=>'"'+String(c).replace(/"/g,'""')+'"').join(',');const res=db.exec('SELECT '+sel+' FROM "'+table.replace(/"/g,'""')+'"');if(!res.length)return[];
+
+  const idx={};cols.forEach((c,i)=>idx[c]=i);const g=(row,k)=>mapping[k]!=null?row[idx[mapping[k]]]:null;
+
+  return res[0].values.map(row=>{let owner=g(row,'o')?String(g(row,'o')).trim():'',name=g(row,'n')?String(g(row,'n')).trim():'',hp=g(row,'hp')?String(g(row,'hp')).trim():'',url=g(row,'url')?String(g(row,'url')).trim():'',fn=g(row,'fn');
+
+    if((!owner||!name)&&fn){const p=String(fn).split('/');owner=owner||p[0];name=name||p[1];}
+
+    if((!owner||!name)&&url){const pr=parseGitHubRepoUrl(url);if(pr){owner=owner||pr.owner;name=name||pr.name;if(!hp)hp=pr.html_url;}}
+
+    if((!owner||!name)&&hp){const pr=parseGitHubRepoUrl(hp);if(pr){owner=owner||pr.owner;name=name||pr.name;}}
+
+    if(!name&&owner){name=owner;owner='unknown';}const rd=g(row,'rd');
+
+    return{id:0,n:name,o:owner||'unknown',d:g(row,'d')?String(g(row,'d')).trim():'Keine Beschreibung hinterlegt.',l:g(row,'l')||null,s:Math.round(+g(row,'s')||0),f:Math.round(+g(row,'f')||0),p:String(g(row,'p')||'').slice(0,10),created:String(g(row,'cr')||'').slice(0,10),t:g(row,'tp')?String(g(row,'tp')).split(/[,;|]/).map(x=>x.trim()).filter(Boolean).slice(0,6):[],k:g(row,'k')?1:0,a:g(row,'a')?1:0,hp:hp||null,lic:g(row,'lic')||null,br:'HEAD',rd:rd?String(rd):null};}).filter(r=>r.n);}
+
+function renderDbList(){$('#dbState').textContent=dbs.length?(dbs.length+' DB'):'keine DB';
+
+  $('#dbList').innerHTML=dbs.length?dbs.map(d=>'<div style="display:flex;justify-content:space-between;align-items:center;padding:.5rem .7rem;border:1px solid var(--line);margin-bottom:.4rem'+(d.id===activeDbId?';border-color:var(--r-obs)':'')+'"><label style="display:flex;gap:.5rem;align-items:center;cursor:pointer;font-family:var(--mono);font-size:11px;color:var(--bone)"><input type="radio" name="dbact" value="'+esc(d.id)+'"'+(d.id===activeDbId?' checked':'')+'>'+esc(d.name)+' <span style="color:#8a7c63">'+fmt(d.repos)+' Repos</span></label><span><button class="btn btn-ghost mini-dl" data-id="'+esc(d.id)+'" style="padding:.2rem .5rem">⤓</button> <button class="btn btn-danger mini-del" data-id="'+esc(d.id)+'" style="padding:.2rem .5rem">✕</button></span></div>').join(''):'<div class="butler-empty">Noch keine Datenbank gereicht, Sir.</div>';
+
+  $$('input[name=dbact]').forEach(i=>i.onchange=()=>activateDb(i.value));
+
+  $$('.mini-dl').forEach(b=>b.onclick=()=>{const rec=dbs.find(x=>x.id===b.dataset.id);if(rec)download(new Blob([rec.bytes]),rec.name);});
+
+  $$('.mini-del').forEach(b=>b.onclick=()=>deleteDb(b.dataset.id));}
+
+async function importDbFile(file){toast('Ich öffne '+file.name+' …');
+
+  try{const SQ=await ensureSqlJs();const buf=await file.arrayBuffer();let db;try{db=new SQ.Database(new Uint8Array(buf));}catch(e){toast('Keine gültige SQLite-Datei.');return;}
+
+    const tables=listTables(db);if(!tables.length){db.close();toast('Keine Tabellen.');return;}const best=pickTable(db,tables);const tinfo=tables.map(t=>({t,rows:rowCount(db,t)}));
+
+    let repos=[];if(best)repos=readRepos(db,best.t,mapCols(tableCols(db,best.t)));db.close();
+
+    const rec={id:file.name+'·'+Date.now(),name:file.name,size:file.size,time:Date.now(),bytes:buf,tables:tinfo,repos:repos.length,table:best?best.t:null};
+
+    await idbPut('dbs',rec);dbs.push(rec);dbs.sort((a,b)=>b.time-a.time);renderDbList();
+
+    if(repos.length)activateDb(rec.id);else toast('Gespeichert, aber keine Repo-Tabelle erkannt.');}
+
+  catch(e){toast('Import fehlgeschlagen: '+e.message);}}
+
+async function activateDb(id){const rec=dbs.find(d=>d.id===id);if(!rec)return;
+
+  try{const SQ=await ensureSqlJs();const db=new SQ.Database(new Uint8Array(rec.bytes));const tables=listTables(db);const best=pickTable(db,tables)||(rec.table?{t:rec.table}:null);
+
+    if(!best){db.close();toast('Keine Repo-Tabelle.');return;}const mapping=mapCols(tableCols(db,best.t));const repos=readRepos(db,best.t,mapping);db.close();
+
+    let rd=0;repos.forEach(r=>{if(r.rd){readmeCache.set(keyOf(r),r.rd);rd++;}});activeDbId=id;activeDbName=rec.name;
+
+    loadRepos(repos.map(r=>{const{rd,...rest}=r;return rest;}),'db');renderDbList();
+
+    $('#dbSchema').innerHTML='<div class="kicker" style="margin-top:.4rem">Tabelle <b style="color:var(--r-obs)">'+esc(best.t)+'</b> · '+Object.keys(mapping).map(k=>k+'→'+esc(mapping[k])).join(' · ')+' · '+rd+' READMEs aus DB</div>';
+
+    toast(fmt(repos.length)+' Repos aus '+rec.name+' aufgenommen.');log('⛁ DB aktiv: '+rec.name+' · '+repos.length+' Repos','');}
+
+  catch(e){toast('Fehler: '+e.message);}}
+
+async function deleteDb(id){await idbDel('dbs',id);dbs=dbs.filter(d=>d.id!==id);if(activeDbId===id){activeDbId=null;activeDbName='';R=INITIAL.map(r=>({...r}));dataSource='embedded';R.forEach(runAuto);refreshAll();$('#dbSchema').innerHTML='';}renderDbList();}
+
+async function initDbManager(){try{dbs=(await idbAll('dbs')).sort((a,b)=>b.time-a.time);renderDbList();const last=localStorage.getItem('alfred_active_db');const t=dbs.find(d=>d.id===last)||dbs[0];if(t)activateDb(t.id);}catch(e){renderDbList();}}
+
+$('#btnDbImport').onclick=()=>$('#fileIn').click();
+
+$('#btnSql').onclick=async()=>{toast('Ich setze die SQLite auf …');try{const SQ=await ensureSqlJs();const db=new SQ.Database();
+
+  db.run('CREATE TABLE repos(id INTEGER PRIMARY KEY, full_name TEXT, owner TEXT, name TEXT, description TEXT, language TEXT, stars INTEGER, forks INTEGER, pushed_at TEXT, homepage TEXT, html_url TEXT, license TEXT, category TEXT, topics TEXT, readme TEXT)');
+
+  db.run('CREATE TABLE topics(full_name TEXT, topic TEXT)');const st=db.prepare('INSERT INTO repos VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)');
+
+  R.forEach(r=>{st.run([r.id||0,r.o+'/'+r.n,r.o,r.n,r.d,r.l,r.s,r.f,r.p,r.hp||null,gurl(r),r.lic||null,catById(r.c).n,(r.t||[]).join(','),readmeCache.get(keyOf(r))||null]);(r.t||[]).forEach(t=>db.run('INSERT INTO topics VALUES (?,?)',[r.o+'/'+r.n,t]));});st.free();
+
+  const data=db.export();db.close();download(new Blob([data],{type:'application/octet-stream'}),'alfred.sqlite');toast('SQLite geschrieben.');}catch(e){toast('Fehler: '+e.message);}};
+
+
+
+/* Datei-Import */
+
+function parseStarred(text){const s=text.indexOf('['),e=text.lastIndexOf(']');if(s<0||e<0)throw new Error('Kein JSON-Array');const raw=JSON.parse(text.slice(s,e+1));
+
+  const clean=o=>Array.isArray(o)?o.map(clean):(o&&typeof o==='object'?Object.fromEntries(Object.entries(o).map(([k,v])=>[k.trim(),clean(v)])):o);return clean(raw);}
+
+function readJsonFile(f){toast('Ich lese '+f.name+' …');f.text().then(txt=>{try{const arr=parseStarred(txt).map(normalize);loadRepos(arr,'file');log('⤒ JSON: '+arr.length+' Repos','');if($('#autoReadme').checked)readmeSweep();}catch(e){toast('Import fehlgeschlagen: '+e.message);}});}
+
+function routeFile(f){if(/\.(sqlite3?|db)$/i.test(f.name))importDbFile(f);else readJsonFile(f);}
+
+$('#importBtn').onclick=()=>$('#fileIn').click();
+
+$('#fileIn').addEventListener('change',e=>{[...e.target.files].forEach(routeFile);e.target.value='';});
+
+const drop=$('#drop');let dd=0;addEventListener('dragenter',e=>{e.preventDefault();dd++;drop.classList.add('show');});addEventListener('dragover',e=>e.preventDefault());addEventListener('dragleave',()=>{if(--dd<=0){dd=0;drop.classList.remove('show');}});addEventListener('drop',e=>{e.preventDefault();dd=0;drop.classList.remove('show');[...e.dataTransfer.files].forEach(routeFile);});
+
+
+
+/* ═══════════════════ GLOBALES ═══════════════════ */
+
+function loadRepos(arr,origin){const seen=new Map();arr.forEach(r=>{if(r.n&&r.o)seen.set(keyOf(r),r);});R=[...seen.values()].map(r=>({...r,c:r.c||classify(r)}));dataSource=origin;R.forEach(runAuto);refreshAll();}
+
+function refreshAll(){renderChips();renderFilterbar();renderCatalog();renderCartographer();renderCurator();renderLedger();fillProjSelects();animateCounters();applyFilter();}
+
+function animateCounters(){const stars=R.reduce((a,r)=>a+r.s,0);const annC=[...annotations.values()].filter(a=>a.decisionStatus!=='UNREVIEWED'||a.notes||a.confirmedRoles.length).length;
+
+  const vals={repos:R.length,stars,proj:PROJECTS.length,annotated:annC,rights:rightsLedger.size};
+
+  $$('.stat b').forEach(el=>{const tg=vals[el.dataset.k]||0;if(reduced){el.textContent=fmt(tg);return;}const t0=performance.now();(function tick(t){const p=Math.min((t-t0)/1200,1),e=1-Math.pow(1-p,3);el.textContent=fmt(Math.round(tg*e));if(p<1)requestAnimationFrame(tick);})(t0);});}
+
+let toastT;function toast(m){const t=$('#toast');t.textContent=m;t.classList.add('show');clearTimeout(toastT);toastT=setTimeout(()=>t.classList.remove('show'),3200);}
+
+function download(blob,name){const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=name;document.body.appendChild(a);a.click();setTimeout(()=>{URL.revokeObjectURL(a.href);a.remove();},700);}
+
+/* panels + nav */
+
+$$('.panel-head[data-collapse]').forEach(h=>h.addEventListener('click',e=>{if(e.target.closest('input,button:not(.panel-tog)'))return;document.getElementById(h.dataset.collapse).classList.toggle('closed');}));
+
+$$('.panel-tog').forEach(b=>b.addEventListener('click',()=>b.closest('.panel').classList.toggle('closed')));
+
+let rio;function observeReveals(){if(rio)rio.disconnect();rio=new IntersectionObserver(es=>es.forEach(e=>{if(e.isIntersecting){e.target.classList.add('in');rio.unobserve(e.target);}}),{threshold:.08});$$('.reveal,.row').forEach(el=>rio.observe(el));}
+
+/* room spy */
+
+let spy;function roomSpy(){if(spy)spy.disconnect();spy=new IntersectionObserver(es=>es.forEach(e=>{if(e.isIntersecting){const id=e.target.id;$$('#roomnav .rn').forEach(a=>a.classList.toggle('on',a.getAttribute('href')==='#'+id));}}),{rootMargin:'-45% 0px -50% 0px'});['vestibule','room-observatory','room-cartographer','room-scout','room-curator','room-steward','room-ledger','room-butler'].forEach(id=>{const el=document.getElementById(id);if(el)spy.observe(el);});}
+
+/* search/sort keys */
+
+$('#search').addEventListener('input',applyFilter);
+
+$('#sort').addEventListener('change',renderCatalog);
+
+addEventListener('keydown',e=>{if(e.key==='/'&&document.activeElement.tagName!=='INPUT'&&document.activeElement.tagName!=='TEXTAREA'&&document.activeElement.tagName!=='SELECT'){e.preventDefault();$('#search').focus();}if(e.key==='Escape'){$('#search').value='';activeFilters={project:null,role:null,status:null};renderFilterbar();applyFilter();$('#search').blur();}});
+
+const toTop=$('#toTop');addEventListener('scroll',()=>toTop.classList.toggle('show',scrollY>600),{passive:true});toTop.onclick=()=>scrollTo({top:0,behavior:reduced?'auto':'smooth'});
+
+
+
+/* ═══════════════════ DUST MOTES IM SPOTLIGHT ═══════════════════ */
+
+(function(){const cv=$('#motes'),cx=cv.getContext('2d');let W,H,motes=[];
+
+  function make(){motes=[];const n=Math.min(70,Math.floor(W*H/26000));for(let i=0;i<n;i++)motes.push({x:Math.random()*W,y:Math.random()*H,r:.4+Math.random()*1.4,vy:-.05-.15*Math.random(),vx:(Math.random()-.5)*.12,p:Math.random()*6.28});}
+
+  function resize(){W=cv.width=innerWidth;H=cv.height=innerHeight;make();}
+
+  function spot(x,y){const sx=W*.82,sy=H*.16;const d=Math.hypot(x-sx,y-sy);return Math.max(0,1-d/(Math.min(W,H)*.62));}
+
+  function draw(t){cx.clearRect(0,0,W,H);for(const m of motes){m.y+=m.vy;m.x+=m.vx+Math.sin(t*.0004+m.p)*.15;if(m.y<-5){m.y=H+5;m.x=Math.random()*W;}const s=spot(m.x,m.y);const a=(.06+.5*s)*(.5+.5*Math.sin(t*.001+m.p));cx.globalAlpha=a;cx.fillStyle='#ffe9c8';cx.beginPath();cx.arc(m.x,m.y,m.r,0,7);cx.fill();if(s>.5){cx.globalAlpha=a*.3;cx.beginPath();cx.arc(m.x,m.y,m.r*3,0,7);cx.fill();}}cx.globalAlpha=1;if(!reduced)requestAnimationFrame(draw);}
+
+  addEventListener('resize',resize);resize();if(!reduced)requestAnimationFrame(draw);else draw(0);})();
+
+
+
+/* ═══════════════════ START ═══════════════════ */
+
+(async function init(){
+
+  try{const anns=await idbAll('annotations');anns.forEach(a=>annotations.set(a.key,a));const rgs=await idbAll('rights');rgs.forEach(r=>rightsLedger.set(r.id,r));const us=await idbAll('users');us.forEach(u=>crawledUsers.set(u.login,u));}catch(e){}
+
+  R.forEach(runAuto);
+
+  refreshAll();roomSpy();renderDiscUsers();
+
+  const c=loadCache();if(c){$('#ghUser').value=c.user;$('#ghPages').value=c.pages;log('Cache: '+c.user+' · '+c.repos.length+' Repos · S.'+c.fetchedPages+'/'+c.pages,'warn');}
+
+  else log('Bereit, Sir. Der eingebettete Bestand liegt offen; reichen Sie mir eine SQLite, oder nennen Sie einen Username.','dim');
+
+  refreshConState();initDbManager();
+
+})();
+
+</script>
+
+</body>
+
+</html>
+
+
+

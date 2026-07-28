@@ -1,0 +1,2846 @@
+<!DOCTYPE html>
+
+<html lang="de">
+
+<head>
+
+<meta charset="UTF-8">
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<title>Sternkarte — Lootz' GitHub-Archiv · Observatorium</title>
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+
+<link href="https://fonts.googleapis.com/css2?family=Unbounded:wght@500;600;700;900&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+
+<style>
+
+:root{--disp:'Unbounded',sans-serif;--body:'IBM Plex Sans',sans-serif;--mono:'IBM Plex Mono',monospace;
+
+--gold:#f2b632;--ink:#dfe4ee;--dim:#98a4bc;--faint:#7f8cab;--line:rgba(255,255,255,.07);
+
+--auto:#5b8cff;--confirmed:#52e0a9;--rejected:#ff5d6c}
+
+*{box-sizing:border-box}html{scroll-behavior:smooth}
+
+body{margin:0;color:var(--ink);font-family:var(--body);font-size:15.5px;line-height:1.55;overflow-x:hidden;
+
+background:radial-gradient(90% 60% at 88% -8%,rgba(242,182,50,.06),transparent 60%),
+
+radial-gradient(80% 60% at -6% 100%,rgba(76,195,247,.05),transparent 55%),
+
+radial-gradient(120% 90% at 50% 0%,#0c1430 0%,#070b16 58%);background-attachment:fixed}
+
+::selection{background:var(--gold);color:#0a0e1a}
+
+::-webkit-scrollbar{width:10px;height:8px}::-webkit-scrollbar-track{background:#0a0f1e}
+
+::-webkit-scrollbar-thumb{background:#1d2946;border-radius:6px}::-webkit-scrollbar-thumb:hover{background:#2b3a60}
+
+#sky{position:fixed;inset:0;z-index:0;pointer-events:none}
+
+.graticule{position:fixed;inset:0;z-index:0;pointer-events:none;opacity:.55;
+
+background:repeating-radial-gradient(circle at 86% -18%,transparent 0 118px,rgba(140,160,210,.05) 118px 119px),
+
+repeating-radial-gradient(circle at -8% 112%,transparent 0 150px,rgba(140,160,210,.04) 150px 151px)}
+
+.grain{position:fixed;inset:0;z-index:40;pointer-events:none;opacity:.045;mix-blend-mode:overlay;
+
+background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.6'/%3E%3C/svg%3E")}
+
+.wrap{max-width:1240px;margin:0 auto;padding:0 clamp(1.2rem,4vw,3rem);position:relative;z-index:2}
+
+.mono{font-family:var(--mono)}.hide{display:none!important}
+
+.masthead{position:relative;padding:clamp(2.4rem,6vh,4.2rem) 0 1.8rem}
+
+.mast-top{display:flex;flex-wrap:wrap;gap:.6rem 1.6rem;font-family:var(--mono);font-size:11.5px;letter-spacing:.2em;text-transform:uppercase;color:var(--faint)}
+
+.mast-top b{color:var(--gold);font-weight:500}
+
+h1{font-family:var(--disp);font-weight:900;font-size:clamp(2.6rem,8vw,6.2rem);line-height:.95;letter-spacing:-.01em;margin:.3em 0 .28em;color:#f4f1e6}
+
+h1 .outline{color:transparent;-webkit-text-stroke:2px var(--gold)}
+
+.lede{max-width:68ch;color:var(--dim);font-size:clamp(1rem,1.4vw,1.13rem);margin:0 0 2rem}
+
+.lede em{color:#e6c66a;font-style:normal}
+
+.stats{display:flex;flex-wrap:wrap}
+
+.stat{padding:.4rem 1.7rem .4rem 0;margin-right:1.7rem;border-right:1px solid rgba(255,255,255,.1)}
+
+.stat:last-child{border-right:none}
+
+.stat b{display:block;font-family:var(--mono);font-weight:500;font-size:clamp(1.5rem,2.6vw,2.15rem);color:var(--gold)}
+
+.stat span{font-family:var(--mono);font-size:10.5px;letter-spacing:.16em;text-transform:uppercase;color:var(--faint)}
+
+.compass{position:absolute;right:2%;top:10%;width:min(270px,22vw);opacity:.35;animation:spin 140s linear infinite;pointer-events:none}
+
+@keyframes spin{to{transform:rotate(360deg)}}
+
+@media(max-width:900px){.compass{display:none}}
+
+.panel{margin:0 auto 1.6rem}
+
+.con{border:1px solid rgba(242,182,50,.35);border-radius:10px;overflow:hidden;
+
+background:linear-gradient(180deg,rgba(17,25,50,.92),rgba(9,13,26,.94));
+
+box-shadow:0 24px 70px rgba(0,0,0,.5),inset 0 1px 0 rgba(255,255,255,.05)}
+
+.con.dbm{border-color:rgba(120,190,255,.3)}
+
+.con-head{display:flex;align-items:center;gap:.9rem;padding:1rem 1.3rem;cursor:pointer;user-select:none;border-bottom:1px solid rgba(255,255,255,.07)}
+
+.con.closed .con-head{border-bottom-color:transparent}
+
+.led{width:10px;height:10px;border-radius:50%;background:#3ddc84;box-shadow:0 0 12px #3ddc84;animation:pulse 2.2s infinite;flex:none}
+
+.led.busy{background:var(--gold);box-shadow:0 0 12px var(--gold);animation:pulse .7s infinite}
+
+.led.err{background:#ff5d6c;box-shadow:0 0 12px #ff5d6c;animation:pulse 1s infinite}
+
+@keyframes pulse{50%{opacity:.35}}
+
+.con-title{font-family:var(--disp);font-weight:700;font-size:1rem;letter-spacing:.08em;color:#f4e9c8}
+
+.con-sub{font-family:var(--mono);font-size:10.5px;letter-spacing:.14em;text-transform:uppercase;color:var(--faint)}
+
+.con-state{margin-left:auto;font-family:var(--mono);font-size:11px;color:#8b98b3;letter-spacing:.06em;text-align:right}
+
+.con-toggle{background:none;border:1px solid rgba(255,255,255,.18);color:#c3cde0;width:28px;height:28px;border-radius:6px;cursor:pointer;font-size:13px;transition:.25s;flex:none}
+
+.con-toggle:hover{border-color:var(--gold);color:var(--gold)}
+
+.con.closed .con-toggle{transform:rotate(-90deg)}
+
+.con-body{padding:1.2rem 1.3rem 1.35rem;display:grid;gap:1.05rem}
+
+.con.closed .con-body{display:none}
+
+.con-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:1rem}
+
+.field label{display:block;font-family:var(--mono);font-size:10.5px;letter-spacing:.16em;text-transform:uppercase;color:var(--faint);margin-bottom:.42rem}
+
+.field input,.field select,.field textarea{width:100%;background:#0b1122;border:1px solid rgba(255,255,255,.15);border-radius:6px;color:var(--ink);
+
+font-family:var(--mono);font-size:13px;padding:.62rem .8rem;outline:none;transition:border-color .2s,box-shadow .2s}
+
+.field input:focus,.field select:focus,.field textarea:focus{border-color:var(--gold);box-shadow:0 0 0 3px rgba(242,182,50,.13)}
+
+.field textarea{resize:vertical;min-height:60px}
+
+.field .hint{font-family:var(--mono);font-size:10px;color:#55617c;margin-top:.35rem;letter-spacing:.04em}
+
+.seg{display:flex;border:1px solid rgba(255,255,255,.17);border-radius:6px;overflow:hidden}
+
+.seg button{flex:1;background:transparent;border:none;color:#93a1bd;font-family:var(--mono);font-size:12px;padding:.66rem .4rem;cursor:pointer;transition:.2s;letter-spacing:.04em}
+
+.seg button+button{border-left:1px solid rgba(255,255,255,.12)}
+
+.seg button.on{background:rgba(242,182,50,.16);color:var(--gold)}
+
+.seg button:hover:not(.on){color:#e6ebf5}
+
+.tgl{display:inline-flex;align-items:center;gap:.6rem;font-family:var(--mono);font-size:12px;color:#aeb8cd;cursor:pointer;padding:.55rem 0}
+
+.tgl input{display:none}
+
+.tgl i{width:15px;height:15px;border:1px solid rgba(255,255,255,.3);border-radius:4px;transition:.2s;flex:none;position:relative}
+
+.tgl input:checked+i{background:var(--gold);border-color:var(--gold)}
+
+.tgl input:checked+i::after{content:'';position:absolute;inset:4px;background:#0a0e1a;border-radius:2px}
+
+.con-actions{display:flex;flex-wrap:wrap;gap:.7rem;align-items:center}
+
+.btn{font-family:var(--mono);font-size:12px;letter-spacing:.07em;padding:.68rem 1.15rem;border-radius:6px;cursor:pointer;
+
+transition:transform .2s,box-shadow .2s,border-color .2s,color .2s,background .2s;border:1px solid transparent}
+
+.btn:disabled{opacity:.45;cursor:not-allowed;transform:none!important;box-shadow:none!important}
+
+.btn-gold{background:var(--gold);color:#0a0e1a;font-weight:600}
+
+.btn-gold:hover:not(:disabled){transform:translateY(-1px);box-shadow:0 8px 22px rgba(242,182,50,.35)}
+
+.btn-ice{background:rgba(120,190,255,.14);border-color:rgba(120,190,255,.45);color:#bfe0ff}
+
+.btn-ice:hover:not(:disabled){transform:translateY(-1px);box-shadow:0 8px 22px rgba(120,190,255,.25)}
+
+.btn-ghost{background:transparent;border-color:rgba(255,255,255,.22);color:#c3cde0}
+
+.btn-ghost:hover:not(:disabled){border-color:var(--gold);color:var(--gold)}
+
+.btn-danger{background:transparent;border-color:rgba(255,93,108,.4);color:#ff8b95}
+
+.btn-danger:hover:not(:disabled){background:rgba(255,93,108,.12)}
+
+.con-progress{height:8px;background:#0b1122;border:1px solid rgba(255,255,255,.09);border-radius:99px;overflow:hidden}
+
+.con-progress i{display:block;height:100%;width:0%;background:linear-gradient(90deg,#c98f1d,var(--gold),#ffd97a);transition:width .35s ease;position:relative;overflow:hidden}
+
+.con-progress i::after{content:'';position:absolute;inset:0;transform:translateX(-100%);
+
+background:linear-gradient(110deg,transparent 30%,rgba(255,255,255,.55) 50%,transparent 70%);animation:shine 1.5s infinite}
+
+@keyframes shine{to{transform:translateX(100%)}}
+
+.con-meta{display:flex;flex-wrap:wrap;gap:.4rem 1.5rem;font-family:var(--mono);font-size:11px;color:var(--faint);margin-top:.55rem;letter-spacing:.05em}
+
+.con-meta b{color:#e6c66a;font-weight:500}
+
+.con-log{background:#060b18;border:1px solid rgba(255,255,255,.08);border-radius:6px;padding:.7rem .95rem;
+
+font-family:var(--mono);font-size:11.5px;color:#7ee2a8;max-height:130px;overflow-y:auto;line-height:1.7}
+
+.con-log .line{animation:rise .3s both}
+
+.con-log .warn{color:#e6c66a}.con-log .err{color:#ff8b95}.con-log .dim{color:#5f7390}
+
+.con-log::after{content:'▌';animation:blink 1s steps(1) infinite;color:#3d5a4a}
+
+@keyframes blink{50%{opacity:0}}
+
+.dbrow{display:grid;grid-template-columns:auto 1fr auto;gap:.6rem 1.1rem;align-items:center;padding:.85rem 1rem .85rem 1.3rem;
+
+border:1px solid rgba(255,255,255,.11);border-radius:8px;background:rgba(255,255,255,.02);position:relative;overflow:hidden;
+
+transition:transform .25s,border-color .25s,background .25s,box-shadow .25s}
+
+.dbrow::before{content:'';position:absolute;left:0;top:0;bottom:0;width:4px;background:var(--sp,#8b949e)}
+
+.dbrow:hover{transform:translateX(4px);border-color:rgba(242,182,50,.4)}
+
+.dbrow.active{border-color:var(--gold);background:rgba(242,182,50,.07);box-shadow:0 0 0 1px rgba(242,182,50,.3),0 10px 28px rgba(0,0,0,.35)}
+
+.dbrow+.dbrow{margin-top:.6rem}
+
+.dbradio{position:relative;width:18px;height:18px;cursor:pointer}
+
+.dbradio input{position:absolute;inset:0;opacity:0;cursor:pointer;margin:0}
+
+.dbradio i{display:block;width:18px;height:18px;border:2px solid rgba(255,255,255,.35);border-radius:50%;transition:.2s}
+
+.dbradio input:checked+i{border-color:var(--gold);background:radial-gradient(circle,var(--gold) 0 45%,transparent 50%)}
+
+.dbname{font-family:var(--mono);font-size:13px;color:#eef1f7;letter-spacing:.02em}
+
+.dbname .src{font-size:9.5px;letter-spacing:.14em;text-transform:uppercase;color:var(--sp,#8b949e);border:1px solid var(--sp,#8b949e);
+
+border-radius:3px;padding:.1rem .4rem;margin-left:.6rem;vertical-align:1px}
+
+.dbmeta{font-family:var(--mono);font-size:11px;color:var(--faint);margin-top:.3rem;letter-spacing:.04em}
+
+.dbmeta b{color:#bfe0ff;font-weight:500}
+
+.dbacts{display:flex;gap:.45rem}
+
+.mini{font-family:var(--mono);font-size:11px;background:transparent;border:1px solid rgba(255,255,255,.2);color:#aeb8cd;
+
+border-radius:5px;padding:.4rem .6rem;cursor:pointer;transition:.2s}
+
+.mini:hover{border-color:var(--gold);color:var(--gold)}
+
+.mini.armed{border-color:#ff5d6c;color:#ff8b95;background:rgba(255,93,108,.1)}
+
+.dbempty{border:1px dashed rgba(255,255,255,.2);border-radius:8px;padding:1.4rem;text-align:center;
+
+font-family:var(--mono);font-size:12px;color:var(--faint);letter-spacing:.06em}
+
+.tblchips{display:flex;flex-wrap:wrap;gap:.4rem}
+
+.tblchips span{font-family:var(--mono);font-size:10.5px;letter-spacing:.05em;padding:.22rem .6rem;border-radius:4px;
+
+border:1px solid rgba(120,190,255,.3);color:#a8cdee;background:rgba(120,190,255,.06)}
+
+.tblchips span b{color:#e6c66a;font-weight:500}
+
+.mapline{font-family:var(--mono);font-size:11px;color:#6d7a94;letter-spacing:.04em;line-height:1.9}
+
+.mapline b{color:var(--gold);font-weight:500}
+
+.mapline em{color:#8fd3b4;font-style:normal}
+
+.ticker{border-block:1px solid rgba(242,182,50,.28);background:rgba(9,14,28,.65);overflow:hidden;position:relative;z-index:2}
+
+.ticker-track{display:inline-flex;gap:2.6rem;padding:.6rem 0;white-space:nowrap;will-change:transform;animation:tick 90s linear infinite;
+
+font-family:var(--mono);font-size:11.5px;letter-spacing:.14em;text-transform:uppercase;color:#8d9ab6}
+
+.ticker:hover .ticker-track{animation-play-state:paused}
+
+.ticker-track b{color:var(--gold);font-weight:500}
+
+@keyframes tick{to{transform:translateX(-50%)}}
+
+.toolbar{position:sticky;top:0;z-index:25;background:rgba(7,11,22,.92);backdrop-filter:blur(10px);border-bottom:1px solid var(--line)}
+
+.tb-row1{display:flex;flex-wrap:wrap;align-items:center;gap:.8rem 1.2rem;padding:.85rem 0 .65rem}
+
+#search{flex:1;min-width:200px;max-width:400px;background:#0c1226;border:1px solid rgba(255,255,255,.14);border-radius:6px;
+
+color:var(--ink);font-family:var(--mono);font-size:13px;padding:.6rem .9rem;outline:none;caret-color:var(--gold);transition:border-color .25s,box-shadow .25s}
+
+#search:focus{border-color:var(--gold);box-shadow:0 0 0 3px rgba(242,182,50,.14)}
+
+#search::placeholder{color:#55617c}
+
+#hitcount{font-size:11.5px;letter-spacing:.1em;color:var(--faint)}
+
+.sortwrap{display:flex;align-items:center;gap:.55rem;font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--faint)}
+
+#sort{background:#0c1226;border:1px solid rgba(255,255,255,.14);border-radius:6px;color:var(--ink);font-family:var(--mono);font-size:12px;padding:.5rem .6rem;outline:none;cursor:pointer}
+
+#sort:focus{border-color:var(--gold)}
+
+.import-btn{font-family:var(--mono);font-size:11.5px;letter-spacing:.08em;color:#0a0e1a;background:var(--gold);border:none;
+
+border-radius:6px;padding:.6rem 1rem;cursor:pointer;font-weight:500;transition:transform .2s,box-shadow .2s}
+
+.import-btn:hover{transform:translateY(-1px);box-shadow:0 6px 18px rgba(242,182,50,.35)}
+
+.legend{margin-left:auto;font-size:11px;letter-spacing:.08em;color:#55617c}
+
+.chips{display:flex;gap:.5rem;overflow-x:auto;padding-bottom:.85rem;scrollbar-width:none}
+
+.chips::-webkit-scrollbar{display:none}
+
+.chip{font-family:var(--mono);font-size:11.5px;letter-spacing:.05em;padding:.42rem .85rem .42rem .7rem;border:1px solid rgba(255,255,255,.15);
+
+border-radius:999px;color:#aeb8cd;background:transparent;cursor:pointer;display:inline-flex;align-items:center;gap:.5rem;white-space:nowrap;
+
+transition:transform .2s,border-color .2s,color .2s,background .2s}
+
+.chip i{width:8px;height:8px;border-radius:50%;background:var(--cc);box-shadow:0 0 8px var(--cc);flex:none}
+
+.chip:hover{border-color:var(--cc);color:#fff;transform:translateY(-1px)}
+
+.chip.active{background:color-mix(in srgb,var(--cc) 16%,transparent);border-color:var(--cc);color:var(--cc)}
+
+/* Filter-Leiste */
+
+.filterbar{display:flex;flex-wrap:wrap;gap:.5rem;padding:.4rem 0 .85rem;align-items:center}
+
+.filterbar .flabel{font-family:var(--mono);font-size:10px;letter-spacing:.14em;text-transform:uppercase;color:#55617c;margin-right:.3rem}
+
+.fchip{font-family:var(--mono);font-size:10.5px;padding:.3rem .7rem;border:1px solid rgba(255,255,255,.13);border-radius:4px;
+
+color:#8b98b3;background:transparent;cursor:pointer;transition:.2s;white-space:nowrap}
+
+.fchip:hover{border-color:var(--gold);color:var(--gold)}
+
+.fchip.on{background:rgba(242,182,50,.14);border-color:var(--gold);color:var(--gold)}
+
+.fchip .cnt{opacity:.6;margin-left:.3rem}
+
+section.kat{padding:4rem 0 .6rem;scroll-margin-top:110px}
+
+.sechead{display:grid;grid-template-columns:auto 1fr;gap:.6rem 1.8rem;align-items:start;padding-bottom:1.25rem;margin-bottom:.3rem;
+
+border-bottom:1px solid rgba(255,255,255,.09);position:relative}
+
+.sechead::after{content:'';position:absolute;left:0;bottom:-1px;height:1px;width:190px;background:linear-gradient(90deg,var(--c),transparent)}
+
+.sec-letter{font-family:var(--disp);font-weight:900;font-size:clamp(2.9rem,6vw,4.5rem);line-height:.9;color:var(--c);
+
+text-shadow:0 0 28px color-mix(in srgb,var(--c) 45%,transparent)}
+
+.sec-kicker{font-family:var(--mono);font-size:11px;letter-spacing:.18em;text-transform:uppercase;color:var(--faint)}
+
+.sec-kicker b{color:var(--c);font-weight:500}
+
+.sechead h2{font-family:var(--disp);font-weight:700;font-size:clamp(1.25rem,2.4vw,1.7rem);margin:.4rem 0 .45rem;color:#eef1f7;letter-spacing:.01em}
+
+.secdesc{color:var(--dim);max-width:72ch;margin:0;font-size:.95rem}
+
+.row{display:grid;grid-template-columns:74px 1fr;gap:1.1rem;padding:1.1rem .8rem 1.1rem .7rem;border-bottom:1px solid rgba(255,255,255,.055);
+
+position:relative;transition:background .25s ease}
+
+.row::before{content:'';position:absolute;left:0;top:14%;bottom:14%;width:2px;background:var(--c);transform:scaleY(0);transform-origin:top;transition:transform .3s ease}
+
+.row:hover{background:linear-gradient(90deg,color-mix(in srgb,var(--c) 7%,transparent),transparent 55%)}
+
+.row:hover::before{transform:scaleY(1)}
+
+.mag{display:flex;justify-content:center;padding-top:.25rem}
+
+.mag i{display:block;border-radius:50%;
+
+background:radial-gradient(circle at 32% 30%,#fff 0%,var(--c) 42%,color-mix(in srgb,var(--c) 25%,transparent) 78%);
+
+box-shadow:0 0 10px color-mix(in srgb,var(--c) 60%,transparent),0 0 26px color-mix(in srgb,var(--c) 22%,transparent);transition:transform .3s ease}
+
+.row:hover .mag i{transform:scale(1.18)}
+
+.rline1{display:flex;align-items:baseline;gap:.75rem;flex-wrap:wrap}
+
+.rname{font-family:var(--disp);font-weight:600;font-size:1.02rem;color:#e9edf5;text-decoration:none;letter-spacing:.01em;transition:color .2s}
+
+.rname:hover{color:var(--c)}
+
+.arrow{opacity:0;transform:translate(-4px,3px);transition:.25s;color:var(--c);font-size:.85em}
+
+.row:hover .arrow{opacity:1;transform:none}
+
+.rown{font-family:var(--mono);font-size:12px;color:#6d7a94}
+
+.badge{font-family:var(--mono);font-size:9.5px;letter-spacing:.12em;text-transform:uppercase;padding:.16rem .5rem;border-radius:3px;background:rgba(255,255,255,.07);color:#9aa7c0}
+
+.badge.lic{color:#8fd0b4;background:rgba(83,224,160,.08)}
+
+.badge.role{color:var(--auto);background:rgba(91,140,255,.1);border:1px solid rgba(91,140,255,.3)}
+
+.badge.role.confirmed{color:var(--confirmed);background:rgba(82,224,169,.08);border-color:rgba(82,224,169,.3)}
+
+.badge.proj{color:#e6c66a;background:rgba(242,182,50,.08);border:1px solid rgba(242,182,50,.25)}
+
+.badge.status{font-size:8.5px}
+
+.badge.status.UNREVIEWED{color:#6d7a94;border:1px solid rgba(255,255,255,.1)}
+
+.badge.status.AUTO_SUGGESTED{color:var(--auto);border:1px solid rgba(91,140,255,.3)}
+
+.badge.status.REVIEWED{color:var(--confirmed);border:1px solid rgba(82,224,169,.3)}
+
+.badge.status.ADOPTED{color:#52e0a9;background:rgba(82,224,169,.12);border:1px solid rgba(82,224,169,.4)}
+
+.badge.status.REJECTED{color:var(--rejected);border:1px solid rgba(255,93,108,.3)}
+
+.badge.status.WATCH{color:#f2b632;border:1px solid rgba(242,182,50,.3)}
+
+.hp{font-family:var(--mono);font-size:10.5px;color:#7fb8d8;text-decoration:none;border-bottom:1px dotted #7fb8d8}
+
+.hp:hover{color:#b8e0f5}
+
+.re-toggle{margin-left:auto;background:none;border:1px solid rgba(255,255,255,.16);color:#8b98b3;border-radius:4px;width:23px;height:23px;
+
+line-height:1;cursor:pointer;font-size:14px;transition:.25s;flex:none;align-self:center}
+
+.re-toggle:hover{border-color:var(--c);color:var(--c)}
+
+.row.open .re-toggle{transform:rotate(45deg);color:var(--c);border-color:var(--c)}
+
+.ann-toggle{background:none;border:1px solid rgba(242,182,50,.3);color:#e6c66a;border-radius:4px;width:23px;height:23px;
+
+line-height:1;cursor:pointer;font-size:12px;transition:.25s;flex:none;align-self:center}
+
+.ann-toggle:hover{border-color:var(--gold);background:rgba(242,182,50,.1)}
+
+.ann-toggle.has-ann{background:rgba(242,182,50,.15);border-color:var(--gold)}
+
+.rdesc{margin:.4rem 0 .55rem;color:#a5b0c6;font-size:.94rem;max-width:90ch}
+
+.rmeta{display:flex;flex-wrap:wrap;gap:.4rem 1.2rem;font-family:var(--mono);font-size:12px;color:var(--faint)}
+
+.rmeta .lang i{display:inline-block;width:9px;height:9px;border-radius:50%;margin-right:.4rem;vertical-align:-1px}
+
+.rmeta .st{color:#e6c66a}
+
+.rtags{display:flex;flex-wrap:wrap;gap:.35rem;margin-top:.6rem}
+
+.rtags span{font-family:var(--mono);font-size:10.5px;letter-spacing:.05em;padding:.18rem .55rem;border:1px solid rgba(255,255,255,.12);
+
+border-radius:3px;color:#8b98b3;transition:border-color .25s,color .25s}
+
+.row:hover .rtags span{border-color:color-mix(in srgb,var(--c) 45%,transparent);color:#c3cde0}
+
+.rtags span.auto{border-style:dashed;color:var(--auto);border-color:rgba(91,140,255,.3)}
+
+.rtags span.manual{color:var(--confirmed);border-color:rgba(82,224,169,.3)}
+
+.rextra{display:none;margin-top:.8rem;padding:.9rem 1.1rem;background:rgba(255,255,255,.028);border-left:2px solid var(--c);border-radius:0 6px 6px 0}
+
+.row.open .rextra{display:block;animation:rise .35s both}
+
+.rextra .rload{font-family:var(--mono);font-size:11.5px;color:var(--faint)}
+
+.rextra pre{white-space:pre-wrap;word-wrap:break-word;font-family:var(--mono);font-size:12px;color:#a9b6cc;margin:.2rem 0 0;max-height:280px;overflow-y:auto;line-height:1.65}
+
+/* Annotations-Panel */
+
+.ann-panel{display:none;margin-top:.8rem;padding:1rem 1.1rem;background:rgba(242,182,50,.03);border:1px solid rgba(242,182,50,.2);border-radius:8px}
+
+.ann-panel.open{display:block;animation:rise .35s both}
+
+.ann-panel h4{font-family:var(--disp);font-size:.85rem;color:var(--gold);margin:0 0 .8rem;letter-spacing:.05em}
+
+.ann-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:.8rem}
+
+.ann-field label{display:block;font-family:var(--mono);font-size:9.5px;letter-spacing:.14em;text-transform:uppercase;color:var(--faint);margin-bottom:.3rem}
+
+.ann-field select,.ann-field input,.ann-field textarea{width:100%;background:#0b1122;border:1px solid rgba(255,255,255,.13);border-radius:5px;
+
+color:var(--ink);font-family:var(--mono);font-size:11.5px;padding:.5rem .6rem;outline:none}
+
+.ann-field select:focus,.ann-field input:focus,.ann-field textarea:focus{border-color:var(--gold)}
+
+.ann-field textarea{resize:vertical;min-height:50px}
+
+.ann-tags{display:flex;flex-wrap:wrap;gap:.3rem;margin-top:.4rem}
+
+.ann-tags .atag{font-family:var(--mono);font-size:10px;padding:.2rem .5rem;border-radius:3px;cursor:pointer;transition:.2s}
+
+.ann-tags .atag.suggested{background:rgba(91,140,255,.1);border:1px dashed rgba(91,140,255,.4);color:var(--auto)}
+
+.ann-tags .atag.confirmed{background:rgba(82,224,169,.1);border:1px solid rgba(82,224,169,.4);color:var(--confirmed)}
+
+.ann-tags .atag.rejected{background:rgba(255,93,108,.08);border:1px solid rgba(255,93,108,.3);color:var(--rejected);text-decoration:line-through;opacity:.6}
+
+.ann-tags .atag:hover{transform:scale(1.05)}
+
+.ann-proj{margin-top:.6rem}
+
+.ann-proj .proj-row{display:flex;align-items:center;gap:.5rem;padding:.35rem 0;border-bottom:1px solid rgba(255,255,255,.05);font-family:var(--mono);font-size:11px}
+
+.ann-proj .proj-row .pname{color:#e6c66a;min-width:90px}
+
+.ann-proj .proj-row .pcomp{color:#8b98b3;flex:1}
+
+.ann-proj .proj-row .prel{color:var(--gold)}
+
+.ann-save{margin-top:.8rem;display:flex;gap:.6rem;align-items:center}
+
+.ann-save .saved-msg{font-family:var(--mono);font-size:10.5px;color:var(--confirmed);opacity:0;transition:opacity .3s}
+
+.ann-save .saved-msg.show{opacity:1}
+
+.js .reveal{opacity:0;transform:translateY(16px)}
+
+.js .reveal.in{animation:rise .55s cubic-bezier(.2,.7,.3,1) both}
+
+.js .row{opacity:0}
+
+.js .row.in{animation:rise .5s cubic-bezier(.2,.7,.3,1) both}
+
+@keyframes rise{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:none}}
+
+#drop{position:fixed;inset:0;z-index:60;display:none;align-items:center;justify-content:center;background:rgba(7,11,22,.85);
+
+border:2px dashed var(--gold);pointer-events:none}
+
+#drop.show{display:flex}
+
+#drop div{font-family:var(--disp);font-weight:700;font-size:clamp(1.1rem,3vw,1.9rem);color:var(--gold);text-align:center}
+
+#toast{position:fixed;left:50%;bottom:1.6rem;transform:translate(-50%,20px);z-index:70;opacity:0;background:#101a36;
+
+border:1px solid rgba(242,182,50,.5);color:#f4e9c8;font-family:var(--mono);font-size:12.5px;letter-spacing:.06em;
+
+padding:.7rem 1.3rem;border-radius:6px;pointer-events:none;transition:opacity .3s,transform .3s;box-shadow:0 10px 30px rgba(0,0,0,.5);max-width:90vw}
+
+#toast.show{opacity:1;transform:translate(-50%,0)}
+
+#toTop{position:fixed;right:1.4rem;bottom:1.4rem;width:46px;height:46px;border-radius:50%;border:1px solid rgba(242,182,50,.55);
+
+background:rgba(10,15,30,.88);color:var(--gold);font-size:1.25rem;cursor:pointer;opacity:0;pointer-events:none;transition:.3s;z-index:30}
+
+#toTop.show{opacity:1;pointer-events:auto}
+
+#toTop:hover{transform:translateY(-3px);box-shadow:0 6px 22px rgba(242,182,50,.28)}
+
+footer{border-top:1px solid var(--line);margin-top:4rem;padding:2.6rem 0 4rem;position:relative;z-index:2}
+
+footer .wrap{display:flex;flex-wrap:wrap;gap:1rem 2.5rem;justify-content:space-between;font-family:var(--mono);font-size:11.5px;letter-spacing:.1em;color:var(--faint)}
+
+footer b{color:var(--gold);font-weight:500}
+
+@media(max-width:760px){
+
+.row{grid-template-columns:1fr}.mag{display:none}.sechead{grid-template-columns:1fr}
+
+.legend{display:none}.stat{margin-right:1.1rem;padding-right:1.1rem}.con-state{display:none}
+
+.dbrow{grid-template-columns:auto 1fr}.dbacts{grid-column:2}.ann-grid{grid-template-columns:1fr}
+
+}
+
+@media(prefers-reduced-motion:reduce){
+
+*,*::before,*::after{animation:none!important;transition:none!important}
+
+.js .reveal,.js .row{opacity:1;transform:none}html{scroll-behavior:auto}
+
+}
+
+</style>
+
+</head>
+
+<body>
+
+<script>document.documentElement.classList.add('js')</script>
+
+<canvas id="sky"></canvas>
+
+<div class="graticule"></div>
+
+<div class="grain"></div>
+
+
+
+<header class="masthead" id="top">
+
+<svg class="compass" viewBox="0 0 200 200" aria-hidden="true">
+
+<g fill="none" stroke="#f2b632" stroke-width="1">
+
+<circle cx="100" cy="100" r="96" opacity=".5"/><circle cx="100" cy="100" r="70" opacity=".35"/><circle cx="100" cy="100" r="44" opacity=".2"/>
+
+<path d="M100 4v192M4 100h192M32 32l136 136M168 32L32 168" opacity=".18"/>
+
+<path d="M100 30l8 62 62 8-62 8-8 62-8-62-62-8 62-8z" opacity=".85"/>
+
+<circle cx="100" cy="100" r="2.5" fill="#f2b632" stroke="none"/>
+
+</g>
+
+</svg>
+
+<div class="wrap">
+
+<div class="mast-top">
+
+<span><b>✶</b> GitHub-Observatorium</span>
+
+<span id="archNote">Teilauszug · Gesamtarchiv ≈ <b>823</b> Repos</span>
+
+<span>Stand <b>28.07.2026</b></span>
+
+<span>Beobachter <b>Lootz</b></span>
+
+</div>
+
+<h1>STERN<span class="outline">KARTE</span></h1>
+
+<p class="lede">Mehrdimensionales Recherche-, Bewertungs- und Zuordnungssystem für <em id="ledeCount">100</em> Sterne —
+
+mit Projektkatalog, Rollen, Domains, Capabilities, Relationen und Bewertung. Spektralklasse ist eine Ansicht, nicht die Wahrheit.</p>
+
+<div class="stats">
+
+<div class="stat"><b data-k="repos">0</b><span>Repos</span></div>
+
+<div class="stat"><b data-k="stars">0</b><span>Sterne gesamt</span></div>
+
+<div class="stat"><b data-k="forks">0</b><span>Forks</span></div>
+
+<div class="stat"><b data-k="langs">0</b><span>Sprachen</span></div>
+
+<div class="stat"><b data-k="cats">0</b><span>Spektralklassen</span></div>
+
+<div class="stat"><b data-k="annotated">0</b><span>Annotationen</span></div>
+
+</div>
+
+</div>
+
+</header>
+
+
+
+<!-- Beobachtungskonsole -->
+
+<section class="panel wrap" aria-label="Beobachtungskonsole">
+
+<div class="con" id="con">
+
+<div class="con-head" data-collapse="con">
+
+<span class="led" id="led"></span>
+
+<div><div class="con-title">BEOBACHTUNGSKONSOLE</div><div class="con-sub">Live-Import · GitHub API</div></div>
+
+<span class="con-state" id="conState">kein lokaler Cache</span>
+
+<button class="con-toggle" title="Ein-/ausklappen">▾</button>
+
+</div>
+
+<div class="con-body">
+
+<div class="con-grid">
+
+<div class="field"><label>Datenquelle</label>
+
+<div class="seg" id="segSrc"><button type="button" data-src="starred" class="on">★ Starred</button><button type="button" data-src="repos">Eigene Repos</button></div></div>
+
+<div class="field"><label for="ghUser">GitHub-Username</label><input type="text" id="ghUser" placeholder="z. B. Lootz" autocomplete="off" spellcheck="false"></div>
+
+<div class="field"><label for="ghPages">Seiten (× 100 Repos)</label><input type="number" id="ghPages" min="1" max="100" value="9">
+
+<div class="hint">9 Seiten ≈ 900 Repos — deckt deine ~823 ab</div></div>
+
+<div class="field"><label for="pat">Personal Access Token</label><input type="password" id="pat" placeholder="ghp_… (optional)" autocomplete="off">
+
+<div class="hint">optional · Rate-Limit 60 → 5.000/h · bleibt nur im Tab</div></div>
+
+</div>
+
+<label class="tgl"><input type="checkbox" id="autoReadme"><i></i>READMEs nach dem Abruf im Hintergrund laden</label>
+
+<div class="con-actions">
+
+<button class="btn btn-gold" id="btnStart">▶ Start</button>
+
+<button class="btn btn-ghost" id="btnSql" title="Katalog als SQLite exportieren">⛃ SQLite-DB</button>
+
+<button class="btn btn-ghost" id="btnJson" title="Katalog als JSON exportieren">⤓ JSON</button>
+
+<button class="btn btn-ghost" id="btnAnnExport" title="Annotationen als JSON exportieren">✦ Annotationen</button>
+
+<button class="btn btn-danger" id="btnReset">↺ Reset</button>
+
+</div>
+
+<div><div class="con-progress"><i id="pbar"></i></div>
+
+<div class="con-meta"><span id="pmeta">Bereit.</span></div></div>
+
+<div class="con-log" id="plog" aria-live="polite"></div>
+
+</div>
+
+</div>
+
+</section>
+
+
+
+<!-- DB-Manager -->
+
+<section class="panel wrap" aria-label="DB-Manager">
+
+<div class="con dbm" id="dbm">
+
+<div class="con-head" data-collapse="dbm">
+
+<span class="led" id="dbLed"></span>
+
+<div><div class="con-title">DB-MANAGER</div><div class="con-sub">SQLite-Import · Schema-Erkennung · IndexedDB</div></div>
+
+<span class="con-state" id="dbState">lädt …</span>
+
+<button class="con-toggle" title="Ein-/ausklappen">▾</button>
+
+</div>
+
+<div class="con-body">
+
+<div class="con-actions">
+
+<button class="btn btn-ice" id="btnDbImport">⛁ Datenbank laden (.sqlite / .db)</button>
+
+<span class="mono" style="font-size:11px;color:#55617c">oder Datei hierher ziehen — erkennt starred_repos (title/link/readme) automatisch</span>
+
+</div>
+
+<div id="dbList"><div class="dbempty">Noch keine Datenbanken im Archiv.</div></div>
+
+<div id="dbSchema"></div>
+
+</div>
+
+</div>
+
+</section>
+
+
+
+<div class="ticker" aria-hidden="true"><div class="ticker-track" id="ticker"></div></div>
+
+
+
+<nav class="toolbar">
+
+<div class="wrap">
+
+<div class="tb-row1">
+
+<input id="search" type="search" placeholder="Suche: Name, Besitzer, Thema, Sprache, Projekt … [/]" aria-label="Repos durchsuchen">
+
+<span id="hitcount" class="mono"></span>
+
+<div class="sortwrap mono"><label for="sort">Sortierung</label>
+
+<select id="sort"><option value="s">★ Helligkeit</option><option value="p">Zuletzt aktiv</option><option value="n">A – Z</option><option value="ann">Bewertung</option></select></div>
+
+<button class="import-btn" id="importBtn" title="JSON oder SQLite laden">⤒ Datei laden</button>
+
+<input type="file" id="fileIn" accept=".json,.md,.txt,.sqlite,.db,.sqlite3,application/json" hidden multiple>
+
+<span class="legend mono">● Größe ∝ log₁₀(★) · ✦ = annotiert</span>
+
+</div>
+
+<div class="chips" id="chips"></div>
+
+<div class="filterbar" id="filterbar">
+
+<span class="flabel">Projekt:</span><span id="projFilters"></span>
+
+<span class="flabel" style="margin-left:1rem">Rolle:</span><span id="roleFilters"></span>
+
+<span class="flabel" style="margin-left:1rem">Status:</span><span id="statusFilters"></span>
+
+</div>
+
+</div>
+
+</nav>
+
+
+
+<main id="catalog" class="wrap"></main>
+
+
+
+<div id="drop"><div>✶ starred.json oder .sqlite hierher ziehen ✶</div></div>
+
+<div id="toast"></div>
+
+<button id="toTop" title="Zurück nach oben">✶</button>
+
+
+
+<footer>
+
+<div class="wrap">
+
+<span><b>✶ Sternkarte</b> · Lootz' multidimensionales Archiv · 28.07.2026</span>
+
+<span>Quellen: GitHub API · SQLite (starred_repos) · JSON · <b>repos + topics + readme + annotationen</b></span>
+
+<span>Spektralklasse = Ansicht · Domains · Roles · Projects · Capabilities · Relations · Assessment</span>
+
+</div>
+
+</footer>
+
+
+
+<script>
+
+/* ═══════════════════════════════════════════════════════════════
+
+   KONSTANTEN & ENUMS
+
+   ═══════════════════════════════════════════════════════════════ */
+
+const CATS=[
+
+{id:'agents',k:'G',n:'KI-Agenten & Automation',c:'#f2b632',d:'Autonome Agenten, Orchestrierung, MCP, Workflows.'},
+
+{id:'genai',k:'M',n:'KI-Modelle & Generative Medien',c:'#ff5d6c',d:'Diffusion, 3D-Generierung, Depth, Translation, Motion Graphics.'},
+
+{id:'llm',k:'O',n:'LLM-Training & Evaluation',c:'#5b8cff',d:'Training, Fine-Tuning, RL, Benchmarks, Verifier.'},
+
+{id:'threejs',k:'A',n:'Three.js & Web-Grafik',c:'#4cc3f7',d:'WebGL/WebGPU, R3F, prozedurale Terrains, Spiele im Browser.'},
+
+{id:'glsl',k:'B',n:'Shader-Handwerk & GLSL',c:'#8f93f7',d:'GLSL/HLSL/WGSL, Compiler, Node-Editoren, Lernstoff.'},
+
+{id:'reshade',k:'K',n:'ReShade & Post-Processing',c:'#fb8b3c',d:'Post-Processing-Injektoren und Effekt-Pakete.'},
+
+{id:'mcshader',k:'F',n:'Minecraft-Shaderpacks',c:'#c0d94a',d:'Shaderpacks für Iris/Optifine mit Voxelisierung und Stil.'},
+
+{id:'engine',k:'W',n:'Grafik-Engines & 3D-Handwerk',c:'#b98cf2',d:'Rasterizer, Mesh-Optimierung, Gaussian Splatting, Vulkan.'},
+
+{id:'sim',k:'S',n:'Simulation: Wasser & Physik',c:'#52e0a9',d:'Fluid, Cloth, Rigid Bodies, Kontakt-Solver.'},
+
+{id:'mctools',k:'R',n:'Minecraft-Tools & Server',c:'#86d95c',d:'Server, Decompiler, Mods, Admin-UIs.'},
+
+{id:'music',k:'L',n:'Musik, MIDI & Sound',c:'#f26bb0',d:'SoundFont, MIDI-Editoren, Orchester-Libraries, Source Separation.'},
+
+{id:'anim',k:'T',n:'Animation & Kreative Tools',c:'#3fd8c2',d:'Skeletal Animation, Pixel-Art, gezeichnete Interfaces.'},
+
+{id:'retro',k:'Y',n:'Retro, Emulation & Gaming',c:'#d861c8',d:'ROM-Manager, Steam-Deck, Emulatoren, RPG-Engines.'},
+
+{id:'devops',k:'D',n:'DevOps, Self-Hosting & System',c:'#9aa7bd',d:'Deployment, Docker, Wayland, Extension-Frameworks.'},
+
+{id:'misc',k:'?',n:'Weitere Fundstücke',c:'#8b949e',d:'Noch nicht klassifiziert.'}
+
+];
+
+const ROM=['I','II','III','IV','V','VI','VII','VIII','IX','X','XI','XII','XIII','XIV','XV'];
+
+
+
+const ROLES=['DIRECT_USE','DEPENDENCY','SUBSYSTEM','DONOR_CODE','ARCH_REFERENCE','UX_REFERENCE','RESEARCH','INSPIRATION','WATCH','REJECTED'];
+
+const ROLE_LABELS={DIRECT_USE:'Direkt nutzbar',DEPENDENCY:'Abhängigkeit',SUBSYSTEM:'Subsystem',DONOR_CODE:'Code-Spender',ARCH_REFERENCE:'Architektur-Vorlage',UX_REFERENCE:'UX-Referenz',RESEARCH:'Forschung',INSPIRATION:'Inspiration',WATCH:'Beobachten',REJECTED:'Verworfen'};
+
+const INSPECTION_LEVELS=['DISCOVERED','README_REVIEWED','CODE_SCANNED','LOCALLY_RUN','BENCHMARKED','INTEGRATED','REPLACED'];
+
+const DECISION_STATUS=['UNREVIEWED','AUTO_SUGGESTED','REVIEWED','INTEGRATION_CANDIDATE','ADOPTED','WATCH','REJECTED','REPLACED'];
+
+const PRIORITY=['P0','P1','P2','P3','WATCH','UNSET'];
+
+const MATURITY=['UNKNOWN','CONCEPT','EXPERIMENTAL','PROTOTYPE','USABLE','STABLE','MATURE','ABANDONED','ARCHIVED'];
+
+const RELATION_TYPES=['COMPLEMENTS','ALTERNATIVE_TO','SUPERSEDES','REPLACED_BY','FORK_OF','DEPENDS_ON','DONOR_FOR','WRAPS','INTEGRATES_WITH','INSPIRED_BY','PART_OF','RELATED_TO'];
+
+
+
+const PROJECTS=[
+
+{id:'BARD',n:'BARD',color:'#f2b632',desc:'Autoren- und Weltfortschreibungssystem für längere fiktionale Werke. Plant Geschichten, prüft Kausalität, formuliert World Deltas, verwaltet Kanon.',kw:['longform','story planning','agent orchestration','knowledge graph','graphrag','retrieval','lora','dora','sft','dpo','evaluation','anti-slop','hallucination','character memory','narrative consistency','world delta','canon']},
+
+{id:'MINIMI',n:'MINIMI',color:'#ff5d6c',desc:'Persönliche Schreib- und Denkweise als Adapter. Stimme, trockener Humor, Folgeninstinkt, institutionelle Eigenlogik, technische Präzision.',kw:['lora','dora','qlora','peft','axolotl','unsloth','sft','dpo','preference training','evaluation','dataset curation','anti-slop','fine-tun','adapter','style transfer']},
+
+{id:'REDTHREAD',n:'RED THREAD DB',color:'#5b8cff',desc:'BARDs externes Gedächtnis. Entitäten, Ereignisse, Institutionen, Figuren, Motive, offene/geschlossene Fäden, Ursachen, Folgen, Behauptungen, Quellen, World Deltas.',kw:['graph database','postgresql','supabase','pgvector','neo4j','knowledge graph','graphrag','temporal graph','entity resolution','provenance','claim tracking','versioning','mcp state']},
+
+{id:'SPIN',n:'SPIN',color:'#4cc3f7',desc:'Visuelle, direkt manipulierbare Oberfläche der Red-Thread-DB. Red Thread Spinner — lebende Nodes und Verbindungen.',kw:['node editor','graph ui','canvas','direct manipulation','zustand','undo','redo','dirty nodes','visual programming','scene graph','react flow','rete','cytoscape','knowledge graph ui','timeline editor','story editor']},
+
+{id:'MELLOWD',n:'MELLOW-D',color:'#3fd8c2',desc:'Verhalten der sichtbaren SPIN-Blöcke. Abstrakte Zustände durch Bewegung: einrasten, blockieren, zögern, drücken, beobachten, zurückweichen.',kw:['animated ui','motion system','state visualization','pixel agents','character interface','spatial ui','physics-based ui','behavioural animation','living interface','spring animation']},
+
+{id:'ANVIL',n:'ANVIL',color:'#fb8b3c',desc:'Zentrale Werkzeug- und Agentenwerkstatt. Verbindet Tools, Agenten, Repos, Workflows, Chats, Dateien, Tests, Builds, QA.',kw:['agent orchestration','mcp','workflow engine','node workflow','ide integration','theia','openhands','claude code','codex','plan execute verify','multi-agent','project state','task graph']},
+
+{id:'CUEAGENT',n:'CUE-AGENT',color:'#52e0a9',desc:'Prüf- und Nachweisschicht. Verlangt Belege statt Behauptungen zu akzeptieren.',kw:['test','verification','eval','benchmark','static analysis','evidence','provenance','reproducibility','validation','llm judge','rule engine']},
+
+{id:'ALFRED',n:'ALFRED',color:'#e6c66a',desc:'Repo-Kenner und Butler. Kennt Repositories, versteht PRs/Issues, fasst zusammen, findet Abhängigkeiten, lokalisiert Dateien.',kw:['github api','repo intelligence','code search','semantic code search','repository map','developer assistant','project memory','documentation agent','mcp github','issue analysis','pr analysis']},
+
+{id:'DRAGHUB',n:'DRAGHUB',color:'#b98cf2',desc:'Bessere Desktop-Oberfläche für GitHub. Mehrere Repos, Tabs, Panes, Datei-Explorer, Vorschauen, ZIP, Audio, Bilder, Markdown.',kw:['desktop ui','file explorer','git client','github client','multi-pane','window management','repository browser','file preview','electron','tauri','web desktop']},
+
+{id:'WIZARD',n:'WIZARD',color:'#f26bb0',desc:'Asset- und Projektvorbereiter. Kennt Assets, Vorlagen, fehlende Komponenten. Stellt Produktionspakete zusammen.',kw:['asset management','semantic asset search','image-to-3d','text-to-3d','photogrammetry','template','scene generation','model library','asset pipeline','blender automation','comfyui','generative media']},
+
+{id:'SWIFT',n:'SWIFT',color:'#8f93f7',desc:'Geometrie-, SDF- und Konvertierungsschicht. SDFs, Meshes, Point Clouds, Voxels, Gaussian Splats, Tiefenkarten, Normal Maps.',kw:['sdf','mesh processing','geometry','point cloud','voxel','gaussian splatting','depth estimation','normal map','reconstruction','meshing','decimation','retopology','computational geometry']},
+
+{id:'SHADED',n:'SHADED',color:'#c0d94a',desc:'Shader-First-Weltsystem. Was sichtbar ist, gilt. Verbindet Shader, Rendergraphen und persistente Weltfelder.',kw:['glsl','hlsl','wgsl','webgpu','three.js','shader graph','render graph','reshade','post-processing','gpu simulation','material','weather','water','fire','terrain','voxel lighting','texture injection','world field','shader compilation']},
+
+{id:'MUSE',n:'MUSE',color:'#d861c8',desc:'Zugängliches Musiksystem. Erzeugen durch Summen, Singen, Klopfen, Gesten, Zeichnen, MIDI, Webcam, adaptive Arrangements.',kw:['midi','audio','soundfont','pitch detection','source separation','gesture recognition','music editor','web audio','adaptive music','imuse','orchestration','audio ml','music generation']},
+
+{id:'TRIVIUM',n:'TRIVIUM',color:'#9aa7bd',desc:'Übersetzer zwischen Engines und Formaten. Unity→Unreal/Godot, 3D→2D, Asset-/Materialübersetzung, engine-agnostische Verträge.',kw:['converter','import','export','engine interoperability','gltf','fbx','unity','unreal','godot','asset translation','material translation','intermediate representation']},
+
+{id:'MIXTRACT',n:'MIXTRACT / DECOMPILE',color:'#ff8b95',desc:'Extraktion, Reverse Engineering und Rekonstruktion. Decompiler, Binary Analysis, Asset Extraction, ROM, Modding.',kw:['decompiler','binary analysis','asset extraction','rom extraction','game data format','reverse engineering','apk','jar analysis','recompilation','modding']},
+
+{id:'MYTHIC',n:'MYTHIC',color:'#86d95c',desc:'Eigene Deployment-Plattform. Repo/URL hinein → deployen → Fehler analysieren → reparieren → erneut deployen.',kw:['self hosting','docker','deployment','ci/cd','vercel alternative','coolify','dokploy','buildpack','reverse proxy','domain','auto-healing']},
+
+{id:'BELLOWS',n:'BELLOWs',color:'#4cc3f7',desc:'Lokale Modell- und Inferenzschicht. Ollama, llama.cpp, vLLM, GGUF, Quantization, Model Routing.',kw:['ollama','llama.cpp','vllm','gguf','quantization','local inference','model routing','api gateway','gpu scheduling']},
+
+{id:'GAIME',n:'GAIME',color:'#f2b632',desc:'RPG-Projekt „QUEST ACCEPTED: UNFORTUNATELY". HD-2D, Tilemaps, Dialogue, Quest Systems, Pixel Art.',kw:['rpg engine','hd-2d','tilemap','dialogue','quest system','pixel art','narrative game','korge','procedural content','game tool']},
+
+{id:'CATCHIT',n:'CATCHIT',color:'#52e0a9',desc:'Stressarme ÖPNV-App. Transit APIs, GTFS, Journey Planning, State Machines, Offline, Accessibility.',kw:['transit api','gtfs','journey planning','state machine','reliability','offline transit','accessibility','mobile ux','kotlin compose']},
+
+{id:'LAUNCHPAD',n:'LAUNCHPAD',color:'#fb8b3c',desc:'Kinderfreundliche App- und Desktop-Umgebung mit Elternsteuerung. Kiosk, Time Limits, NFC, Local Network.',kw:['kiosk','parental control','child-safe','android','windows launcher','app curation','time limit','nfc','local network control']}
+
+];
+
+
+
+/* ═══════════════════════════════════════════════════════════════
+
+   EINGEBETTETER TEILAUSZUG (100 von ~823)
+
+   ═══════════════════════════════════════════════════════════════ */
+
+const INITIAL=[
+
+{n:'OpenMontage',o:'calesthio',d:"World's first open-source, agentic video production system.",l:'Python',s:42750,f:5157,p:'2026-07-24',t:['agent','agentic-ai','claude','video-production'],c:'agents',hp:'https://www.openmontage.video/'},
+
+{n:'Star-Office-UI',o:'ringhyacinth',d:"A pixel office for your OpenClaw.",l:'HTML',s:7400,f:795,p:'2026-03-11',t:['pixel-art','multi-agent'],c:'agents'},
+
+{n:'gpt-author',o:'mshumer',d:'Keine Beschreibung hinterlegt.',l:'Jupyter Notebook',s:2528,f:349,p:'2024-04-03',t:[],c:'agents'},
+
+{n:'OpenDeepResearcher',o:'mshumer',d:'Keine Beschreibung hinterlegt.',l:'Jupyter Notebook',s:2776,f:359,p:'2025-05-02',t:[],c:'agents'},
+
+{n:'gpt-investor',o:'mshumer',d:'Keine Beschreibung hinterlegt.',l:'Jupyter Notebook',s:2260,f:278,p:'2024-03-26',t:[],c:'agents'},
+
+{n:'infinite-bookshelf',o:'Bklieger',d:'Generate entire books in seconds using Groq and Llama3.',l:'Python',s:1432,f:310,p:'2025-10-09',t:['ai','groq','llama3'],c:'agents',hp:'https://infinite.benjamin.sh'},
+
+{n:'ai-researcher',o:'mshumer',d:'Keine Beschreibung hinterlegt.',l:'Jupyter Notebook',s:949,f:104,p:'2024-04-29',t:[],c:'agents'},
+
+{n:'ai-journalist',o:'mshumer',d:'Keine Beschreibung hinterlegt.',l:'Jupyter Notebook',s:779,f:104,p:'2024-03-25',t:[],c:'agents'},
+
+{n:'gpt-pro-mode',o:'mshumer',d:'Keine Beschreibung hinterlegt.',l:'Jupyter Notebook',s:688,f:79,p:'2025-09-10',t:[],c:'agents'},
+
+{n:'unslop',o:'mshumer',d:'Keine Beschreibung hinterlegt.',l:'Python',s:500,f:28,p:'2026-03-18',t:[],c:'agents'},
+
+{n:'OpenReasoningEngine',o:'mshumer',d:'Keine Beschreibung hinterlegt.',l:'Python',s:191,f:17,p:'2024-11-27',t:[],c:'agents'},
+
+{n:'claude-code-os',o:'Hostingglobal-Tech',d:'Bootable LiveCD where Claude Code is the OS.',l:'Shell',s:104,f:25,p:'2026-06-21',t:[],c:'agents'},
+
+{n:'buildomator',o:'buildomator',d:'Structured plan/execute/verify coding workflow for Claude Code.',l:'TypeScript',s:84,f:10,p:'2026-07-27',t:[],c:'agents'},
+
+{n:'podcast-shorts-factory',o:'krakonjac300-pixel',d:'Ten cooperating AI agents turn podcasts into short-form videos.',l:'Python',s:80,f:29,p:'2026-07-23',t:['ai-agents','ffmpeg','llm'],c:'agents'},
+
+{n:'gpt-podcast',o:'mshumer',d:'Keine Beschreibung hinterlegt.',l:'Jupyter Notebook',s:47,f:10,p:'2023-09-06',t:[],c:'agents'},
+
+{n:'portal',o:'mshumer',d:'Keine Beschreibung hinterlegt.',l:'HTML',s:31,f:5,p:'2024-12-03',t:[],c:'agents'},
+
+{n:'DStudio',o:'sk8erboi17',d:'Run DeepSeek V4 fully local.',l:'HTML',s:21,f:0,p:'2026-07-22',t:['deepseek','local-ai'],c:'agents'},
+
+{n:'opencode-termux',o:'C04-wq',d:'OpenCode AI for Android Termux.',l:'Shell',s:20,f:2,p:'2026-07-27',t:[],c:'agents'},
+
+{n:'omni',o:'stevancarlon',d:'Open-source Android computer-use agent.',l:'Kotlin',s:9,f:3,p:'2026-07-26',t:['ai-agent','android'],c:'agents'},
+
+{n:'pixel-agents-web-ui',o:'JeerasakAnanta',d:'Pixel art office where Claude Code agents come to life.',l:'TypeScript',s:2,f:0,p:'2026-07-20',t:['pixel-art','claude'],c:'agents'},
+
+{n:'game-master-mcp',o:'theferalcode-pixel',d:'MCP game server with six rule-enforcing engines.',l:'Python',s:2,f:1,p:'2026-07-21',t:['mcp','chess'],c:'agents'},
+
+{n:'lingbot-map',o:'Robbyant',d:'Feed-forward 3D foundation model for scene reconstruction.',l:'Python',s:15687,f:1657,p:'2026-07-23',t:[],c:'genai'},
+
+{n:'LibreTranslate',o:'LibreTranslate',d:'Free and Open Source Machine Translation API.',l:'Python',s:15534,f:1576,p:'2026-07-25',t:['api','translation'],c:'genai',hp:'https://libretranslate.com'},
+
+{n:'Depth-Anything-V2',o:'DepthAnything',d:'Foundation Model for Monocular Depth Estimation.',l:'Python',s:8542,f:890,p:'2026-03-24',t:['monocular-depth-estimation'],c:'genai'},
+
+{n:'modly',o:'lightningpixel',d:'Desktop app to generate 3D models from images using local AI.',l:'TypeScript',s:4732,f:514,p:'2026-07-25',t:['3d','ai-local','desktop-app'],c:'genai',hp:'https://modly3d.app'},
+
+{n:'zero123plus',o:'SUDO-AI-3D',d:'Single Image to Consistent Multi-view Diffusion.',l:'Python',s:2088,f:147,p:'2024-02-23',t:['diffusion-models','image-to-3d'],c:'genai'},
+
+{n:'DeepBump',o:'HugoTini',d:'Normal & height maps from single pictures.',l:'Python',s:1387,f:58,p:'2025-03-17',t:['blender','heightmap','normalmap'],c:'genai'},
+
+{n:'terrain-diffusion',o:'xandergos',d:"Procedural generation with diffusion models (SIGGRAPH '26).",l:'Python',s:1247,f:76,p:'2026-07-21',t:[],c:'genai'},
+
+{n:'PixelFlow',o:'ShoufaChen',d:'Pixel-Space Generative Models.',l:'Python',s:316,f:16,p:'2025-05-11',t:[],c:'genai'},
+
+{n:'interactive-sora',o:'mshumer',d:'Keine Beschreibung hinterlegt.',l:'Python',s:175,f:19,p:'2025-12-24',t:[],c:'genai'},
+
+{n:'Motionly',o:'COPPSARY',d:'AI-native motion graphics editor.',l:'TypeScript',s:68,f:6,p:'2026-07-27',t:[],c:'genai',hp:'https://www.motionly.site'},
+
+{n:'BlenderXAlpha-3DGenSkill',o:'ig-shadow-walker',d:'Agent Skill: text to 3D in Blender via Alpha3D + MCP.',l:'JavaScript',s:19,f:1,p:'2026-07-21',t:['text-to-3d','blender','mcp'],c:'genai'},
+
+{n:'MatAnyone2Kit',o:'flowtyone',d:'Keine Beschreibung hinterlegt.',l:'Swift',s:8,f:0,p:'2026-06-17',t:[],c:'genai'},
+
+{n:'gpt-llm-trainer',o:'mshumer',d:'Keine Beschreibung hinterlegt.',l:'Jupyter Notebook',s:4167,f:555,p:'2025-05-02',t:[],c:'llm'},
+
+{n:'openbench',o:'groq',d:'Provider-agnostic evaluation infrastructure for LLMs.',l:'Python',s:795,f:102,p:'2026-06-26',t:['managed-by-terraform'],c:'llm',hp:'https://openbench.dev'},
+
+{n:'rl-opus',o:'am-will',d:'Keine Beschreibung hinterlegt.',l:'TypeScript',s:27,f:10,p:'2026-07-27',t:[],c:'llm',hp:'https://rl-opus5.vercel.app'},
+
+{n:'verifiers',o:'mshumer',d:'Verifiers for LLM Reinforcement Learning.',l:'Python',s:2,f:0,p:'2025-02-17',t:[],c:'llm',k:1},
+
+{n:'Claude-of-Duty',o:'mshumer',d:'A CoD-quality FPS in Three.js from a single prompt.',l:'JavaScript',s:1033,f:206,p:'2026-07-25',t:[],c:'threejs'},
+
+{n:'ProceduralTerrains',o:'ZyFou',d:'Three.js procedural terrain generator.',l:'JavaScript',s:385,f:52,p:'2026-07-27',t:['threejs','procedural-generation','volumetric-clouds'],c:'threejs',hp:'https://terrains.zyfod.dev'},
+
+{n:'three-shaderlib-skim',o:'ycw',d:'Skim GLSL sources w/ foldable shader chunks.',l:'Vue',s:111,f:7,p:'2022-03-07',t:['threejs','webgl'],c:'threejs'},
+
+{n:'stylized-components',o:'cortiz2894',d:'Anime-inspired rendering systems for the web.',l:'TypeScript',s:91,f:16,p:'2026-07-17',t:[],c:'threejs',hp:'https://stylized-components.vercel.app/'},
+
+{n:'r3arxiv-react3-archive',o:'auratech-lab',d:'Keine Beschreibung hinterlegt.',l:'TypeScript',s:41,f:3,p:'2026-06-05',t:[],c:'threejs'},
+
+{n:'three-materials-compiled',o:'Jonathan-J8',d:'Compiled shaders from threejs materials.',l:'GLSL',s:19,f:0,p:'2025-10-09',t:[],c:'threejs'},
+
+{n:'Threejs-Geometry-Multiple-Window-3D-Scene',o:'4btin',d:'3D scene across multiple browser windows.',l:'JavaScript',s:15,f:4,p:'2023-12-06',t:['threejs'],c:'threejs',hp:'https://4bt.in'},
+
+{n:'awesome-glsl',o:'vanrez-nez',d:'Best resources to learn OpenGL Shaders.',l:null,s:1361,f:91,p:'2023-08-21',t:['glsl','opengl','webgl'],c:'glsl'},
+
+{n:'Graphlit',o:'z3y',d:'Node shader editor for Toon and PBR shaders.',l:'C#',s:119,f:10,p:'2026-07-05',t:['shader','unity'],c:'glsl',hp:'https://z3y.github.io/Graphlit/'},
+
+{n:'ShaderMake',o:'NVIDIA-RTX',d:'Shader Compilation Tool.',l:'C++',s:115,f:37,p:'2026-06-03',t:[],c:'glsl'},
+
+{n:'ShaderPackager',o:'slipster216',d:'Packaging shaders for different Unity pipelines.',l:'C#',s:95,f:12,p:'2023-07-10',t:[],c:'glsl'},
+
+{n:'CgFX-Shader-Compilation',o:'steaklive',d:'CgFX shaders: Fur, Tessellation, SSS.',l:'ShaderLab',s:59,f:14,p:'2020-07-16',t:['cgfx','fur-shader','unity'],c:'glsl'},
+
+{n:'fire-box-experiment',o:'fablegrounds',d:'Box catch fire effect using Three.js and GLSL.',l:'TypeScript',s:1,f:0,p:'2026-07-27',t:[],c:'glsl',hp:'https://fablegrounds.com/labs/fire/'},
+
+{n:'reshade',o:'crosire',d:'Generic post-processing injector for games.',l:'C++',s:5305,f:685,p:'2026-06-28',t:['d3d11','glsl','vulkan','post-processing'],c:'reshade',hp:'https://reshade.me'},
+
+{n:'GShade',o:'Mortalitas',d:'Modified ReShade fork for 300+ games.',l:'HLSL',s:525,f:114,p:'2026-03-02',t:[],c:'reshade',hp:'https://www.gshade.org'},
+
+{n:'iMMERSE',o:'martymcmodding',d:"Marty's Mods Epic ReShade Effects.",l:'HLSL',s:444,f:37,p:'2026-07-08',t:[],c:'reshade'},
+
+{n:'AstrayFX',o:'BlueSkyDefender',d:'Shaders for ReShade.',l:'HLSL',s:190,f:47,p:'2026-05-26',t:[],c:'reshade'},
+
+{n:'NiceGuy-Shaders',o:'mj-ehsan',d:'A collection of ReShade shaders.',l:'HLSL',s:181,f:29,p:'2024-10-08',t:[],c:'reshade'},
+
+{n:'Eclipse-Shader',o:'Merlin1809',d:'Minecraft Shader for Iris (edit of Chocapic13 V9/Bliss).',l:'GLSL',s:918,f:60,p:'2026-07-18',t:[],c:'mcshader',k:1},
+
+{n:'Revelation',o:'HaringPro',d:'Explorative shaderpack for Minecraft: Java Edition.',l:'GLSL',s:600,f:33,p:'2026-07-24',t:[],c:'mcshader'},
+
+{n:'rethinking-voxels',o:'gri573',d:'Voxelisation, ray traced occlusion, flood fill block light.',l:'GLSL',s:443,f:33,p:'2026-02-11',t:[],c:'mcshader',k:1},
+
+{n:'Solas-Shader',o:'Septonious',d:'Fantasy stylised shaderpack with fancy visuals.',l:'GLSL',s:155,f:36,p:'2026-07-02',t:[],c:'mcshader'},
+
+{n:'Prismarine-Shader',o:'Septonious',d:'Fantasy stylised shaderpack.',l:'GLSL',s:6,f:0,p:'2026-02-13',t:[],c:'mcshader'},
+
+{n:'editor',o:'pascalorg',d:'Create and share 3D architectural projects.',l:'TypeScript',s:18109,f:2484,p:'2026-07-27',t:[],c:'engine',hp:'https://editor.pascal.app'},
+
+{n:'meshoptimizer',o:'zeux',d:'Mesh optimization library.',l:'C++',s:8168,f:739,p:'2026-07-26',t:['gltf','mesh-processing','optimization'],c:'engine',hp:'https://meshoptimizer.org/'},
+
+{n:'scanseqjs',o:'jeonghopark',d:'Keine Beschreibung hinterlegt.',l:'JavaScript',s:223,f:131,p:'2026-02-28',t:[],c:'engine'},
+
+{n:'spirulae-splat',o:'harry7557558',d:'3D Gaussian Splatting training.',l:'C++',s:66,f:4,p:'2026-07-27',t:['3d-gaussian-splatting','cuda','vulkan'],c:'engine'},
+
+{n:'Lumo',o:'aiekick',d:'Realtime lab for 3D model experimentation.',l:'C++',s:59,f:13,p:'2024-09-22',t:['vulkan','procedural'],c:'engine',a:1},
+
+{n:'reed-framework',o:'Reedbeta',d:'D3D11 init, model loading, shader compilation.',l:'C',s:35,f:4,p:'2022-06-17',t:[],c:'engine'},
+
+{n:'tinyrenderer',o:'Mr-Robot-err-404',d:'Software rasterizer from scratch.',l:'Odin',s:10,f:0,p:'2026-07-25',t:[],c:'engine'},
+
+{n:'ppf-contact-solver',o:'st-tech',d:'Contact solver for shells, solids, rods, rigid bodies, sand.',l:'Python',s:4365,f:321,p:'2026-07-26',t:['cloth','physics','simulation'],c:'sim'},
+
+{n:'PixelFlow',o:'diwi',d:'GPU-Computing: Fluid, SoftBody, Optical Flow.',l:'Java',s:1283,f:134,p:'2018-01-10',t:['fluid-simulation','glsl','softbody-dynamics'],c:'sim',hp:'https://diwi.github.io/PixelFlow'},
+
+{n:'Water',o:'GarrettGunnell',d:'Sum of sines and FFT fluid simulation.',l:'C#',s:563,f:49,p:'2023-12-30',t:[],c:'sim'},
+
+{n:'DynamicWaterDemo',o:'CaptainProton42',d:'Dynamic water simulation in Godot.',l:'GDScript',s:251,f:27,p:'2022-06-14',t:[],c:'sim'},
+
+{n:'webgpu-water',o:'jeantimex',d:'Real-time water simulation using WebGPU.',l:'TypeScript',s:232,f:15,p:'2026-06-21',t:['fluid-simulation','webgpu'],c:'sim',hp:'https://jeantimex.github.io/webgpu-water/'},
+
+{n:'Pumpkin',o:'Pumpkin-MC',d:'Fast and efficient Minecraft servers in Rust.',l:'Rust',s:10214,f:688,p:'2026-07-27',t:['minecraft','rust','server'],c:'mctools',hp:'https://pumpkinmc.org/'},
+
+{n:'MinecraftDecompiler',o:'MaxPixelStudios',d:'Deobfuscate and decompile Minecraft.',l:'Java',s:478,f:24,p:'2026-02-20',t:['deobfuscate','minecraft'],c:'mctools'},
+
+{n:'DramaticShapeVoxelMod',o:'DramaticShape',d:'Keine Beschreibung hinterlegt.',l:'Lua',s:47,f:1,p:'2026-07-27',t:[],c:'mctools'},
+
+{n:'Fabricator',o:'philderks',d:'Self-hosted web UI for Minecraft servers via Modrinth.',l:'Python',s:42,f:3,p:'2026-07-26',t:['minecraft','modrinth','self-hosted'],c:'mctools',hp:'https://fabricator.site'},
+
+{n:'fluidsynth',o:'FluidSynth',d:'Software synthesizer based on SoundFont 2.',l:'C',s:2432,f:325,p:'2026-07-26',t:['midi','soundfonts','synthesizer'],c:'music',hp:'https://www.fluidsynth.org'},
+
+{n:'signal',o:'ryohey',d:'Online MIDI Editor.',l:'TypeScript',s:2347,f:242,p:'2026-05-21',t:['audio','midi','music'],c:'music',hp:'https://signalmidi.app'},
+
+{n:'VSCO-2-CE',o:'sgossner',d:'Open-source orchestral library.',l:null,s:664,f:86,p:'2021-04-06',t:[],c:'music'},
+
+{n:'VCSL',o:'sgossner',d:'Open CC0 sample library.',l:null,s:326,f:39,p:'2026-01-14',t:[],c:'music'},
+
+{n:'soundfont2',o:'Mrtenz',d:'SoundFont2 parser for Node.js and browsers.',l:'TypeScript',s:54,f:10,p:'2024-10-08',t:[],c:'music',hp:'https://mrtenz.github.io/soundfont2/'},
+
+{n:'musichammer',o:'mimrock',d:'Split songs into parts and practice along.',l:'Python',s:50,f:6,p:'2026-07-24',t:[],c:'music'},
+
+{n:'ImmersiveMelodies',o:'Luke100000',d:'Play custom melodies in Minecraft.',l:'Java',s:49,f:21,p:'2026-07-12',t:['minecraft','minecraft-mod'],c:'music'},
+
+{n:'Midi2Text',o:'BrianMcKeever',d:'Extract MIDI data to tab-delimited text.',l:'Java',s:9,f:2,p:'2015-08-30',t:[],c:'music'},
+
+{n:'ultimate-guitar-downloader',o:'moottier',d:'Download tabs from ultimate-guitar.com.',l:'Python',s:7,f:6,p:'2022-03-16',t:[],c:'music'},
+
+{n:'SkelForm',o:'Retropaint',d:'2D skeletal animation editor.',l:'Rust',s:79,f:11,p:'2026-07-18',t:['animation','skeletal-animation'],c:'anim',hp:'https://skelform.org'},
+
+{n:'PixelCraft',o:'gitstq',d:'Web-based pixel art editor with animation.',l:'JavaScript',s:1,f:0,p:'2026-06-04',t:['pixel-art','sprite-sheet'],c:'anim'},
+
+{n:'skelform-js',o:'Retropaint',d:'SkelForm runtime for Javascript.',l:'JavaScript',s:3,f:0,p:'2026-06-26',t:[],c:'anim'},
+
+{n:'skelform_mobile',o:'Retropaint',d:'Mobile SkelForm using Capacitor.',l:'JavaScript',s:1,f:0,p:'2025-06-21',t:[],c:'anim'},
+
+{n:'skelform_python',o:'Retropaint',d:'SkelForm runtime for Python.',l:'Python',s:1,f:0,p:'2026-06-26',t:[],c:'anim'},
+
+{n:'DrawnInterfaces',o:'andy9040',d:'Sketch-based interaction experiments.',l:'Python',s:1,f:0,p:'2025-04-15',t:[],c:'anim'},
+
+{n:'romm',o:'rommapp',d:'Self-hosted rom manager and player.',l:'Python',s:11468,f:633,p:'2026-07-27',t:['emulation','retrogaming','self-hosted'],c:'retro',hp:'https://romm.app'},
+
+{n:'decky-loader',o:'SteamDeckHomebrew',d:'Plugin loader for the Steam Deck.',l:'TypeScript',s:7070,f:250,p:'2026-07-25',t:['steam','steamdeck'],c:'retro',hp:'https://decky.xyz'},
+
+{n:'bottleship',o:'jenissimo',d:'Run classic Windows games in browser via WebGPU.',l:'TypeScript',s:84,f:5,p:'2026-07-27',t:['emulator','webgpu','retrogaming'],c:'retro',hp:'https://bottleship.pages.dev'},
+
+{n:'Hyprland',o:'hyprwm',d:'Dynamic tiling Wayland compositor.',l:'C++',s:37552,f:1894,p:'2026-07-27',t:['compositor','wayland'],c:'devops',hp:'https://hypr.land'},
+
+{n:'dokploy',o:'Dokploy',d:'Open Source Alternative to Vercel, Netlify, Heroku.',l:'TypeScript',s:36131,f:2793,p:'2026-07-27',t:['deployment','docker','self-hosted'],c:'devops',hp:'https://dokploy.com/'},
+
+{n:'plasmo',o:'PlasmoHQ',d:'The Browser Extension Framework.',l:'TypeScript',s:13118,f:463,p:'2026-07-25',t:['browser-extension','reactjs','typescript'],c:'devops',hp:'https://www.plasmo.com'},
+
+{n:'reorder',o:'reorder-js',d:'Medusa.js Subscription Plugin.',l:'TypeScript',s:37,f:7,p:'2026-07-05',t:['e-commerce','medusa'],c:'devops',hp:'https://reorderjs.com'},
+
+{n:'fibertoy',o:'NabilNYMansour',d:'Keine Beschreibung hinterlegt.',l:'TypeScript',s:4,f:0,p:'2026-07-22',t:[],c:'devops',hp:'https://www.fibertoy.dev/'},
+
+{n:'autodeploy-web',o:'BaptisteTellier',d:'Keine Beschreibung hinterlegt.',l:'Go',s:3,f:0,p:'2026-07-24',t:[],c:'devops'}
+
+];
+
+
+
+/* ═══════════════════════════════════════════════════════════════
+
+   HELFER
+
+   ═══════════════════════════════════════════════════════════════ */
+
+const LANG={JavaScript:'#f1e05a',TypeScript:'#4d8fd1',Python:'#4b8bbe',Java:'#c98a3d',C:'#9aa7b4','C++':'#f34b7d','C#':'#46a758',
+
+Rust:'#dea584',GLSL:'#7aa5c9',HLSL:'#8d7ae0',Lua:'#7b7fe0',GDScript:'#4f7fa3',Go:'#00add8',Shell:'#89e051',Kotlin:'#a97bff',
+
+Swift:'#f05138',Vue:'#41b883','Jupyter Notebook':'#f37626',Odin:'#60affe',ShaderLab:'#c9b458',HTML:'#e34c26'};
+
+const FALL='#66718a';
+
+const $=q=>document.querySelector(q);
+
+const fmt=n=>n.toLocaleString('de-DE');
+
+const fdate=s=>{if(!s||String(s).length<10)return '—';const[a,b,c]=String(s).split('-');return c+'.'+b+'.'+a};
+
+const fsize=b=>b<1024?b+' B':b<1048576?(b/1024).toFixed(1)+' KB':(b/1048576).toFixed(1)+' MB';
+
+const reduced=matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+const catById=id=>CATS.find(c=>c.id===id)||CATS[CATS.length-1];
+
+const gurl=r=>'https://github.com/'+r.o+'/'+r.n;
+
+const keyOf=r=>(r.o+'/'+r.n).toLowerCase();
+
+const esc=s=>String(s).replace(/&/g,'&').replace(/</g,'<').replace(/>/g,'>');
+
+const mag=r=>Math.min(52,Math.round(12+Math.log10((r.s||0)+1)*8.5));
+
+
+
+function parseGitHubRepoUrl(url){
+
+if(!url)return null;
+
+let u=String(url).trim();
+
+u=u.replace(/^https?:\/\/(www\.)?/,'').replace(/^api\./,'');
+
+u=u.replace(/^github\.com\//,'');
+
+u=u.split(/[?#]/)[0];
+
+u=u.replace(/\.git$/,'');
+
+u=u.replace(/\/$/,'');
+
+const parts=u.split('/').filter(Boolean);
+
+if(parts.length<2)return null;
+
+let owner=parts[0],name=parts[1];
+
+if(owner==='repos'&&parts.length>=3){owner=parts[1];name=parts[2]}
+
+if(!owner||!name||owner.includes('.')||name.includes('.'))return null;
+
+return{owner,name,full_name:owner+'/'+name,html_url:'https://github.com/'+owner+'/'+name};
+
+}
+
+
+
+let R=INITIAL.map(r=>({...r}));
+
+let dataSource='embedded',liveUser='',liveSrc='starred',activeDbName='';
+
+const readmeCache=new Map();
+
+const annotations=new Map();
+
+let activeFilters={project:null,role:null,status:null};
+
+
+
+const CURATED={};INITIAL.forEach(r=>CURATED[keyOf(r)]=r.c);
+
+const OWNER_HINTS={mshumer:'agents',retropaint:'anim',septonious:'mcshader',haringpro:'mcshader',gri573:'mcshader',
+
+merlin1809:'mcshader',crosire:'reshade',mortalitas:'reshade',blueskydefender:'reshade',martymcmodding:'reshade',
+
+'mj-ehsan':'reshade',sgossner:'music',fluidsynth:'music',ryohey:'music',pumpkinmc:'mctools',maxpixelstudios:'mctools',
+
+hyprwm:'devops',dokploy:'devops',plasmohq:'devops'};
+
+
+
+function classify(r){
+
+const k=keyOf(r);
+
+if(CURATED[k])return CURATED[k];
+
+const oh=OWNER_HINTS[r.o.toLowerCase()];if(oh)return oh;
+
+const hay=((r.n||'')+' '+(r.d||'')+' '+(r.t||[]).join(' ')+' '+(r.l||'')).toLowerCase();
+
+const has=(...ws)=>ws.some(w=>hay.includes(w));
+
+if(has('shaderpack')||(has('minecraft')&&has('shader','iris','optifine','sodium')))return 'mcshader';
+
+if(has('minecraft','fabric','forge','modrinth','curseforge','spigot','bukkit','papermc','datapack'))return 'mctools';
+
+if(has('reshade','gshade'))return 'reshade';
+
+if(has('threejs','three-js','three.js','r3f','react-three','webgpu','webgl','babylon'))return 'threejs';
+
+if(has('glsl','hlsl','wgsl','shader','spir-v','cgfx','post-processing'))return 'glsl';
+
+if(has('fluid','water sim','physics','simulation','cloth','softbody','soft-body','particle system','contact solver','rigid bod'))return 'sim';
+
+if(has('gaussian splat','3dgs','raytrac','ray-trac','rasterizer','renderer','vulkan','opengl','directx','d3d11','d3d12','mesh optim','voxel','point cloud','photogrammetry','3d engine'))return 'engine';
+
+if(has('diffusion','text-to','image-to','depth estimation','monocular','segmentation','matting','machine translation','speech','tts','voice','generative','stable diffusion','comfyui','lora','nerf','splat'))return 'genai';
+
+if(has('agent','agentic','claude code','claude-code','opencode','mcp','copilot','automation','autonomous','workflow'))return 'agents';
+
+if(has('llm','fine-tun','finetun','rlhf','reinforcement','benchmark','evaluation','reasoning','transformer','inference','quantiz'))return 'llm';
+
+if(has('midi','soundfont','synthesizer','audio','music','daw','sound','piano','guitar','karaoke'))return 'music';
+
+if(has('animation','pixel art','pixel-art','sprite','skeletal','keyframe','rigging'))return 'anim';
+
+if(has('emulat','rom ','retro','steamdeck','steam deck','arcade','console'))return 'retro';
+
+if(has('docker','kubernetes','self-hosted','selfhosted','deployment','devops','homelab','vps','wayland','compositor','nginx','reverse proxy','terraform','ansible','e-commerce','medusa'))return 'devops';
+
+return 'misc';
+
+}
+
+
+
+function suggestProjects(r){
+
+const hay=((r.n||'')+' '+(r.d||'')+' '+(r.t||[]).join(' ')+' '+(r.l||'')+' '+(readmeCache.get(keyOf(r))||'').slice(0,2000)).toLowerCase();
+
+const hits=[];
+
+PROJECTS.forEach(p=>{
+
+let score=0;
+
+p.kw.forEach(kw=>{if(hay.includes(kw))score++});
+
+if(score>0)hits.push({project:p.id,score});
+
+});
+
+hits.sort((a,b)=>b.score-a.score);
+
+return hits.slice(0,5).map(h=>h.project);
+
+}
+
+
+
+function suggestRoles(r){
+
+const hay=((r.n||'')+' '+(r.d||'')+' '+(r.t||[]).join(' ')).toLowerCase();
+
+const roles=[];
+
+if(hay.includes('library')||hay.includes('framework')||hay.includes('sdk'))roles.push('DEPENDENCY');
+
+if(hay.includes('example')||hay.includes('demo')||hay.includes('tutorial'))roles.push('ARCH_REFERENCE');
+
+if(hay.includes('editor')||hay.includes('ui')||hay.includes('interface'))roles.push('UX_REFERENCE');
+
+if(hay.includes('paper')||hay.includes('research')||hay.includes('arxiv'))roles.push('RESEARCH');
+
+if(r.s>5000)roles.push('DIRECT_USE');
+
+if(r.s<10)roles.push('WATCH');
+
+return [...new Set(roles)].slice(0,3);
+
+}
+
+
+
+function getAnnotation(key){
+
+if(annotations.has(key))return annotations.get(key);
+
+return null;
+
+}
+
+
+
+function ensureAnnotation(key){
+
+if(annotations.has(key))return annotations.get(key);
+
+const ann={key,whyStarred:'',primaryDomain:null,confirmedDomains:[],suggestedDomains:[],
+
+confirmedRoles:[],suggestedRoles:[],projectFits:[],capabilities:[],relations:[],
+
+manualTags:[],autoTags:[],priority:'UNSET',decisionStatus:'UNREVIEWED',
+
+inspectionLevel:'DISCOVERED',maturity:'UNKNOWN',usefulness:null,risks:[],notes:'',
+
+createdAt:new Date().toISOString(),updatedAt:new Date().toISOString()};
+
+annotations.set(key,ann);
+
+return ann;
+
+}
+
+
+
+function runAutoSuggestions(r){
+
+const key=keyOf(r);
+
+const ann=ensureAnnotation(key);
+
+const sp=suggestProjects(r);
+
+sp.forEach(pid=>{
+
+if(!ann.projectFits.find(pf=>pf.project===pid)){
+
+ann.projectFits.push({project:pid,component:'',relevance:3,proposedUse:'ARCH_REFERENCE',status:'AUTO_SUGGESTED',evidence:'Keyword-Match',note:''});
+
+}});
+
+const sr=suggestRoles(r);
+
+sr.forEach(role=>{
+
+if(!ann.confirmedRoles.includes(role)&&!ann.suggestedRoles.includes(role)){
+
+ann.suggestedRoles.push(role);
+
+}});
+
+ann.updatedAt=new Date().toISOString();
+
+}
+
+
+
+/* ═══════════════════════════════════════════════════════════════
+
+   INDEXEDDB v2 (dbs + annotations)
+
+   ═══════════════════════════════════════════════════════════════ */
+
+const IDB_NAME='sternkarte_dbs',IDB_VERSION=2;
+
+let idbInstance=null;
+
+function openIdb(){
+
+return new Promise((res,rej)=>{
+
+const req=indexedDB.open(IDB_NAME,IDB_VERSION);
+
+req.onupgradeneeded=e=>{
+
+const db=e.target.result;
+
+if(!db.objectStoreNames.contains('dbs'))db.createObjectStore('dbs',{keyPath:'id'});
+
+if(!db.objectStoreNames.contains('annotations'))db.createObjectStore('annotations',{keyPath:'key'});
+
+};
+
+req.onsuccess=()=>{idbInstance=req.result;res(req.result)};
+
+req.onerror=()=>rej(req.error);
+
+});
+
+}
+
+async function idbPut(store,rec){const d=await openIdb();return new Promise((res,rej)=>{
+
+const t=d.transaction(store,'readwrite');t.objectStore(store).put(rec);t.oncomplete=res;t.onerror=()=>rej(t.error)})}
+
+async function idbGetAll(store){const d=await openIdb();return new Promise((res,rej)=>{
+
+const q=d.transaction(store).objectStore(store).getAll();q.onsuccess=()=>res(q.result||[]);q.onerror=()=>rej(q.error)})}
+
+async function idbDel(store,id){const d=await openIdb();return new Promise((res,rej)=>{
+
+const t=d.transaction(store,'readwrite');t.objectStore(store).delete(id);t.oncomplete=res;t.onerror=()=>rej(t.error)})}
+
+async function saveAllAnnotations(){
+
+const d=await openIdb();
+
+const t=d.transaction('annotations','readwrite');
+
+const s=t.objectStore('annotations');
+
+annotations.forEach((v,k)=>s.put(v));
+
+return new Promise((res,rej)=>{t.oncomplete=res;t.onerror=()=>rej(t.error)});
+
+}
+
+async function loadAllAnnotations(){
+
+const all=await idbGetAll('annotations');
+
+all.forEach(a=>annotations.set(a.key,a));
+
+}
+
+
+
+/* ═══════════════════════════════════════════════════════════════
+
+   RENDERING
+
+   ═══════════════════════════════════════════════════════════════ */
+
+const sorters={s:(a,b)=>b.s-a.s,p:(a,b)=>String(b.p||'').localeCompare(String(a.p||'')),n:(a,b)=>a.n.localeCompare(b.n),
+
+ann:(a,b)=>{const aa=getAnnotation(keyOf(a)),ab=getAnnotation(keyOf(b));
+
+const score=x=>x?(x.decisionStatus==='ADOPTED'?6:x.decisionStatus==='REVIEWED'?4:x.decisionStatus==='INTEGRATION_CANDIDATE'?5:x.decisionStatus==='AUTO_SUGGESTED'?2:x.decisionStatus==='WATCH'?3:1):0;
+
+return score(bb)-score(aa)}};
+
+
+
+function rowHTML(r){
+
+const c=catById(r.c),lc=LANG[r.l]||FALL;
+
+const key=keyOf(r);
+
+const ann=getAnnotation(key);
+
+const hasAnn=ann&&(ann.decisionStatus!=='UNREVIEWED'||ann.confirmedRoles.length||ann.projectFits.length||ann.notes);
+
+const tags=(r.t||[]).slice(0,4).map(t=>'<span>'+esc(t)+'</span>').join('');
+
+const badges=(r.k?'<span class="badge">Fork</span>':'')+(r.a?'<span class="badge">Archiviert</span>':'')+(r.lic?'<span class="badge lic">'+esc(r.lic)+'</span>':'');
+
+const hp=r.hp?'<a class="hp" href="'+esc(r.hp)+'" target="_blank" rel="noopener">Demo ↗</a>':'';
+
+let roleBadges='';
+
+if(ann){
+
+ann.confirmedRoles.forEach(rl=>{roleBadges+='<span class="badge role confirmed">✓ '+ROLE_LABELS[rl]+'</span>'});
+
+ann.suggestedRoles.slice(0,2).forEach(rl=>{roleBadges+='<span class="badge role">✦ '+ROLE_LABELS[rl]+'</span>'});
+
+ann.projectFits.filter(pf=>pf.status==='CONFIRMED'||pf.status==='ADOPTED').slice(0,2).forEach(pf=>{roleBadges+='<span class="badge proj">'+esc(pf.project)+'</span>'});
+
+if(ann.decisionStatus!=='UNREVIEWED')roleBadges+='<span class="badge status '+ann.decisionStatus+'">'+ann.decisionStatus.replace(/_/g,' ')+'</span>';
+
+}
+
+const hay=((r.n||'')+' '+(r.o||'')+' '+(r.d||'')+' '+(r.l||'')+' '+(r.t||[]).join(' ')+' '+(ann?ann.projectFits.map(p=>p.project).join(' '):'')).toLowerCase();
+
+return '<article class="row" style="--c:'+c.c+'" data-key="'+esc(key)+'" data-hay="'+esc(hay)+'">'
+
++'<div class="mag"><i style="width:'+mag(r)+'px;height:'+mag(r)+'px" title="★ '+fmt(r.s)+'"></i></div>'
+
++'<div><div class="rline1">'
+
++'<a class="rname" href="'+gurl(r)+'" target="_blank" rel="noopener">'+esc(r.n)+'<span class="arrow">↗</span></a>'
+
++'<span class="rown">'+esc(r.o)+'</span>'+badges+roleBadges+hp
+
++'<button class="ann-toggle'+(hasAnn?' has-ann':'')+'" title="Annotation bearbeiten">✦</button>'
+
++'<button class="re-toggle" title="README anzeigen">+</button></div>'
+
++'<p class="rdesc">'+esc(r.d)+'</p>'
+
++'<div class="rmeta"><span class="lang"><i style="background:'+lc+'"></i>'+esc(r.l||'—')+'</span>'
+
++'<span class="st">★ '+fmt(r.s)+'</span><span>⑂ '+fmt(r.f)+'</span><span>aktiv '+fdate(r.p)+'</span>'
+
++(r.created?'<span>seit '+fdate(r.created)+'</span>':'')+'</div>'
+
++(tags?'<div class="rtags">'+tags+'</div>':'')
+
++'<div class="rextra"></div>'
+
++annPanelHTML(r,ann)
+
++'</div></article>';
+
+}
+
+
+
+function annPanelHTML(r,ann){
+
+const key=keyOf(r);
+
+const a=ann||{whyStarred:'',priority:'UNSET',decisionStatus:'UNREVIEWED',inspectionLevel:'DISCOVERED',maturity:'UNKNOWN',notes:'',confirmedRoles:[],suggestedRoles:[],projectFits:[],manualTags:[]};
+
+const projRows=a.projectFits.map((pf,i)=>'<div class="proj-row"><span class="pname">'+esc(pf.project)+'</span><span class="pcomp">'+esc(pf.component||'—')+'</span><span class="prel">'+'★'.repeat(pf.relevance||1)+'</span><span style="font-size:9px;color:'+(pf.status==='CONFIRMED'?'var(--confirmed)':'var(--auto)')+'">'+pf.status+'</span></div>').join('');
+
+const roleTags=[...a.confirmedRoles.map(rl=>'<span class="atag confirmed" data-role="'+rl+'">✓ '+ROLE_LABELS[rl]+'</span>'),
+
+...a.suggestedRoles.map(rl=>'<span class="atag suggested" data-role="'+rl+'">✦ '+ROLE_LABELS[rl]+'</span>')].join('');
+
+return '<div class="ann-panel" data-annkey="'+esc(key)+'">'
+
++'<h4>✦ Annotation — '+esc(r.o+'/'+r.n)+'</h4>'
+
++'<div class="ann-grid">'
+
++'<div class="ann-field"><label>Warum gestarred</label><textarea data-f="whyStarred">'+esc(a.whyStarred)+'</textarea></div>'
+
++'<div class="ann-field"><label>Decision Status</label><select data-f="decisionStatus">'+DECISION_STATUS.map(s=>'<option'+(a.decisionStatus===s?' selected':'')+'>'+s+'</option>').join('')+'</select></div>'
+
++'<div class="ann-field"><label>Priority</label><select data-f="priority">'+PRIORITY.map(s=>'<option'+(a.priority===s?' selected':'')+'>'+s+'</option>').join('')+'</select></div>'
+
++'<div class="ann-field"><label>Inspection Level</label><select data-f="inspectionLevel">'+INSPECTION_LEVELS.map(s=>'<option'+(a.inspectionLevel===s?' selected':'')+'>'+s+'</option>').join('')+'</select></div>'
+
++'<div class="ann-field"><label>Maturity</label><select data-f="maturity">'+MATURITY.map(s=>'<option'+(a.maturity===s?' selected':'')+'>'+s+'</option>').join('')+'</select></div>'
+
++'<div class="ann-field"><label>Usefulness (1-10)</label><input type="number" min="1" max="10" data-f="usefulness" value="'+(a.usefulness||'')+'"></div>'
+
++'</div>'
+
++'<div class="ann-field" style="margin-top:.6rem"><label>Rollen (klicken zum Bestätigen/Verwerfen)</label><div class="ann-tags">'+roleTags+'</div></div>'
+
++(projRows?'<div class="ann-proj" style="margin-top:.6rem"><label style="font-family:var(--mono);font-size:9.5px;letter-spacing:.14em;text-transform:uppercase;color:var(--faint)">Projektzuordnung</label>'+projRows+'</div>':'')
+
++'<div class="ann-field" style="margin-top:.6rem"><label>Notizen</label><textarea data-f="notes">'+esc(a.notes)+'</textarea></div>'
+
++'<div class="ann-save"><button class="btn btn-gold ann-save-btn" style="padding:.5rem 1rem;font-size:11px">✦ Speichern</button><span class="saved-msg">✓ Gespeichert</span></div>'
+
++'</div>';
+
+}
+
+
+
+function renderAll(){
+
+const mode=$('#sort').value;
+
+const active=CATS.filter(c=>R.some(r=>r.c===c.id));
+
+$('#catalog').innerHTML=active.map((c,i)=>{
+
+const items=R.filter(r=>r.c===c.id).sort(sorters[mode]);
+
+const sum=items.reduce((a,r)=>a+r.s,0);
+
+return '<section class="kat" id="kat-'+c.id+'" style="--c:'+c.c+'">'
+
++'<header class="sechead reveal"><div class="sec-letter">'+c.k+'</div>'
+
++'<div><div class="sec-kicker">Abteilung <b>'+(ROM[i]||'·')+'</b> · Spektralklasse <b>'+c.k+'</b> · '+items.length+' Repos · Σ <b>'+fmt(sum)+' ★</b></div>'
+
++'<h2>'+c.n+'</h2><p class="secdesc">'+c.d+'</p></div></header>'
+
++'<div class="rows">'+items.map(rowHTML).join('')+'</div></section>';
+
+}).join('');
+
+document.querySelectorAll('.row').forEach((el,i)=>{el.style.animationDelay=Math.min((i%10)*40,320)+'ms'});
+
+observeReveals();applyFilter();
+
+}
+
+
+
+function renderChips(){
+
+const counts={};R.forEach(r=>counts[r.c]=(counts[r.c]||0)+1);
+
+$('#chips').innerHTML='<button class="chip" data-t="top" style="--cc:#f2b632"><i></i>Alle · '+R.length+'</button>'
+
++CATS.filter(c=>counts[c.id]).map(c=>'<button class="chip" data-t="kat-'+c.id+'" style="--cc:'+c.c+'"><i></i>'+c.n.split(' ')[0].replace(',','')+' · '+counts[c.id]+'</button>').join('');
+
+document.querySelectorAll('.chip').forEach(ch=>ch.addEventListener('click',()=>{
+
+const t=document.getElementById(ch.dataset.t);
+
+if(t)t.scrollIntoView({behavior:reduced?'auto':'smooth',block:'start'});
+
+}));
+
+}
+
+
+
+function renderFilterbar(){
+
+$('#projFilters').innerHTML=PROJECTS.slice(0,12).map(p=>'<button class="fchip'+(activeFilters.project===p.id?' on':'')+'" data-proj="'+p.id+'" style="--cc:'+p.color+'">'+p.n+'</button>').join('');
+
+$('#roleFilters').innerHTML=ROLES.slice(0,6).map(rl=>'<button class="fchip'+(activeFilters.role===rl?' on':'')+'" data-role="'+rl+'">'+ROLE_LABELS[rl]+'</button>').join('');
+
+$('#statusFilters').innerHTML=DECISION_STATUS.slice(0,5).map(s=>'<button class="fchip'+(activeFilters.status===s?' on':'')+'" data-status="'+s+'">'+s.replace(/_/g,' ')+'</button>').join('');
+
+document.querySelectorAll('[data-proj]').forEach(b=>b.addEventListener('click',()=>{
+
+activeFilters.project=activeFilters.project===b.dataset.proj?null:b.dataset.proj;renderFilterbar();applyFilter()}));
+
+document.querySelectorAll('[data-role]').forEach(b=>b.addEventListener('click',()=>{
+
+activeFilters.role=activeFilters.role===b.dataset.role?null:b.dataset.role;renderFilterbar();applyFilter()}));
+
+document.querySelectorAll('[data-status]').forEach(b=>b.addEventListener('click',()=>{
+
+activeFilters.status=activeFilters.status===b.dataset.status?null:b.dataset.status;renderFilterbar();applyFilter()}));
+
+}
+
+
+
+function renderTicker(){
+
+const top=[...R].sort((a,b)=>b.s-a.s).slice(0,80);
+
+const one=top.map(r=>'<span>'+esc(r.o)+'<b>/</b>'+esc(r.n)+'</span>').join('<span style="color:#f2b632">✦</span>');
+
+$('#ticker').innerHTML=one+'<span style="color:#f2b632">✦</span>'+one;
+
+}
+
+
+
+function updateHeaderNote(){
+
+$('#ledeCount').textContent=fmt(R.length);
+
+$('#archNote').innerHTML=
+
+dataSource==='live'?'Live-Archiv · <b>'+fmt(R.length)+'</b> Repos · '+(liveSrc==='starred'?'★ Starred':'eigene Repos')+' von <b>'+esc(liveUser)+'</b>'
+
+:dataSource==='db'?'SQLite-Archiv · <b>'+fmt(R.length)+'</b> Repos · <b>'+esc(activeDbName)+'</b>'
+
+:dataSource==='file'?'Importiertes Archiv · <b>'+fmt(R.length)+'</b> Repos'
+
+:'Teilauszug · Gesamtarchiv ≈ <b>823</b> Repos';
+
+}
+
+
+
+function animateCounters(){
+
+const stars=R.reduce((a,r)=>a+r.s,0),forks=R.reduce((a,r)=>a+r.f,0);
+
+const langs=new Set(R.map(r=>r.l).filter(Boolean)).size,cats=new Set(R.map(r=>r.c)).size;
+
+const annCount=[...annotations.values()].filter(a=>a.decisionStatus!=='UNREVIEWED'||a.notes||a.confirmedRoles.length).length;
+
+const vals={repos:R.length,stars,forks,langs,cats,annotated:annCount};
+
+document.querySelectorAll('.stat b').forEach(el=>{
+
+const target=vals[el.dataset.k]||0;
+
+if(reduced){el.textContent=fmt(target);return}
+
+const t0=performance.now(),dur=1400;
+
+(function tick(t){const p=Math.min((t-t0)/dur,1),e=1-Math.pow(1-p,3);
+
+el.textContent=fmt(Math.round(target*e));if(p<1)requestAnimationFrame(tick)})(t0);
+
+});
+
+}
+
+
+
+function loadRepos(arr,origin){
+
+const seen=new Map();
+
+arr.forEach(r=>{if(r.n&&r.o)seen.set(keyOf(r),r)});
+
+R=[...seen.values()].map(r=>({...r,c:r.c||classify(r)}));
+
+dataSource=origin;
+
+R.forEach(r=>runAutoSuggestions(r));
+
+renderChips();renderAll();renderTicker();animateCounters();updateHeaderNote();renderFilterbar();
+
+}
+
+
+
+function applyFilter(){
+
+const q=$('#search').value.trim().toLowerCase();let visible=0;
+
+document.querySelectorAll('section.kat').forEach(sec=>{
+
+let any=false;
+
+sec.querySelectorAll('.row').forEach(row=>{
+
+const key=row.dataset.key;
+
+const ann=getAnnotation(key);
+
+let hit=!q||row.dataset.hay.includes(q);
+
+if(hit&&activeFilters.project){
+
+hit=ann&&ann.projectFits.some(pf=>pf.project===activeFilters.project);
+
+}
+
+if(hit&&activeFilters.role){
+
+hit=ann&&(ann.confirmedRoles.includes(activeFilters.role)||ann.suggestedRoles.includes(activeFilters.role));
+
+}
+
+if(hit&&activeFilters.status){
+
+hit=ann&&ann.decisionStatus===activeFilters.status;
+
+}
+
+row.classList.toggle('hide',!hit);if(hit){any=true;visible++}
+
+});
+
+sec.classList.toggle('hide',!any);
+
+});
+
+$('#hitcount').textContent=(q||activeFilters.project||activeFilters.role||activeFilters.status)?visible+' von '+R.length+' Treffern':R.length+' von '+R.length+' sichtbar';
+
+syncSpy();
+
+}
+
+
+
+let spy;
+
+function syncSpy(){
+
+if(spy)spy.disconnect();
+
+spy=new IntersectionObserver(es=>{es.forEach(e=>{if(e.isIntersecting)
+
+document.querySelectorAll('.chip').forEach(c=>c.classList.toggle('active',c.dataset.t===e.target.id))})},
+
+{rootMargin:'-35% 0px -55% 0px'});
+
+document.querySelectorAll('section.kat:not(.hide)').forEach(s=>spy.observe(s));
+
+}
+
+let rio;
+
+function observeReveals(){
+
+if(rio)rio.disconnect();
+
+rio=new IntersectionObserver(es=>{es.forEach(e=>{if(e.isIntersecting){e.target.classList.add('in');rio.unobserve(e.target)}})},{threshold:.06});
+
+document.querySelectorAll('.reveal,.row').forEach(el=>rio.observe(el));
+
+}
+
+
+
+/* README */
+
+function mdToText(md){
+
+return String(md).replace(/<!--[\s\S]*?-->/g,'').replace(/!\[[^\]]*\]\([^)]*\)/g,'')
+
+.replace(/\[([^\]]+)\]\([^)]*\)/g,'$1').replace(/^#{1,6}\s+/gm,'').replace(/(\*\*|__)(.*?)\1/g,'$2')
+
+.replace(/<[^>]+>/g,'').replace(/\n{3,}/g,'\n\n').trim().slice(0,2500);
+
+}
+
+function fillReadmeBox(box,val){
+
+box.dataset.filled='1';
+
+box.innerHTML=(val==null)?'<div class="rload">— kein README gefunden —</div>'
+
+:'<pre>'+esc(mdToText(val))+(String(val).length>=2500?' …':'')+'</pre>';
+
+}
+
+async function fetchReadme(r){
+
+const k=keyOf(r);if(readmeCache.has(k))return readmeCache.get(k);
+
+for(const b of [...new Set([r.br||'HEAD','main','master'])]){
+
+try{const res=await fetch('https://raw.githubusercontent.com/'+encodeURIComponent(r.o)+'/'+encodeURIComponent(r.n)+'/'+b+'/README.md');
+
+if(res.ok){const v=await res.text();readmeCache.set(k,v);return v}
+
+if(res.status===404)continue;
+
+}catch(e){}
+
+}
+
+readmeCache.set(k,null);return null;
+
+}
+
+async function readmeSweep(){
+
+const todo=R.filter(r=>!readmeCache.has(keyOf(r)));if(!todo.length)return;
+
+let done=0;const total=todo.length;
+
+log('README-Sweep: '+total+' Repos …','warn');
+
+const worker=async()=>{while(todo.length){const r=todo.shift();await fetchReadme(r);done++;
+
+$('#pmeta').innerHTML='READMEs <b>'+done+'</b> / '+total}};
+
+await Promise.all([worker(),worker(),worker(),worker()]);
+
+log('✔ README-Sweep fertig.','ok');
+
+R.forEach(r=>runAutoSuggestions(r));
+
+}
+
+
+
+/* ═══════════════════════════════════════════════════════════════
+
+   KATALOG-INTERAKTION (Delegation)
+
+   ═══════════════════════════════════════════════════════════════ */
+
+$('#catalog').addEventListener('click',async e=>{
+
+const readmeBtn=e.target.closest('.re-toggle');
+
+if(readmeBtn){
+
+const row=readmeBtn.closest('.row'),box=row.querySelector('.rextra');
+
+const open=row.classList.toggle('open');
+
+if(open&&!box.dataset.filled){
+
+const r=R.find(x=>keyOf(x)===row.dataset.key);if(!r)return;
+
+const k=keyOf(r);
+
+if(readmeCache.has(k))fillReadmeBox(box,readmeCache.get(k));
+
+else{box.innerHTML='<div class="rload">▌ README wird geladen …</div>';
+
+const v=await fetchReadme(r);if(row.classList.contains('open'))fillReadmeBox(box,v);runAutoSuggestions(r);}
+
+}
+
+return;
+
+}
+
+const annBtn=e.target.closest('.ann-toggle');
+
+if(annBtn){
+
+const row=annBtn.closest('.row');
+
+const panel=row.querySelector('.ann-panel');
+
+if(panel)panel.classList.toggle('open');
+
+return;
+
+}
+
+const saveBtn=e.target.closest('.ann-save-btn');
+
+if(saveBtn){
+
+const panel=saveBtn.closest('.ann-panel');
+
+const key=panel.dataset.annkey;
+
+const ann=ensureAnnotation(key);
+
+panel.querySelectorAll('[data-f]').forEach(el=>{
+
+const f=el.dataset.f;
+
+let v=el.value;
+
+if(f==='usefulness')v=v?parseInt(v):null;
+
+ann[f]=v;
+
+});
+
+ann.updatedAt=new Date().toISOString();
+
+saveAllAnnotations().then(()=>{
+
+const msg=panel.querySelector('.saved-msg');msg.classList.add('show');
+
+setTimeout(()=>msg.classList.remove('show'),2000);
+
+animateCounters();
+
+});
+
+return;
+
+}
+
+const atag=e.target.closest('.atag');
+
+if(atag){
+
+const panel=atag.closest('.ann-panel');
+
+const key=panel.dataset.annkey;
+
+const ann=ensureAnnotation(key);
+
+const role=atag.dataset.role;
+
+if(atag.classList.contains('suggested')){
+
+ann.suggestedRoles=ann.suggestedRoles.filter(r=>r!==role);
+
+ann.confirmedRoles.push(role);
+
+}else if(atag.classList.contains('confirmed')){
+
+ann.confirmedRoles=ann.confirmedRoles.filter(r=>r!==role);
+
+}
+
+ann.updatedAt=new Date().toISOString();
+
+saveAllAnnotations();
+
+renderAll();
+
+return;
+
+}
+
+});
+
+
+
+/* ═══════════════════════════════════════════════════════════════
+
+   KONSOLE / API
+
+   ═══════════════════════════════════════════════════════════════ */
+
+const CK='sternkarte_cache_v2';
+
+let busy=false,abortFlag=false,rate={rem:'?',lim:'?'};
+
+const loadCache=()=>{try{return JSON.parse(localStorage.getItem(CK))}catch(e){return null}};
+
+const saveCache=c=>{try{localStorage.setItem(CK,JSON.stringify(c))}catch(e){}};
+
+function log(msg,cls){
+
+const L=$('#plog'),d=document.createElement('div');
+
+d.className='line '+(cls||'');d.textContent='» '+msg;L.appendChild(d);
+
+while(L.children.length>60)L.removeChild(L.firstChild);
+
+L.scrollTop=L.scrollHeight;
+
+}
+
+function setLed(s){$('#led').className='led'+(s?' '+s:'')}
+
+function progress(w,meta){$('#pbar').style.width=w+'%';if(meta!=null)$('#pmeta').innerHTML=meta}
+
+function refreshConState(){
+
+const c=loadCache();
+
+$('#conState').textContent=c?(c.user+' · '+c.repos.length+' Repos lokal · S.'+c.fetchedPages+'/'+c.pages):'kein lokaler Cache';
+
+$('#btnStart').textContent=(busy?'■ Stop':(c&&c.user===$('#ghUser').value.trim()&&c.source===liveSrc&&c.fetchedPages<c.pages)?'▶ Fortsetzen':'▶ Start');
+
+}
+
+function ghHeaders(){
+
+const h={'Accept':'application/vnd.github+json'};
+
+const t=$('#pat').value.trim();if(t)h['Authorization']='Bearer '+t;
+
+return h;
+
+}
+
+async function fetchPage(u,page){
+
+const path=liveSrc==='starred'?'starred':'repos';
+
+const url='https://api.github.com/users/'+encodeURIComponent(u)+'/'+path+'?per_page=100&page='+page;
+
+const res=await fetch(url,{headers:ghHeaders()});
+
+if(!res.ok){let msg='HTTP '+res.status;try{const j=await res.json();msg=j.message||msg}catch(e){}throw new Error(msg)}
+
+rate.rem=res.headers.get('x-ratelimit-remaining')||'?';
+
+rate.lim=res.headers.get('x-ratelimit-limit')||'?';
+
+return res.json();
+
+}
+
+function normalize(raw){
+
+return {id:raw.id||0,n:(raw.name||'').trim(),o:((raw.owner&&raw.owner.login)||'').trim(),
+
+d:raw.description?String(raw.description).trim():'Keine Beschreibung hinterlegt.',
+
+l:raw.language||null,s:raw.stargazers_count||0,f:raw.forks_count||0,
+
+p:(raw.pushed_at||'').slice(0,10),created:(raw.created_at||'').slice(0,10),
+
+t:(raw.topics||[]).map(x=>String(x).trim()).filter(Boolean).slice(0,6),
+
+k:raw.fork?1:0,a:raw.archived?1:0,
+
+hp:(raw.homepage&&String(raw.homepage).trim())||null,
+
+lic:(raw.license&&raw.license.spdx_id&&raw.license.spdx_id!=='NOASSERTION')?raw.license.spdx_id:null,
+
+br:raw.default_branch||'HEAD'};
+
+}
+
+$('#segSrc').addEventListener('click',e=>{
+
+const b=e.target.closest('button');if(!b)return;
+
+liveSrc=b.dataset.src;
+
+document.querySelectorAll('#segSrc button').forEach(x=>x.classList.toggle('on',x===b));
+
+refreshConState();
+
+});
+
+$('#ghUser').addEventListener('input',refreshConState);
+
+document.querySelectorAll('.con-head').forEach(h=>h.addEventListener('click',e=>{
+
+if(e.target.closest('input,button:not(.con-toggle)'))return;
+
+document.getElementById(h.dataset.collapse).classList.toggle('closed');
+
+}));
+
+$('#btnStart').addEventListener('click',async()=>{
+
+if(busy){abortFlag=true;log('Stoppe …','warn');return}
+
+const u=$('#ghUser').value.trim();
+
+if(!u){log('⚠ Bitte GitHub-Username eingeben.','err');setLed('err');return}
+
+const pages=Math.max(1,Math.min(100,parseInt($('#ghPages').value)||9));
+
+let cache=loadCache(),startPage=1,map=new Map();
+
+if(cache&&cache.user===u&&cache.source===liveSrc&&cache.fetchedPages<cache.pages){
+
+startPage=cache.fetchedPages+1;
+
+cache.repos.forEach(r=>map.set((r.o+'/'+r.n).toLowerCase(),r));
+
+log('Cache gefunden — fortsetzen ab Seite '+startPage+'.','warn');
+
+}else{log('Neuer Abruf: /users/'+u+'/'+(liveSrc==='starred'?'starred':'repos')+' · '+pages+' Seiten.')}
+
+busy=true;abortFlag=false;setLed('busy');refreshConState();
+
+try{
+
+for(let page=startPage;page<=pages;page++){
+
+if(abortFlag){log('Abgebrochen.','warn');break}
+
+log('Seite '+page+'/'+pages+' …','dim');
+
+const arr=await fetchPage(u,page);
+
+if(!arr.length){log('Keine weiteren Repos.','ok');progress(100);break}
+
+arr.map(normalize).forEach(r=>{if(r.n)map.set((r.o+'/'+r.n).toLowerCase(),r)});
+
+progress(Math.round(page/pages*100),'Seite <b>'+page+'</b>/'+pages+' · <b>'+map.size+'</b> Repos · Rate: <b>'+rate.rem+'</b>/'+rate.lim);
+
+saveCache({user:u,source:liveSrc,pages,fetchedPages:page,repos:[...map.values()],time:Date.now()});
+
+refreshConState();
+
+}
+
+const all=[...map.values()];
+
+if(all.length){liveUser=u;loadRepos(all,'live');log('✔ '+all.length+' Repos katalogisiert.','ok');
+
+if($('#autoReadme').checked)readmeSweep();}
+
+else{log('⚠ Keine Daten.','err');setLed('err')}
+
+}catch(err){log('⚠ API-Fehler: '+err.message,'err');setLed('err')}
+
+busy=false;refreshConState();
+
+});
+
+$('#btnReset').addEventListener('click',()=>{
+
+localStorage.removeItem(CK);readmeCache.clear();
+
+liveUser='';dataSource='embedded';activeDbName='';
+
+R=INITIAL.map(r=>({...r}));
+
+R.forEach(r=>runAutoSuggestions(r));
+
+renderChips();renderAll();renderTicker();animateCounters();updateHeaderNote();refreshConState();renderFilterbar();
+
+progress(0,'Zurückgesetzt.');log('↺ Reset.','warn');setLed('');toast('Zurückgesetzt');
+
+});
+
+
+
+/* ═══════════════════════════════════════════════════════════════
+
+   DB-MANAGER + SQL.JS
+
+   ═══════════════════════════════════════════════════════════════ */
+
+let SQL=null;
+
+function loadScript(src){return new Promise((res,rej)=>{const s=document.createElement('script');
+
+s.src=src;s.onload=res;s.onerror=()=>rej(new Error('CDN nicht erreichbar'));document.head.appendChild(s)})}
+
+async function ensureSqlJs(){
+
+if(SQL)return SQL;
+
+if(!window.initSqlJs)await loadScript('https://cdnjs.cloudflare.com/ajax/libs/sql.js/1.10.2/sql-wasm.js');
+
+SQL=await window.initSqlJs({locateFile:f=>'https://cdnjs.cloudflare.com/ajax/libs/sql.js/1.10.2/'+f});
+
+return SQL;
+
+}
+
+const SP_COLORS={starred:'#f2b632',repos:'#4cc3f7',archiv:'#8b949e'};
+
+const guessSource=n=>/starred/i.test(n)?'starred':/repos/i.test(n)?'repos':'archiv';
+
+let dbs=[],activeDbId=null;
+
+
+
+function listTables(db){
+
+const r=db.exec("SELECT name FROM sqlite_master WHERE type='table' AND name NOT LIKE 'sqlite_%' ORDER BY name");
+
+return r.length?r[0].values.map(v=>v[0]):[];
+
+}
+
+function tableCols(db,t){
+
+const r=db.exec('PRAGMA table_info("'+t.replace(/"/g,'""')+'")');
+
+return r.length?r[0].values.map(v=>v[1]):[];
+
+}
+
+function rowCount(db,t){
+
+try{const r=db.exec('SELECT COUNT(*) FROM "'+t.replace(/"/g,'""')+'"');return r.length?r[0].values[0][0]:0}catch(e){return 0}
+
+}
+
+const ALIASES={
+
+n:['name','title','repo_title','repo','repo_name','repository','project'],
+
+o:['owner','owner_login','login','user','author','owner_name','username'],
+
+fn:['full_name','fullname','repo_full','full_repo'],
+
+d:['description','desc','about'],
+
+l:['language','lang','main_language','primary_language'],
+
+s:['stars','stargazers_count','star_count','stargazers','watchers'],
+
+f:['forks','forks_count','fork_count'],
+
+p:['pushed_at','pushed','updated_at','last_push','last_pushed','updated'],
+
+cr:['created_at','created','created_on'],
+
+hp:['homepage','html_url','url','demo','website','live_url'],
+
+lic:['license','license_spdx','spdx_id','license_key'],
+
+tp:['topics','tags','keywords'],
+
+rd:['readme','readme_content','readme_md','readme_text','readme_raw'],
+
+cat:['category','klasse','spectral'],
+
+k:['is_fork','fork_flag'],
+
+a:['archived','is_archived'],
+
+url:['link','repo_link','github_url','html_url','repository_url','repo_url']
+
+};
+
+function mapCols(cols){
+
+const m={},lc=cols.map(c=>String(c).toLowerCase().trim());
+
+for(const k in ALIASES){for(const al of ALIASES[k]){const i=lc.indexOf(al);if(i>=0){m[k]=cols[i];break}}}
+
+return m;
+
+}
+
+function scoreCols(cols){
+
+const m=mapCols(cols);let sc=Object.keys(m).length;
+
+if(m.n||m.fn)sc+=2;if(m.s)sc+=2;if(m.o)sc+=1;if(m.url)sc+=3;if(m.rd)sc+=2;
+
+return sc;
+
+}
+
+function pickReposTable(db,tables){
+
+let best=null;
+
+tables.forEach(t=>{const cols=tableCols(db,t),sc=scoreCols(cols);
+
+if(!best||sc>best.sc)best={t,cols,sc}});
+
+return best&&best.sc>=4?best:null;
+
+}
+
+function readReposFromDb(db,table,mapping){
+
+const cols=Object.values(mapping);
+
+const sel=cols.map(c=>'"'+String(c).replace(/"/g,'""')+'"').join(',');
+
+const res=db.exec('SELECT '+sel+' FROM "'+table.replace(/"/g,'""')+'"');
+
+if(!res.length)return[];
+
+const idx={};cols.forEach((c,i)=>idx[c]=i);
+
+const g=(row,k)=>mapping[k]!=null?row[idx[mapping[k]]]:null;
+
+return res[0].values.map(row=>{
+
+let owner=g(row,'o')?String(g(row,'o')).trim():'';
+
+let name=g(row,'n')?String(g(row,'n')).trim():'';
+
+let hp=g(row,'hp')?String(g(row,'hp')).trim():'';
+
+let urlVal=g(row,'url')?String(g(row,'url')).trim():'';
+
+const fnRaw=g(row,'fn');
+
+if((!owner||!name)&&fnRaw){const parts=String(fnRaw).split('/');owner=owner||parts[0];name=name||parts[1]}
+
+if((!owner||!name)&&urlVal){const parsed=parseGitHubRepoUrl(urlVal);
+
+if(parsed){owner=owner||parsed.owner;name=name||parsed.name;if(!hp)hp=parsed.html_url}}
+
+if((!owner||!name)&&hp){const parsed=parseGitHubRepoUrl(hp);
+
+if(parsed){owner=owner||parsed.owner;name=name||parsed.name}}
+
+if(!name&&owner){name=owner;owner='unknown'}
+
+const rd=g(row,'rd');
+
+return {id:0,n:name,o:owner||'unknown',
+
+d:g(row,'d')?String(g(row,'d')).trim():'Keine Beschreibung hinterlegt.',
+
+l:g(row,'l')||null,s:Math.round(+g(row,'s')||0),f:Math.round(+g(row,'f')||0),
+
+p:String(g(row,'p')||'').slice(0,10),created:String(g(row,'cr')||'').slice(0,10),
+
+t:g(row,'tp')?String(g(row,'tp')).split(/[,;|]/).map(x=>x.trim()).filter(Boolean).slice(0,6):[],
+
+k:g(row,'k')?1:0,a:g(row,'a')?1:0,
+
+hp:hp||null,lic:g(row,'lic')||null,br:'HEAD',
+
+rd:rd?String(rd):null};
+
+}).filter(r=>r.n);
+
+}
+
+function renderDbList(){
+
+$('#dbState').textContent=dbs.length?(dbs.length+' DB'+(dbs.length>1?'s':'')+' · '+fsize(dbs.reduce((a,d)=>a+d.size,0))):'keine DB';
+
+const box=$('#dbList');
+
+if(!dbs.length){box.innerHTML='<div class="dbempty">Noch keine Datenbanken im Archiv.</div>';return}
+
+box.innerHTML=dbs.map(d=>{
+
+const sp=SP_COLORS[d.src]||SP_COLORS.archiv;
+
+const when=new Date(d.time).toLocaleString('de-DE',{day:'2-digit',month:'2-digit',year:'2-digit',hour:'2-digit',minute:'2-digit'});
+
+return '<div class="dbrow'+(d.id===activeDbId?' active':'')+'" style="--sp:'+sp+'" data-id="'+esc(d.id)+'">'
+
++'<label class="dbradio"><input type="radio" name="dbactive" value="'+esc(d.id)+'"'+(d.id===activeDbId?' checked':'')+'><i></i></label>'
+
++'<div><div class="dbname">'+esc(d.name)+'<span class="src">'+d.src+'</span></div>'
+
++'<div class="dbmeta">'+fsize(d.size)+' · <b>'+fmt(d.repos)+'</b> Repos · '+d.tables.length+' Tab. · '+when+'</div></div>'
+
++'<div class="dbacts"><button class="mini" data-act="dl">⤓</button><button class="mini" data-act="del">✕</button></div></div>';
+
+}).join('');
+
+box.querySelectorAll('input[name=dbactive]').forEach(inp=>inp.addEventListener('change',()=>activateDb(inp.value)));
+
+box.querySelectorAll('.mini').forEach(btn=>btn.addEventListener('click',()=>{
+
+const id=btn.closest('.dbrow').dataset.id;
+
+if(btn.dataset.act==='dl'){const rec=dbs.find(x=>x.id===id);if(rec)download(new Blob([rec.bytes],{type:'application/octet-stream'}),rec.name);return}
+
+if(btn.dataset.arm){deleteDb(id);return}
+
+btn.dataset.arm='1';btn.textContent='wirklich?';btn.classList.add('armed');
+
+setTimeout(()=>{btn.dataset.arm='';btn.textContent='✕';btn.classList.remove('armed')},2600);
+
+}));
+
+}
+
+async function importDbFile(file){
+
+toast('⛁ Öffne '+file.name+' …');$('#dbLed').className='led busy';
+
+try{
+
+const SQ=await ensureSqlJs();
+
+const buf=await file.arrayBuffer();
+
+let db;
+
+try{db=new SQ.Database(new Uint8Array(buf))}
+
+catch(e){toast('⚠ Keine gültige SQLite-Datei');$('#dbLed').className='led err';return}
+
+const tables=listTables(db);
+
+if(!tables.length){toast('⚠ Keine Tabellen');db.close();$('#dbLed').className='led err';return}
+
+const best=pickReposTable(db,tables);
+
+const tinfo=tables.map(t=>({t,rows:rowCount(db,t)}));
+
+let repos=[];
+
+if(best){
+
+const mapping=mapCols(best.cols);
+
+repos=readReposFromDb(db,best.t,mapping);
+
+}
+
+db.close();
+
+const rec={id:file.name+'·'+Date.now(),name:file.name,size:file.size,time:Date.now(),
+
+bytes:buf,src:guessSource(file.name),tables:tinfo,repos:repos.length,table:best?best.t:null};
+
+await idbPut('dbs',rec);
+
+dbs.push(rec);dbs.sort((a,b)=>b.time-a.time);
+
+renderDbList();$('#dbLed').className='led';
+
+if(repos.length)activateDb(rec.id);
+
+else{toast('⚠ Gespeichert, aber keine Repo-Tabelle erkannt');$('#dbLed').className='led err'}
+
+}catch(e){toast('⚠ Import fehlgeschlagen: '+e.message);$('#dbLed').className='led err'}
+
+}
+
+async function activateDb(id){
+
+const rec=dbs.find(d=>d.id===id);if(!rec)return;
+
+$('#dbLed').className='led busy';
+
+try{
+
+const SQ=await ensureSqlJs();
+
+const db=new SQ.Database(new Uint8Array(rec.bytes));
+
+const tables=listTables(db);
+
+const best=pickReposTable(db,tables)||(rec.table?{t:rec.table,cols:tableCols(db,rec.table)}:null);
+
+if(!best){toast('⚠ Keine Repo-Tabelle');db.close();$('#dbLed').className='led err';return}
+
+const mapping=mapCols(best.cols);
+
+const repos=readReposFromDb(db,best.t,mapping);
+
+db.close();
+
+let rdCount=0;
+
+repos.forEach(r=>{if(r.rd){readmeCache.set(keyOf(r),r.rd);rdCount++}});
+
+activeDbId=id;activeDbName=rec.name;
+
+try{localStorage.setItem('sternkarte_active_db',id)}catch(e){}
+
+loadRepos(repos.map(r=>{const{rd,...rest}=r;return rest}),'db');
+
+renderDbList();
+
+$('#dbSchema').innerHTML='<div class="tblchips">'+tables.map(t=>{
+
+const info=(rec.tables||[]).find(x=>x.t===t)||{rows:0};
+
+return '<span>'+esc(t)+(t===best.t?' ★':'')+' · <b>'+fmt(info.rows||0)+'</b> Zeilen</span>'}).join('')+'</div>'
+
++'<div class="mapline" style="margin-top:.6rem">Tabelle <b>'+esc(best.t)+'</b> · Mapping: '
+
++Object.entries(mapping).map(([k,v])=>k+'→<em>'+esc(v)+'</em>').join(' · ')
+
++' · <b>'+rdCount+'</b> READMEs aus DB</div>';
+
+$('#dbLed').className='led';
+
+toast('✔ '+fmt(repos.length)+' Repos aus '+rec.name+(rdCount?' · '+rdCount+' Readmes':''));
+
+log('⛁ DB aktiviert: '+rec.name+' · '+repos.length+' Repos · Tabelle '+best.t,'ok');
+
+}catch(e){toast('⚠ '+e.message);$('#dbLed').className='led err'}
+
+}
+
+async function deleteDb(id){
+
+await idbDel('dbs',id);
+
+dbs=dbs.filter(d=>d.id!==id);
+
+if(activeDbId===id){activeDbId=null;activeDbName='';
+
+try{localStorage.removeItem('sternkarte_active_db')}catch(e){}
+
+R=INITIAL.map(r=>({...r}));dataSource='embedded';
+
+R.forEach(r=>runAutoSuggestions(r));
+
+renderChips();renderAll();renderTicker();animateCounters();updateHeaderNote();renderFilterbar();
+
+$('#dbSchema').innerHTML='';toast('DB gelöscht — Teilauszug')}
+
+renderDbList();
+
+}
+
+async function initDbManager(){
+
+try{
+
+dbs=(await idbGetAll('dbs')).sort((a,b)=>b.time-a.time);
+
+renderDbList();
+
+const last=localStorage.getItem('sternkarte_active_db');
+
+const target=dbs.find(d=>d.id===last)||dbs[0];
+
+if(target)activateDb(target.id);
+
+else{$('#dbState').textContent='keine DB';$('#dbLed').className='led'}
+
+}catch(e){$('#dbState').textContent='IndexedDB nicht verfügbar';$('#dbLed').className='led err';renderDbList()}
+
+}
+
+$('#btnDbImport').addEventListener('click',()=>$('#fileIn').click());
+
+
+
+/* ═══════════════════════════════════════════════════════════════
+
+   EXPORTE
+
+   ═══════════════════════════════════════════════════════════════ */
+
+function download(blob,name){
+
+const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=name;
+
+document.body.appendChild(a);a.click();setTimeout(()=>{URL.revokeObjectURL(a.href);a.remove()},800);
+
+}
+
+$('#btnJson').addEventListener('click',()=>{
+
+const out=R.map(r=>({full_name:r.o+'/'+r.n,owner:r.o,name:r.n,description:r.d,language:r.l,
+
+stargazers_count:r.s,forks_count:r.f,created_at:r.created||null,pushed_at:r.p,homepage:r.hp||null,
+
+html_url:gurl(r),license:r.lic||null,fork:!!r.k,archived:!!r.a,topics:r.t||[],category:catById(r.c).n,
+
+readme:readmeCache.get(keyOf(r))||null}));
+
+download(new Blob([JSON.stringify(out,null,1)],{type:'application/json'}),'sternkarte.json');
+
+toast('✔ sternkarte.json ('+R.length+' Repos)');
+
+});
+
+$('#btnSql').addEventListener('click',async()=>{
+
+toast('SQLite wird gebaut …');
+
+try{
+
+const SQ=await ensureSqlJs();
+
+const db=new SQ.Database();
+
+db.run('CREATE TABLE repos(id INTEGER PRIMARY KEY, full_name TEXT, owner TEXT, name TEXT, description TEXT, language TEXT, stars INTEGER, forks INTEGER, created_at TEXT, pushed_at TEXT, homepage TEXT, html_url TEXT, license TEXT, is_fork INTEGER, archived INTEGER, category TEXT, topics TEXT, readme TEXT)');
+
+db.run('CREATE TABLE topics(full_name TEXT, topic TEXT)');
+
+const stmt=db.prepare('INSERT INTO repos VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)');
+
+R.forEach(r=>{stmt.run([r.id||0,r.o+'/'+r.n,r.o,r.n,r.d,r.l,r.s,r.f,r.created||null,r.p,r.hp||null,gurl(r),r.lic||null,r.k?1:0,r.a?1:0,catById(r.c).n,(r.t||[]).join(','),readmeCache.get(keyOf(r))||null]);
+
+(r.t||[]).forEach(t=>db.run('INSERT INTO topics VALUES (?,?)',[r.o+'/'+r.n,t]))});
+
+stmt.free();
+
+const data=db.export();db.close();
+
+download(new Blob([data],{type:'application/octet-stream'}),'sternkarte.sqlite');
+
+toast('✔ sternkarte.sqlite ('+R.length+' Repos)');
+
+}catch(e){toast('⚠ '+e.message)}
+
+});
+
+$('#btnAnnExport').addEventListener('click',()=>{
+
+const out=[...annotations.values()].filter(a=>a.decisionStatus!=='UNREVIEWED'||a.notes||a.confirmedRoles.length||a.projectFits.length);
+
+download(new Blob([JSON.stringify(out,null,1)],{type:'application/json'}),'sternkarte_annotationen.json');
+
+toast('✔ '+out.length+' Annotationen exportiert');
+
+});
+
+
+
+/* ═══════════════════════════════════════════════════════════════
+
+   DATEI-IMPORT (JSON + SQLite)
+
+   ═══════════════════════════════════════════════════════════════ */
+
+function parseStarred(text){
+
+const s=text.indexOf('['),e=text.lastIndexOf(']');
+
+if(s<0||e<0)throw new Error('Kein JSON-Array gefunden');
+
+const raw=JSON.parse(text.slice(s,e+1));
+
+const clean=o=>Array.isArray(o)?o.map(clean)
+
+:(o&&typeof o==='object'?Object.fromEntries(Object.entries(o).map(([k,v])=>[k.trim(),clean(v)])):o);
+
+return clean(raw);
+
+}
+
+function readJsonFile(f){
+
+toast('Lade '+f.name+' …');
+
+f.text().then(txt=>{
+
+try{const arr=parseStarred(txt).map(normalize);
+
+loadRepos(arr,'file');log('⤒ JSON: '+arr.length+' Repos aus '+f.name,'ok');
+
+if($('#autoReadme').checked)readmeSweep();
+
+}catch(err){toast('⚠ '+err.message)}
+
+});
+
+}
+
+function routeFile(f){
+
+if(/\.(sqlite3?|db)$/i.test(f.name))importDbFile(f);
+
+else readJsonFile(f);
+
+}
+
+$('#importBtn').addEventListener('click',()=>$('#fileIn').click());
+
+$('#fileIn').addEventListener('change',e=>{[...e.target.files].forEach(routeFile);e.target.value=''});
+
+const drop=$('#drop');let dragDepth=0;
+
+addEventListener('dragenter',e=>{e.preventDefault();dragDepth++;drop.classList.add('show')});
+
+addEventListener('dragover',e=>e.preventDefault());
+
+addEventListener('dragleave',()=>{if(--dragDepth<=0){dragDepth=0;drop.classList.remove('show')}});
+
+addEventListener('drop',e=>{e.preventDefault();dragDepth=0;drop.classList.remove('show');
+
+[...e.dataTransfer.files].forEach(routeFile)});
+
+
+
+/* Toast */
+
+let toastTimer;
+
+function toast(msg){const t=$('#toast');t.textContent=msg;t.classList.add('show');
+
+clearTimeout(toastTimer);toastTimer=setTimeout(()=>t.classList.remove('show'),3400)}
+
+
+
+/* ═══════════════════════════════════════════════════════════════
+
+   STERNENHIMMEL
+
+   ═══════════════════════════════════════════════════════════════ */
+
+(function(){
+
+const cv=$('#sky'),cx=cv.getContext('2d');
+
+const PAL=CATS.map(c=>c.c);
+
+let W,H,stars=[],mx=0,my=0;
+
+function make(){stars=[];const n=Math.min(230,Math.floor(W*H/6200));
+
+for(let i=0;i<n;i++){const big=Math.random()<.06;
+
+stars.push({x:Math.random()*W,y:Math.random()*H,r:big?1.6+Math.random()*1.3:.4+Math.random()*.9,
+
+p:Math.random()*6.28,s:.3+Math.random()*1.3,c:Math.random()<.14?PAL[(Math.random()*PAL.length)|0]:'#dfe6f3',
+
+d:.2+Math.random()*.8})}}
+
+function resize(){W=cv.width=innerWidth;H=cv.height=innerHeight;make();if(reduced)draw(0)}
+
+function draw(t){cx.clearRect(0,0,W,H);
+
+for(const st of stars){const tw=.55+.45*Math.sin(t*.001*st.s+st.p);
+
+const px=st.x+mx*10*st.d,py=st.y+my*10*st.d;
+
+cx.globalAlpha=tw*(.3+.7*st.d);cx.fillStyle=st.c;
+
+cx.beginPath();cx.arc(px,py,st.r,0,7);cx.fill();
+
+if(st.r>1.5){cx.globalAlpha=tw*.16;cx.beginPath();cx.arc(px,py,st.r*3.4,0,7);cx.fill()}}
+
+cx.globalAlpha=1;if(!reduced)requestAnimationFrame(draw)}
+
+addEventListener('resize',resize);
+
+addEventListener('mousemove',e=>{mx=e.clientX/W-.5;my=e.clientY/H-.5});
+
+resize();if(!reduced)requestAnimationFrame(draw);
+
+})();
+
+
+
+/* ═══════════════════════════════════════════════════════════════
+
+   START
+
+   ═══════════════════════════════════════════════════════════════ */
+
+(async function init(){
+
+await loadAllAnnotations();
+
+R.forEach(r=>runAutoSuggestions(r));
+
+renderChips();renderTicker();renderAll();animateCounters();updateHeaderNote();refreshConState();renderFilterbar();
+
+$('#search').addEventListener('input',applyFilter);
+
+$('#sort').addEventListener('change',renderAll);
+
+addEventListener('keydown',e=>{
+
+if(e.key==='/'&&document.activeElement!==$('#search')&&!/INPUT|TEXTAREA|SELECT/.test(document.activeElement.tagName)){e.preventDefault();$('#search').focus()}
+
+if(e.key==='Escape'){$('#search').value='';activeFilters={project:null,role:null,status:null};renderFilterbar();applyFilter();$('#search').blur()}
+
+});
+
+const toTop=$('#toTop');
+
+addEventListener('scroll',()=>toTop.classList.toggle('show',scrollY>600),{passive:true});
+
+toTop.addEventListener('click',()=>scrollTo({top:0,behavior:reduced?'auto':'smooth'}));
+
+const c=loadCache();
+
+if(c){$('#ghUser').value=c.user;$('#ghPages').value=c.pages;
+
+log('Cache: '+c.user+' · '+c.repos.length+' Repos · S.'+c.fetchedPages+'/'+c.pages,'warn')}
+
+else log('Bereit. Username eintragen oder SQLite-DB laden (starred_repos mit title/link wird erkannt).','dim');
+
+refreshConState();
+
+initDbManager();
+
+})();
+
+</script>
+
+</body>
+
+</html>
+
+
+
