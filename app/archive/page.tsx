@@ -7,6 +7,7 @@ import { SchemaCard } from "@/components/archive/SchemaCard";
 import { RepoRegister } from "@/components/archive/RepoRegister";
 import { Winkelhaken } from "@/components/archive/Winkelhaken";
 import { Karte } from "@/components/archive/Karte";
+import { Karte3D } from "@/components/archive/Karte3D";
 import { ReportView } from "@/components/archive/ReportView";
 import { CueTooltip, useCueTooltip } from "@/components/archive/CueTooltip";
 import { Flur } from "@/components/archive/Flur";
@@ -30,6 +31,7 @@ export default function ArchivePage() {
   const { tooltip, showCue, hideCue } = useCueTooltip();
   const [dragOver, setDragOver] = useState(false);
   const [schemaOpen, setSchemaOpen] = useState(true);
+  const [karteMode, setKarteMode] = useState<"2d" | "3d">("3d");
   const fileInputRef = useRef<HTMLInputElement>(null);
 
 
@@ -219,12 +221,36 @@ export default function ArchivePage() {
 
       <div className="grid2" style={{ gap: 24, marginTop: 24 }}>
         <section>
-          <h2 style={{ fontSize: 20, margin: "0 0 4px" }}><span className="mono" style={{ fontSize: 11, color: "var(--zinnober)" }}>§ A</span> Die Karte</h2>
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", flexWrap: "wrap", gap: 8 }}>
+            <h2 style={{ fontSize: 20, margin: "0 0 4px" }}><span className="mono" style={{ fontSize: 11, color: "var(--zinnober)" }}>§ A</span> Die Karte</h2>
+            <div style={{ display: "flex", border: "1px solid var(--line)", borderRadius: 8, overflow: "hidden" }}>
+              <button
+                type="button"
+                onClick={() => setKarteMode("3d")}
+                className="mono"
+                style={{ fontSize: 10, padding: "6px 10px", border: "none", borderRadius: 0, background: karteMode === "3d" ? "rgba(183,138,62,.16)" : "transparent", color: karteMode === "3d" ? "var(--brass-l)" : "var(--mut)", minHeight: "auto" }}
+              >
+                3D
+              </button>
+              <button
+                type="button"
+                onClick={() => setKarteMode("2d")}
+                className="mono"
+                style={{ fontSize: 10, padding: "6px 10px", border: "none", borderRadius: 0, background: karteMode === "2d" ? "rgba(183,138,62,.16)" : "transparent", color: karteMode === "2d" ? "var(--brass-l)" : "var(--mut)", minHeight: "auto" }}
+              >
+                2D
+              </button>
+            </div>
+          </div>
           <p className="mono" style={{ fontSize: 10, letterSpacing: "0.05em", textTransform: "uppercase", color: "var(--mut)", margin: "0 0 13px" }}>
-            deterministisch aus Atomen · gestrichelt = Hypothese
+            deterministisch aus Atomen · gestrichelt/durchsichtig = Hypothese {karteMode === "3d" && "· ziehen zum Drehen, scrollen zum Zoomen"}
           </p>
           <div className="card" style={{ padding: 8 }}>
-            <Karte atoms={a.atoms} mode={a.mode} onHover={showCue} onLeave={hideCue} />
+            {karteMode === "3d" ? (
+              <Karte3D atoms={a.atoms} mode={a.mode} onHover={showCue} onLeave={hideCue} />
+            ) : (
+              <Karte atoms={a.atoms} mode={a.mode} onHover={showCue} onLeave={hideCue} />
+            )}
           </div>
         </section>
         <section>

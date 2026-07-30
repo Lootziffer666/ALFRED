@@ -77,6 +77,39 @@ session (no endpoint was available); only the deterministic fallback
 composition and the CUE-audit *parsing* logic (`lib/atoms/compose.ts`) are
 unit tested and were verified live in a browser.
 
+## Addendum 2: real 3D map, and what Crawler_v2.html actually is
+
+The user then asked for the actual "Crawler_v2.html" prototype (also already
+in this repo) and where "the 3D map" had gone. Reading it end to end first:
+it is not a style reference in isolation — it's the actual GitHub-starred-repo
+crawler ("STERNKARTE" observatory console) that *produces*
+`sternkarte.sqlite`, the same file the Archive tool's demo/QA above reads.
+It has an animated 2D-canvas starfield with mouse parallax and an SVG
+compass rosette, but no 3D/WebGL rendering anywhere — so "the 3D map" wasn't
+something removed from it. Asked to clarify scope (restyle to match
+Crawler_v2.html vs. an actual rendered 3D map), the answer was: build the
+real 3D map, keep the current visual style.
+
+Added `components/archive/Karte3D.tsx`: a genuine Three.js scene (not a
+mockup/spec-only export) — atoms as spheres on four category "floors"
+(matching the flat map's four rows), curved relationship edges from the same
+`RELATIONS` list the SVG map uses, orbit-drag/zoom camera controls, slow
+idle auto-rotation, and raycaster-driven hover wired into the same
+`CueTooltip` the SVG map and Winkelhaken already use. A 2D/3D toggle in §A
+keeps the lighter SVG map available; both read the identical atom list, so
+there's exactly one source of truth for what's "on the map." The existing
+JSON "3D-Spec" clipboard export is unchanged and still useful for feeding an
+external engine — it now sits alongside an actual rendered view rather than
+being the only 3D-flavored thing in the tool.
+
+Verified in a real (headless, software-rendered) browser: WebGL context
+creation, node/edge rendering, and orbit-drag rotation all confirmed via
+screenshots before and after a drag gesture, plus a working 2D/3D toggle.
+Not covered: automated tests for the Three.js scene itself (it's almost
+entirely imperative WebGL setup with no meaningful pure-logic surface to
+unit test; the data it renders — `atoms`, `RELATIONS` — is the same,
+already-tested data the SVG map and `lib/atoms/*` tests cover).
+
 ---
 
 ## What was implemented
