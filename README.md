@@ -46,8 +46,12 @@ tested code rather than a static mockup:
   returns is parsed for `[[atom_id]]` / `[[?HYP: ...]]` tags and classified
   as backed, hypothesis, or contradicted (an unbeloved tag with no matching
   atom), never taken on faith.
-- **SVG relationship map** and a plain-text/3D-spec export, both derived
-  from the same atom list as the report.
+- **Real 3D relationship map** (Three.js, `components/archive/Karte3D.tsx`)
+  — atoms as orbit-controllable spheres on four category "floors" (drag to
+  rotate, scroll to zoom, hover for the same CUE evidence tooltip), plus a
+  flat SVG map (`Karte.tsx`) as a lighter/2D alternative via a toggle. Both
+  read the same atom list, and a plain-text/JSON-spec export is available
+  alongside them.
 
 This area intentionally does not reuse the PRD's OpenRouter server adapter:
 local-endpoint support requires the call to originate in the user's own

@@ -41,11 +41,25 @@ What was added:
   `setReport`. This is exactly the kind of self-review gap the PRD tool
   above is designed to catch in *other* agents' work.
 
-What was deliberately not ported: the purely decorative "Flur" room-icon
-sidebar, dust-particle burst animation, and ink-press flourish. These carry
-no functional behavior, so ARE excluded here to keep the addition scoped to
-"the HTML's functions" (evidence extraction, SQLite reading, report
-composition, CUE auditing) rather than every animation.
+**Update**: the atmosphere (Flur room-door sidebar, dust-particle burst on
+repo-card hover, ink-press pulse on report composition, falling-letter
+Winkelhaken tiles, background grid/vignette/light-sweep) was initially left
+out as "no functional impact." Told that was the wrong test for a tool whose
+identity *is* its mood, all of it was added back — scoped under a
+`.raum-viii` root class so the PRD-side butler tool (graded on plain mobile
+usability) is unaffected. Two real bugs turned up while wiring this in,
+both fixed:
+
+- The room-door tooltip never appeared on hover: `.tuer` carried
+  `overflow:hidden` (present in the original prototype's CSS too, so likely
+  never actually visually verified there either), which clipped the
+  absolutely-positioned `.tip` child along with it. Removed; the cable-glow
+  detail it was meant to round stays fully contained on its own.
+- The ink-pulse retrigger initially used `useEffect` + `setState` to toggle
+  a `.pressing` class, which is exactly the "cascading render" pattern
+  `eslint-plugin-react-hooks`'s newer rules reject. Replaced with ordinary
+  state (`reportVersion`, incremented alongside every `setReport` call) used
+  only as a React `key` on a dedicated pulse element — no effect involved.
 
 **One architectural deviation from the rest of this app, deliberately**: the
 KI-Setzer step here calls the user's configured endpoint directly from the
@@ -62,6 +76,39 @@ KI-Setzer path was not exercised against a live model endpoint in this
 session (no endpoint was available); only the deterministic fallback
 composition and the CUE-audit *parsing* logic (`lib/atoms/compose.ts`) are
 unit tested and were verified live in a browser.
+
+## Addendum 2: real 3D map, and what Crawler_v2.html actually is
+
+The user then asked for the actual "Crawler_v2.html" prototype (also already
+in this repo) and where "the 3D map" had gone. Reading it end to end first:
+it is not a style reference in isolation — it's the actual GitHub-starred-repo
+crawler ("STERNKARTE" observatory console) that *produces*
+`sternkarte.sqlite`, the same file the Archive tool's demo/QA above reads.
+It has an animated 2D-canvas starfield with mouse parallax and an SVG
+compass rosette, but no 3D/WebGL rendering anywhere — so "the 3D map" wasn't
+something removed from it. Asked to clarify scope (restyle to match
+Crawler_v2.html vs. an actual rendered 3D map), the answer was: build the
+real 3D map, keep the current visual style.
+
+Added `components/archive/Karte3D.tsx`: a genuine Three.js scene (not a
+mockup/spec-only export) — atoms as spheres on four category "floors"
+(matching the flat map's four rows), curved relationship edges from the same
+`RELATIONS` list the SVG map uses, orbit-drag/zoom camera controls, slow
+idle auto-rotation, and raycaster-driven hover wired into the same
+`CueTooltip` the SVG map and Winkelhaken already use. A 2D/3D toggle in §A
+keeps the lighter SVG map available; both read the identical atom list, so
+there's exactly one source of truth for what's "on the map." The existing
+JSON "3D-Spec" clipboard export is unchanged and still useful for feeding an
+external engine — it now sits alongside an actual rendered view rather than
+being the only 3D-flavored thing in the tool.
+
+Verified in a real (headless, software-rendered) browser: WebGL context
+creation, node/edge rendering, and orbit-drag rotation all confirmed via
+screenshots before and after a drag gesture, plus a working 2D/3D toggle.
+Not covered: automated tests for the Three.js scene itself (it's almost
+entirely imperative WebGL setup with no meaningful pure-logic surface to
+unit test; the data it renders — `atoms`, `RELATIONS` — is the same,
+already-tested data the SVG map and `lib/atoms/*` tests cover).
 
 ---
 

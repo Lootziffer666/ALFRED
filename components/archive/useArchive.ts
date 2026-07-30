@@ -60,6 +60,16 @@ export function useArchive() {
 
   const [report, setReport] = useState<RenderedPhase[] | null>(null);
   const [reportMode, setReportMode] = useState<"fallback" | "ki" | null>(null);
+  // Increments every time a new report is composed, purely so the UI can key
+  // a one-shot "ink pulse" animation off it (see app/archive/page.tsx) —
+  // ordinary state, updated only from event-handler code paths below, never
+  // from an effect or during render.
+  const [reportVersion, setReportVersion] = useState(0);
+  const applyReport = useCallback((next: RenderedPhase[] | null, nextMode: "fallback" | "ki" | null) => {
+    setReport(next);
+    setReportMode(nextMode);
+    setReportVersion((v) => v + 1);
+  }, []);
   const [kiLoading, setKiLoading] = useState(false);
   const [kiLiveText, setKiLiveText] = useState("");
   const [kiStats, setKiStats] = useState({ ki: 0, bad: 0 });
@@ -104,7 +114,7 @@ export function useArchive() {
 
           const { sections, unused, kiCount, badCount } = parseKI(text, atoms);
           setKiStats({ ki: kiCount, bad: badCount });
-          setReport(
+          applyReport(
             renderAudited({
               sections,
               atoms,
@@ -114,25 +124,23 @@ export function useArchive() {
               dbFileNames,
               assess,
             }),
+            "ki",
           );
-          setReportMode("ki");
           void unused;
           toast(badCount ? `CUE hat ${badCount} KI-Behauptung(en) ohne Atom rot markiert.` : "KI-Prosa vollständig durch Atome gedeckt.");
         } catch (err) {
-          setReport(composeFallback({ atoms, level, mode, metaTotal, dbFileNames, assess }));
-          setReportMode("fallback");
+          applyReport(composeFallback({ atoms, level, mode, metaTotal, dbFileNames, assess }), "fallback");
           setKiStats({ ki: 0, bad: 0 });
           toast(`KI nicht erreichbar (${(err as Error).message}) – Fallback-Skelett.`);
         } finally {
           setKiLoading(false);
         }
       } else {
-        setReport(composeFallback({ atoms, level, mode, metaTotal, dbFileNames, assess }));
-        setReportMode("fallback");
+        applyReport(composeFallback({ atoms, level, mode, metaTotal, dbFileNames, assess }), "fallback");
         setKiStats({ ki: 0, bad: 0 });
       }
     },
-    [atoms, level, mode, signals, assess, cfg, metaTotal, dbFileNames, toast],
+    [atoms, level, mode, signals, assess, cfg, metaTotal, dbFileNames, toast, applyReport],
   );
 
   const handleFiles = useCallback(
@@ -191,11 +199,10 @@ export function useArchive() {
       setMode("single");
       const nextAtoms = extract(nextSignals);
       setAtoms(nextAtoms);
-      setReport(composeFallback({ atoms: nextAtoms, level, mode: "single", metaTotal: 0, dbFileNames, assess: nextAssess }));
-      setReportMode("fallback");
+      applyReport(composeFallback({ atoms: nextAtoms, level, mode: "single", metaTotal: 0, dbFileNames, assess: nextAssess }), "fallback");
       setKiStats({ ki: 0, bad: 0 });
     },
-    [level, dbFileNames],
+    [level, dbFileNames, applyReport],
   );
 
   const toggleRepoSelection = useCallback((id: string) => {
@@ -243,11 +250,10 @@ export function useArchive() {
     }
     const metaAtoms = buildMetaAtoms({ counts, samples, total: list.length });
     setAtoms(metaAtoms);
-    setReport(composeFallback({ atoms: metaAtoms, level, mode: "meta", metaTotal: list.length, dbFileNames, assess: null }));
-    setReportMode("fallback");
+    applyReport(composeFallback({ atoms: metaAtoms, level, mode: "meta", metaTotal: list.length, dbFileNames, assess: null }), "fallback");
     setKiStats({ ki: 0, bad: 0 });
     toast(`Archiv ausgeleuchtet: ${Object.keys(counts).length} Befunde über ${list.length} Repos.`);
-  }, [selectedRepoIds, repos, level, dbFileNames, toast]);
+  }, [selectedRepoIds, repos, level, dbFileNames, toast, applyReport]);
 
   const stopIllumination = useCallback(() => {
     lightAbort.current = true;
@@ -261,10 +267,9 @@ export function useArchive() {
     setActiveRepoId(null);
     const nextAtoms = extract(SHADED_SIGNALS);
     setAtoms(nextAtoms);
-    setReport(composeFallback({ atoms: nextAtoms, level, mode: "single", metaTotal: 0, dbFileNames, assess: null }));
-    setReportMode("fallback");
+    applyReport(composeFallback({ atoms: nextAtoms, level, mode: "single", metaTotal: 0, dbFileNames, assess: null }), "fallback");
     setKiStats({ ki: 0, bad: 0 });
-  }, [level, dbFileNames]);
+  }, [level, dbFileNames, applyReport]);
 
   const feedManual = useCallback(() => {
     const s: Signals = { readme: manual.readme, const: manual.const, tree: manual.tree, commits: manual.commits, conv: manual.conv };
@@ -282,10 +287,9 @@ export function useArchive() {
     }
     const nextAtoms = extract(nextSignals);
     setAtoms(nextAtoms);
-    setReport(composeFallback({ atoms: nextAtoms, level, mode: empty ? mode : "single", metaTotal, dbFileNames, assess: empty ? assess : null }));
-    setReportMode("fallback");
+    applyReport(composeFallback({ atoms: nextAtoms, level, mode: empty ? mode : "single", metaTotal, dbFileNames, assess: empty ? assess : null }), "fallback");
     setKiStats({ ki: 0, bad: 0 });
-  }, [manual, activeRepoId, signals, level, mode, metaTotal, dbFileNames, assess, toast]);
+  }, [manual, activeRepoId, signals, level, mode, metaTotal, dbFileNames, assess, toast, applyReport]);
 
   const setLevel = useCallback((l: 1 | 2 | 3 | 4) => {
     setLevelState(l);
@@ -367,6 +371,7 @@ export function useArchive() {
 
     report,
     reportMode,
+    reportVersion,
     kiLoading,
     kiLiveText,
     kiStats,
