@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { SessionProvider, useSession } from "@/components/session/SessionContext";
 import { Stepper } from "@/components/Stepper";
 import { SessionSetupScreen } from "@/components/screens/SessionSetupScreen";
@@ -33,6 +34,9 @@ function AppShell() {
           <span className="dot" style={{ background: "var(--zinnober)" }} />
           ALFRED · Evidence-first repository butler
           {demoMode && <span className="pill" style={{ color: "var(--brass-l)", borderColor: "var(--brass-d)" }}>demo mode</span>}
+          <Link href="/archive" className="pill" style={{ color: "var(--brass-l)", borderColor: "var(--brass-d)", textDecoration: "none", marginLeft: "auto" }}>
+            Skriptorium (SQLite-Archiv) →
+          </Link>
         </div>
         <h1 style={{ fontSize: "clamp(28px, 6vw, 40px)", margin: "6px 0 0", lineHeight: 1.05 }}>
           Prepare the task. <span style={{ color: "var(--zinnober)" }}>Audit the result.</span>

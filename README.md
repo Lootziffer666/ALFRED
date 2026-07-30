@@ -16,6 +16,43 @@ Choose repository
 → export the evidence package (Markdown / JSON)
 ```
 
+## Raum VIII · Skriptorium (`/archive`)
+
+A second, self-contained tool at [`/archive`](./app/archive/page.tsx), porting
+the actual functionality of the earlier `Alfred_new.html` prototype (an
+elaborate single-file mockup that shipped in this repo) into real,
+tested code rather than a static mockup:
+
+- **Client-side SQLite reader** — drag in a `.sqlite`/`.db` file (e.g. the
+  `sternkarte.sqlite` or starred-repos export already in this repo) and
+  Alfred inspects its schema via [sql.js](https://github.com/sql-js/sql.js)
+  running entirely in the browser (`lib/sqlite/engine.ts`), guesses each
+  table's role (repo source / classification / license) and column mapping,
+  and lets you correct both.
+- **Repo register ("Zettelkasten")** — the resulting repos are searchable,
+  sortable, and can be inspected one at a time ("Einzelstern") or selected
+  as a batch for archive-wide illumination ("Archiv ausleuchten").
+- **Rule-based evidence extraction** (`lib/atoms/`) — a fixed set of
+  regex-backed rules turn README/constitution/tree/commit/convention text
+  into evidence-backed "atoms," each carrying its own literary "trope" at
+  four tonal "illumination levels" (I–IV). Nothing is asserted without a
+  matched rule and its evidence.
+- **CUE-audited report composition** — a deterministic fallback report
+  always shows only what's backed by atoms. An optional KI-Setzer step
+  sends the same atoms to a user-configured OpenAI-compatible endpoint
+  (OpenRouter, or a local Ollama/LM-Studio/vLLM instance) **directly from
+  the browser** — not through this app's server, so a local endpoint like
+  `http://localhost:11434/v1` actually works — and every sentence the model
+  returns is parsed for `[[atom_id]]` / `[[?HYP: ...]]` tags and classified
+  as backed, hypothesis, or contradicted (an unbeloved tag with no matching
+  atom), never taken on faith.
+- **SVG relationship map** and a plain-text/3D-spec export, both derived
+  from the same atom list as the report.
+
+This area intentionally does not reuse the PRD's OpenRouter server adapter:
+local-endpoint support requires the call to originate in the user's own
+browser, not this app's server.
+
 ## Stack
 
 - TypeScript (strict), React 19, Next.js 16 App Router
@@ -81,6 +118,11 @@ lib/
                    handoff/audit logic rather than hand-typed results.
   client/api.ts    Thin fetch wrappers the UI uses to call this app's own
                    route handlers.
+  atoms/           Raum VIII: rule data (data.ts), extraction (extract.ts),
+                   and CUE-audited report composition (compose.ts) — all
+                   pure/network-free and unit tested.
+  sqlite/          Raum VIII: client-only sql.js loader + schema/role
+                   guessing + repo-register builder (engine.ts).
 
 app/
   api/inspect/          Route handler: normalize + fetch repository evidence.
@@ -89,12 +131,17 @@ app/
                         classify it against a handoff.
   page.tsx              The single-page app shell (session setup → inventory
                         → contract map → handoff → audit).
+  archive/page.tsx       Raum VIII · Skriptorium: the SQLite-driven archive
+                        tool described above.
 
 components/
   session/SessionContext.tsx  In-memory session state (React context) shared
                               across steps so navigating between them doesn't
                               lose loaded evidence or edits.
   screens/*                   One component per required screen (PRD §6).
+  archive/*                   UI for Raum VIII (drop zone, schema cards,
+                              repo register, SVG map, report view, CUE
+                              tooltip) plus its useArchive() state hook.
 ```
 
 Provider access (GitHub, OpenRouter) is isolated behind `lib/github.ts` and

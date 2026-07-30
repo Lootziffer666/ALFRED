@@ -12,6 +12,8 @@ const eslintConfig = defineConfig([
     "out/**",
     "build/**",
     "next-env.d.ts",
+    // Vendored, unmodified third-party asset (see public/sql-js/README.md) — not our source.
+    "public/sql-js/**",
   ]),
 ]);
 
