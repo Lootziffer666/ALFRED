@@ -187,3 +187,308 @@ button.ghost {
     grid-template-columns: 1fr;
   }
 }
+
+/* =====================================================================
+   Raum VIII · Skriptorium — atmosphere. Scoped under .raum-viii so the
+   PRD-side butler tool (graded on plain mobile usability) stays unaffected.
+   ===================================================================== */
+
+.raum-viii {
+  position: relative;
+  min-height: 100%;
+}
+
+.raum-viii .kasten-bg {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  background-image: linear-gradient(rgba(183, 138, 62, 0.045) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(183, 138, 62, 0.045) 1px, transparent 1px);
+  background-size: 64px 64px;
+  -webkit-mask-image: radial-gradient(140% 120% at 60% 0%, #000 30%, transparent 90%);
+  mask-image: radial-gradient(140% 120% at 60% 0%, #000 30%, transparent 90%);
+}
+
+.raum-viii .vign {
+  position: fixed;
+  inset: 0;
+  z-index: 1;
+  pointer-events: none;
+  background: radial-gradient(120% 120% at 60% 30%, transparent 50%, rgba(0, 0, 0, 0.6) 100%);
+}
+
+.raum-viii .walze {
+  position: fixed;
+  left: 78px;
+  right: 0;
+  height: 90px;
+  z-index: 1;
+  pointer-events: none;
+  mix-blend-mode: screen;
+  background: linear-gradient(transparent, rgba(214, 64, 44, 0.05) 46%, rgba(183, 138, 62, 0.05) 54%, transparent);
+  animation: walze 17s ease-in-out infinite;
+}
+
+@media (max-width: 720px) {
+  .raum-viii .walze {
+    left: 0;
+  }
+}
+
+@keyframes walze {
+  0% { top: -110px; }
+  50% { top: 100%; }
+  100% { top: -110px; }
+}
+
+.raum-viii .raum-content {
+  position: relative;
+  z-index: 2;
+  margin-left: 78px;
+}
+
+@media (max-width: 720px) {
+  .raum-viii .raum-content {
+    margin-left: 0;
+  }
+}
+
+/* ---- Flur / room-door sidebar ---- */
+.flur {
+  position: fixed;
+  top: 0;
+  left: 0;
+  bottom: 0;
+  width: 78px;
+  z-index: 30;
+  background: linear-gradient(180deg, #0a0708, #120a0c 60%, #0a0708);
+  border-right: 1px solid var(--bordeaux-d);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 14px 0 10px;
+  gap: 4px;
+  box-shadow: 6px 0 26px -16px rgba(0, 0, 0, 0.9);
+}
+
+@media (max-width: 720px) {
+  .flur {
+    display: none;
+  }
+}
+
+.flur .haus {
+  font-family: var(--font-display);
+  font-size: 13px;
+  letter-spacing: 1px;
+  color: var(--bordeaux);
+  writing-mode: vertical-rl;
+  transform: rotate(180deg);
+  margin-bottom: 6px;
+  opacity: 0.85;
+}
+
+.flur .haus b {
+  color: var(--brass-l);
+}
+
+.tuer {
+  position: relative;
+  width: 50px;
+  height: 50px;
+  border-radius: 9px;
+  border: 1px solid var(--line);
+  background: var(--ink2);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  cursor: default;
+  transition: transform 0.15s, border-color 0.2s, background 0.2s, box-shadow 0.2s;
+  /* Deliberately no overflow:hidden here — the prototype had it (to round
+     the .kabel corners), but it also silently clipped .tip, so hovering a
+     door never showed its tooltip. The cable glow stays fully inside this
+     box on its own (top:0/bottom:0/width:3px), so nothing is lost. */
+}
+
+.tuer:hover {
+  transform: translateX(2px);
+  border-color: var(--brass-d);
+}
+
+.tuer .buch {
+  font-family: var(--font-display);
+  font-size: 20px;
+  line-height: 1;
+  color: var(--paper-dim);
+  letter-spacing: 1px;
+}
+
+.tuer .rm {
+  font-family: var(--font-mono);
+  font-size: 7px;
+  letter-spacing: 0.5px;
+  color: var(--mut);
+  margin-top: 2px;
+  text-transform: uppercase;
+}
+
+.tuer.aktiv {
+  border-color: var(--brass);
+  background: linear-gradient(180deg, #1c160c, #120e08);
+  box-shadow: 0 0 0 1px var(--brass-d) inset, 0 0 18px -6px var(--brass);
+}
+
+.tuer.aktiv .buch {
+  color: var(--brass-l);
+}
+
+.tuer.quelle .buch {
+  color: #c9a06a;
+}
+
+.tuer .kabel {
+  position: absolute;
+  right: 0;
+  top: 0;
+  bottom: 0;
+  width: 3px;
+  background: linear-gradient(180deg, transparent, var(--brass-d), transparent);
+  opacity: 0.4;
+}
+
+.tuer.quelle .kabel::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  width: 3px;
+  height: 9px;
+  background: var(--brass-l);
+  border-radius: 2px;
+  box-shadow: 0 0 7px var(--brass-l);
+  animation: fluss 2.4s linear infinite;
+}
+
+.tuer.aktiv .kabel::after {
+  background: var(--zinnober);
+  box-shadow: 0 0 7px var(--zinnober);
+}
+
+@keyframes fluss {
+  0% { top: -10%; opacity: 0; }
+  12% { opacity: 1; }
+  88% { opacity: 1; }
+  100% { top: 100%; opacity: 0; }
+}
+
+.tuer .tip {
+  position: absolute;
+  left: 58px;
+  top: 50%;
+  transform: translateY(-50%) translateX(-6px);
+  background: #07090d;
+  border: 1px solid var(--brass-d);
+  border-radius: 8px;
+  padding: 7px 10px;
+  font-family: var(--font-mono);
+  font-size: 10px;
+  color: var(--paper-dim);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.16s, transform 0.16s;
+  z-index: 40;
+  box-shadow: 0 14px 36px -16px rgba(0, 0, 0, 0.9);
+  width: 212px;
+  line-height: 1.5;
+}
+
+.tuer .tip b {
+  color: var(--brass-l);
+  display: block;
+  margin-bottom: 3px;
+  letter-spacing: 0.5px;
+}
+
+.tuer:hover .tip {
+  opacity: 1;
+  transform: translateY(-50%) translateX(0);
+}
+
+.flur .spacer {
+  flex: 1;
+}
+
+.flur .wachs {
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  background: radial-gradient(circle at 38% 34%, #c4425a, #7a2230);
+  box-shadow: 0 2px 8px -2px rgba(0, 0, 0, 0.8), 0 0 0 1px var(--bordeaux-d) inset;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: var(--font-mono);
+  font-size: 9px;
+  color: #f0c4ba;
+  margin-top: 6px;
+  cursor: default;
+}
+
+/* ---- dust burst on repo-card hover ---- */
+.dust {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  overflow: hidden;
+  border-radius: 12px;
+}
+
+.dust i {
+  position: absolute;
+  width: 2px;
+  height: 2px;
+  border-radius: 50%;
+  background: var(--brass-l);
+  opacity: 0;
+}
+
+/* ---- ink-press pulse when a report is (re-)set ---- */
+.bericht-card {
+  position: relative;
+  overflow: hidden;
+}
+
+.ink-pulse {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: radial-gradient(circle at 50% 40%, rgba(156, 47, 68, 0.18), transparent 60%);
+  animation: ink 0.7s ease-out forwards;
+}
+
+@keyframes ink {
+  from { opacity: 0; transform: scale(0.6); }
+  40% { opacity: 1; }
+  to { opacity: 0; transform: scale(1.3); }
+}
+
+/* ---- Winkelhaken atom tiles fall into place ----
+   Two separate animations: "fall" only ever touches transform, and
+   "fall-fade" targets --tile-opacity (set inline per-tile for the
+   hyp/unused dimming) so the entrance animation's forwards fill-mode never
+   permanently overrides that per-tile opacity once it finishes. */
+@keyframes fall {
+  from { transform: translateY(-14px); }
+  to { transform: none; }
+}
+
+@keyframes fall-fade {
+  from { opacity: 0; }
+  to { opacity: var(--tile-opacity, 1); }
+}
+
+.letter-tile {
+  --tile-opacity: 1;
+  animation: fall 0.45s forwards, fall-fade 0.45s forwards;
+}

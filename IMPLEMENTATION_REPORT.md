@@ -41,11 +41,25 @@ What was added:
   `setReport`. This is exactly the kind of self-review gap the PRD tool
   above is designed to catch in *other* agents' work.
 
-What was deliberately not ported: the purely decorative "Flur" room-icon
-sidebar, dust-particle burst animation, and ink-press flourish. These carry
-no functional behavior, so ARE excluded here to keep the addition scoped to
-"the HTML's functions" (evidence extraction, SQLite reading, report
-composition, CUE auditing) rather than every animation.
+**Update**: the atmosphere (Flur room-door sidebar, dust-particle burst on
+repo-card hover, ink-press pulse on report composition, falling-letter
+Winkelhaken tiles, background grid/vignette/light-sweep) was initially left
+out as "no functional impact." Told that was the wrong test for a tool whose
+identity *is* its mood, all of it was added back — scoped under a
+`.raum-viii` root class so the PRD-side butler tool (graded on plain mobile
+usability) is unaffected. Two real bugs turned up while wiring this in,
+both fixed:
+
+- The room-door tooltip never appeared on hover: `.tuer` carried
+  `overflow:hidden` (present in the original prototype's CSS too, so likely
+  never actually visually verified there either), which clipped the
+  absolutely-positioned `.tip` child along with it. Removed; the cable-glow
+  detail it was meant to round stays fully contained on its own.
+- The ink-pulse retrigger initially used `useEffect` + `setState` to toggle
+  a `.pressing` class, which is exactly the "cascading render" pattern
+  `eslint-plugin-react-hooks`'s newer rules reject. Replaced with ordinary
+  state (`reportVersion`, incremented alongside every `setReport` call) used
+  only as a React `key` on a dedicated pulse element — no effect involved.
 
 **One architectural deviation from the rest of this app, deliberately**: the
 KI-Setzer step here calls the user's configured endpoint directly from the

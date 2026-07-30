@@ -3,6 +3,7 @@
 import type { RepoRecord } from "@/lib/sqlite/types";
 import type { Mode } from "@/lib/atoms/compose";
 import type { SortKey } from "./useArchive";
+import { useDustBurst } from "./useDustBurst";
 
 export function RepoRegister({
   repos,
@@ -38,6 +39,7 @@ export function RepoRegister({
   onStopIllumination: () => void;
 }) {
   const maxStars = Math.max(1, ...repos.map((r) => r.stars));
+  const { containerRef: dustRef, burst } = useDustBurst();
 
   return (
     <div style={{ marginTop: 16 }}>
@@ -68,7 +70,8 @@ export function RepoRegister({
         )}
       </div>
 
-      <div className="card-inset" style={{ marginTop: 12, maxHeight: 330, overflowY: "auto", padding: 12 }}>
+      <div className="card-inset" style={{ marginTop: 12, maxHeight: 330, overflowY: "auto", padding: 12, position: "relative" }}>
+        <div className="dust" ref={dustRef} />
         {repos.length === 0 ? (
           <div className="serif" style={{ fontStyle: "italic", color: "var(--mut)", fontSize: 13, padding: 18, textAlign: "center" }}>
             {totalRepos ? "Kein Treffer im Register." : "Noch keine Akten geöffnet."}
@@ -83,6 +86,7 @@ export function RepoRegister({
                 <div
                   key={r.id}
                   onClick={() => (mode === "meta" ? toggleRepoSelection(r.id) : selectSingleRepo(r))}
+                  onMouseEnter={(e) => burst(e.currentTarget)}
                   className="card-inset"
                   style={{
                     padding: "10px 11px",

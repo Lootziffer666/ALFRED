@@ -9,6 +9,7 @@ import { Winkelhaken } from "@/components/archive/Winkelhaken";
 import { Karte } from "@/components/archive/Karte";
 import { ReportView } from "@/components/archive/ReportView";
 import { CueTooltip, useCueTooltip } from "@/components/archive/CueTooltip";
+import { Flur } from "@/components/archive/Flur";
 
 const LEVEL_LABELS: { lvl: 1 | 2 | 3 | 4; numeral: string; name: string }[] = [
   { lvl: 1, numeral: "I", name: "Amtsarzt" },
@@ -31,6 +32,7 @@ export default function ArchivePage() {
   const [schemaOpen, setSchemaOpen] = useState(true);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
+
   const unusedIds = new Set<string>();
   if (a.reportMode === "ki" && a.report) {
     const usedIds = new Set(
@@ -45,7 +47,12 @@ export default function ArchivePage() {
   const allTables = a.files.flatMap((f) => f.tables);
 
   return (
-    <div style={{ maxWidth: 1100, margin: "0 auto", padding: "16px 14px 60px", width: "100%" }}>
+    <div className="raum-viii">
+      <div className="kasten-bg" />
+      <div className="vign" />
+      <div className="walze" />
+      <Flur />
+      <div className="raum-content" style={{ maxWidth: 1100, margin: "0 auto", padding: "16px 14px 60px", width: "100%" }}>
       <header style={{ marginBottom: 16 }}>
         <div className="mono" style={{ fontSize: 11, letterSpacing: "0.15em", color: "var(--bordeaux)", textTransform: "uppercase", display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap" }}>
           <span className="dot" style={{ background: "var(--zinnober)" }} />
@@ -225,7 +232,8 @@ export default function ArchivePage() {
           <p className="mono" style={{ fontSize: 10, letterSpacing: "0.05em", textTransform: "uppercase", color: "var(--mut)", margin: "0 0 13px" }}>
             KI-Prosa, CUE-kodiert · Schein → Verfassung → Behörden → Paradoxa → Quintessenz
           </p>
-          <div className="card" style={{ padding: "24px 26px" }}>
+          <div className="card bericht-card" style={{ padding: "24px 26px" }}>
+            {a.report && <div key={a.reportVersion} className="ink-pulse" />}
             {a.kiLoading && a.kiLiveText && (
               <p className="serif" style={{ fontStyle: "italic", color: "var(--paper-dim)", fontSize: 14, whiteSpace: "pre-wrap" }}>{a.kiLiveText}</p>
             )}
@@ -295,6 +303,7 @@ export default function ArchivePage() {
       )}
 
       <CueTooltip tooltip={tooltip} mode={a.mode} />
+      </div>
     </div>
   );
 }
