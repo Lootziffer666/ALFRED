@@ -1,5 +1,70 @@
 # IMPLEMENTATION_REPORT.md
 
+## Addendum: Raum VIII · Skriptorium (`/archive`)
+
+After the PRD.md vertical slice below, a second request asked for the actual
+functionality of the repo's earlier `Alfred_new.html` prototype — a large
+single-file mockup — to be built into the real app rather than left as a
+static demo. That prototype's `extract(signals)` function was called
+throughout its script but never defined; every call site's usage (consuming
+`.id`/`.cat`/`.evidence`/`.trope` identically to a `RULES` entry with
+`hyp:false`) made the intent unambiguous, so `lib/atoms/extract.ts`
+reconstructs it as "run every rule's `scan` and keep the ones with
+evidence" — noted here since it's a reconstruction of unwritten code, not a
+literal port.
+
+What was added:
+
+- `lib/sqlite/engine.ts` — a real, working client-side SQLite reader
+  (sql.js, loaded from static assets in `public/sql-js/` rather than a CDN)
+  with schema/role/column-mapping heuristics identical to the prototype's.
+  Verified against the actual `sternkarte.sqlite` file already in this repo
+  (515 real starred repos) via a manual Playwright click-through, not just
+  synthetic fixtures.
+- `lib/atoms/` — the prototype's 15 extraction rules, four "illumination
+  level" voices, and CUE-audit tag parser, ported with their original German
+  text preserved (the tone is the content, not incidental styling), plus the
+  reconstructed `extract()`.
+- `app/archive/page.tsx` and `components/archive/*` — a full second UI
+  surface: drop zone, schema cards, a searchable/sortable repo register with
+  single-repo vs. whole-archive modes, an illumination-level selector, a
+  manual-signal-feed fallback, an SVG relationship map, the CUE-audited
+  report view, and a KI-Setzer settings panel.
+- A **found-and-fixed bug**: the first working version double-composed the
+  report on repo selection and on archive illumination — the page called
+  `press(false)` again after `selectSingleRepo`/`runArchiveIllumination`
+  already set the report internally, and that second call closed over stale
+  React state (the atoms from *before* the click), silently overwriting the
+  correct report with the previous one. Caught by manually clicking a real
+  repo in a browser and noticing the report didn't change; fixed by
+  removing the redundant, stale call and trusting the hook's own internal
+  `setReport`. This is exactly the kind of self-review gap the PRD tool
+  above is designed to catch in *other* agents' work.
+
+What was deliberately not ported: the purely decorative "Flur" room-icon
+sidebar, dust-particle burst animation, and ink-press flourish. These carry
+no functional behavior, so ARE excluded here to keep the addition scoped to
+"the HTML's functions" (evidence extraction, SQLite reading, report
+composition, CUE auditing) rather than every animation.
+
+**One architectural deviation from the rest of this app, deliberately**: the
+KI-Setzer step here calls the user's configured endpoint directly from the
+browser rather than through this app's own `/api/*` route handlers. A local
+endpoint (`http://localhost:11434/v1` for Ollama) is only reachable from the
+user's own machine — routing it through this Next.js server (which may run
+on a different host, e.g. in this containerized environment) would silently
+break the offline/local use case the prototype's own README note promised
+("Offline-First"). The PRD-side contract map correctly stays server-side
+because that flow has no local-endpoint requirement.
+
+**Known limitation**: unlike the OpenRouter-backed contract map, this
+KI-Setzer path was not exercised against a live model endpoint in this
+session (no endpoint was available); only the deterministic fallback
+composition and the CUE-audit *parsing* logic (`lib/atoms/compose.ts`) are
+unit tested and were verified live in a browser.
+
+---
+
 ## What was implemented
 
 A runnable Next.js (App Router) + TypeScript vertical slice of ALFRED v0.1,
