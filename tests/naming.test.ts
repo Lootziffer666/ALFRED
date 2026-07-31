@@ -34,6 +34,11 @@ const HISTORICAL_ALLOWLIST: { file: string; needle: string }[] = [
   // this is the address that actually resolves today. It moves when the
   // repository is renamed (the one manual step of Etappe 0).
   { file: "lib/report/capabilities.ts", needle: "https://github.com/Lootziffer666/ALFRED#readme" },
+  // Fixture content, not product naming: the ALFRET fixture models this
+  // repository's own history, which contains both the prototype filename and
+  // the rename itself. Removing them would make the fixture a lie.
+  { file: "lib/report/fixtures.ts", needle: "Portiert aus einem früheren Single-File-Prototyp (Alfred_new.html)" },
+  { file: "lib/report/fixtures.ts", needle: "rename the active system from ALFRED to ALFRET" },
 ];
 
 /** Historical documents kept verbatim; each must carry a historical banner. */

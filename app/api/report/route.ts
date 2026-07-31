@@ -59,6 +59,7 @@ export async function POST(request: Request) {
     const atoms = extract(signals);
     const report = composeReport(requestedMode, {
       atoms,
+      signals,
       level: parsed.data.level ?? modeSpec.defaultLevel,
       repo: { owner, name, ref: evidence.identity.ref },
     });

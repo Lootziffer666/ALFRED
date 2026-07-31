@@ -13,7 +13,11 @@ const REPO = { owner: "Lootziffer666", name: "SHADED", ref: "main" };
 const now = () => new Date("2026-07-31T00:00:00.000Z");
 
 function build(level: 1 | 2 | 3 | 4 = 1, signals = SHADED_SIGNALS): Report {
-  return composeReport("pruefbericht", { atoms: extract(signals), level, repo: REPO, now });
+  return composeReport("pruefbericht", { atoms: extract(signals), signals, level, repo: REPO, now });
+}
+
+function buildAs(mode: "pruefbericht" | "biografie" | "roast", signals = SHADED_SIGNALS): Report {
+  return composeReport(mode, { atoms: extract(signals), signals, level: 4, repo: REPO, now });
 }
 
 function section(report: Report, key: ReportSectionKey) {
@@ -56,15 +60,28 @@ describe("report modes", () => {
     expect(isReportMode("prüfbericht")).toBe(false);
   });
 
-  it("only offers the Prüfbericht as implemented at this stage", () => {
-    expect(implementedModes().map((m) => m.id)).toEqual(["pruefbericht"]);
+  it("offers all three modes now that each one composes", () => {
+    expect(implementedModes().map((m) => m.id).sort()).toEqual(["biografie", "pruefbericht", "roast"]);
   });
 
   it("refuses to compose a mode that is only planned, rather than faking one", () => {
-    for (const spec of Object.values(REPORT_MODES).filter((m) => m.status === "planned")) {
-      expect(() => composeReport(spec.id, { atoms: extract(SHADED_SIGNALS), level: 1, repo: REPO, now })).toThrow(
+    const spec = REPORT_MODES.roast;
+    const original = spec.status;
+    spec.status = "planned";
+    try {
+      expect(() => composeReport("roast", { atoms: extract(SHADED_SIGNALS), level: 1, repo: REPO, now })).toThrow(
         UnimplementedReportModeError,
       );
+    } finally {
+      spec.status = original;
+    }
+  });
+
+  it("shows the serious reading in every mode", () => {
+    for (const spec of implementedModes()) {
+      expect(spec.sections).toContain("surprising-strengths");
+      expect(spec.sections).toContain("donor-fit");
+      expect(spec.sections).toContain("evidence");
     }
   });
 
@@ -112,9 +129,14 @@ describe("Prüfbericht", () => {
   it("names only atoms that were actually extracted", () => {
     const report = build();
     const extracted = new Set(extract(SHADED_SIGNALS).map((a) => a.id));
-    const tagged = allParagraphs(report).flatMap((p) => p.tags.map((t) => t.label));
-    expect(tagged.length).toBeGreaterThan(0);
-    for (const label of tagged) expect(extracted.has(label)).toBe(true);
+    // Backed paragraphs cite an atom id; hypothesis tags carry a basis instead,
+    // which is exactly why they are not claims about the repository.
+    const cited = allParagraphs(report)
+      .filter((p) => p.cls === "cue-ok")
+      .flatMap((p) => p.tags.map((t) => t.label));
+
+    expect(cited.length).toBeGreaterThan(0);
+    for (const label of cited) expect(extracted.has(label), `${label} is not an extracted atom`).toBe(true);
   });
 
   it("routes atoms to the section their category belongs to", () => {
@@ -186,5 +208,115 @@ describe("no second composer engine", () => {
     expect(source, "compose.ts must not parse atom tags itself").not.toContain("[[");
     expect(source, "compose.ts must not emit prompt directives itself").not.toContain("WARNHINWEIS");
     expect(source).not.toMatch(/function\s+(parseKI|buildPrompts|composeFallback)/);
+  });
+});
+
+describe("facts survive the tone (all modes)", () => {
+  it("renders a byte-identical evidence section in every mode", () => {
+    const evidenceOf = (mode: "pruefbericht" | "biografie" | "roast") =>
+      buildAs(mode).sections.find((s) => s.key === "evidence")!.blocks;
+
+    expect(evidenceOf("biografie")).toEqual(evidenceOf("pruefbericht"));
+    expect(evidenceOf("roast")).toEqual(evidenceOf("pruefbericht"));
+  });
+
+  it("derives the same assessment regardless of mode", () => {
+    const a = buildAs("pruefbericht").assessment;
+    expect(buildAs("biografie").assessment).toEqual(a);
+    expect(buildAs("roast").assessment).toEqual(a);
+  });
+});
+
+describe("Repo-Biografie", () => {
+  it("fills the two biography sections from the repository's own words", () => {
+    const report = buildAs("biografie");
+    const former = report.sections.find((s) => s.key === "former-identity")!;
+    const outcome = report.sections.find((s) => s.key === "actual-outcome")!;
+
+    expect(isEmpty(former)).toBe(false);
+    expect(isEmpty(outcome)).toBe(false);
+    for (const p of [...former.blocks, ...outcome.blocks].flatMap((b) => b.paragraphs)) {
+      expect(p.evidence.length).toBeGreaterThan(0);
+    }
+  });
+
+  it("marks an inference as a hypothesis and names its basis", () => {
+    const hypotheses = buildAs("biografie")
+      .sections.flatMap((s) => s.blocks.flatMap((b) => b.paragraphs))
+      .filter((p) => p.cls === "cue-hyp");
+
+    expect(hypotheses.length).toBeGreaterThan(0);
+    for (const p of hypotheses) {
+      expect(p.tags[0].kind).toBe("hyp");
+      expect(p.tags[0].label.length).toBeGreaterThan(10);
+    }
+  });
+
+  it("does not carry the atom-driven quirk sections", () => {
+    const report = buildAs("biografie");
+    for (const key of ["technical-quirks", "institutional-oddities"] as const) {
+      expect(report.sections.find((s) => s.key === key)!.emptyReason).toMatch(/Nicht Teil des Modus/);
+    }
+  });
+});
+
+describe("Roast", () => {
+  it("leads with the findings about who gets to decide", () => {
+    const institutional = buildAs("roast").sections.find((s) => s.key === "institutional-oddities")!;
+    const atomsById = new Map(extract(SHADED_SIGNALS).map((a) => [a.id, a]));
+    const cats = institutional.blocks
+      .flatMap((b) => b.paragraphs)
+      .map((p) => atomsById.get(p.tags[0].label)!.cat);
+
+    const lastAuthority = cats.lastIndexOf("authority");
+    const firstAdjudication = cats.indexOf("adjudication");
+    expect(lastAuthority).toBeGreaterThanOrEqual(0);
+    expect(firstAdjudication).toBeGreaterThan(lastAuthority);
+  });
+
+  it("adds a counted sting to a lopsided repository", () => {
+    const contradictions = buildAs("roast").sections.find((s) => s.key === "contradictions")!;
+    const sting = contradictions.blocks[0].paragraphs.find((p) => p.tags[0]?.label === "roast_sting");
+    expect(sting).toBeDefined();
+    expect(sting!.evidence.length).toBeGreaterThan(0);
+    expect(sting!.text).toMatch(/\d+ von \d+ Befunden/);
+  });
+
+  it("stays silent on an ordinary repository instead of reaching for a joke", () => {
+    const plain = buildAs("roast", EMPTY_SIGNALS);
+    const contradictions = plain.sections.find((s) => s.key === "contradictions")!;
+    expect(contradictions.blocks[0].paragraphs.some((p) => p.tags[0]?.label === "roast_sting")).toBe(false);
+  });
+});
+
+describe("assessment", () => {
+  it("lists capabilities that are atoms, never inventions", () => {
+    const report = buildAs("pruefbericht");
+    const extracted = new Set(extract(SHADED_SIGNALS).map((a) => a.id));
+    expect(report.assessment.capabilities.length).toBeGreaterThan(0);
+    for (const c of report.assessment.capabilities) {
+      expect(extracted.has(c.atomId)).toBe(true);
+      expect(c.evidence.length).toBeGreaterThan(0);
+    }
+  });
+
+  it("never clears a repository for reuse while the licence is unread", () => {
+    for (const signals of [SHADED_SIGNALS, EMPTY_SIGNALS]) {
+      const { donor } = buildAs("pruefbericht", signals).assessment;
+      expect(donor.blockers.join(" ")).toMatch(/Lizenz/);
+      expect(["donor-candidate", "reference", "unclear"]).toContain(donor.role);
+    }
+  });
+
+  it("marks the donor verdict as an inference, not a reading", () => {
+    const donorSection = buildAs("pruefbericht").sections.find((s) => s.key === "donor-fit")!;
+    expect(donorSection.blocks[0].paragraphs[0].cls).toBe("cue-hyp");
+  });
+
+  it("says it judged nothing when nothing matched", () => {
+    const report = buildAs("pruefbericht", EMPTY_SIGNALS);
+    expect(report.assessment.capabilities).toEqual([]);
+    expect(report.assessment.donor.role).toBe("unclear");
+    expect(report.assessment.headline).toMatch(/behauptet nichts/);
   });
 });

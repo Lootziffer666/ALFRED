@@ -1,7 +1,7 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 import { render, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import ReportPage from "@/app/report/page";
+import { ReportClient as ReportPage } from "@/components/report/ReportClient";
 import { extract } from "@/lib/atoms/extract";
 import { EMPTY_SIGNALS, LEVELS, SHADED_SIGNALS, WARN } from "@/lib/atoms/data";
 import { composeReport } from "@/lib/report/compose";
@@ -12,6 +12,12 @@ import type { RepoEvidence } from "@/lib/schema";
 import { loaded, unavailable } from "@/lib/schema";
 
 const now = () => new Date("2026-07-31T00:00:00.000Z");
+
+/** The page reads share parameters; give the tests control over them. */
+let searchParams = new URLSearchParams();
+vi.mock("next/navigation", () => ({
+  useSearchParams: () => searchParams,
+}));
 
 function responseFor(signals = SHADED_SIGNALS, level: 1 | 2 | 3 | 4 = 1): ReportResponse {
   return {
@@ -47,6 +53,7 @@ function mockFetch(body: unknown, ok = true, status = 200) {
 }
 
 beforeEach(() => {
+  searchParams = new URLSearchParams();
   vi.stubGlobal("fetch", mockFetch(responseFor()));
 });
 afterEach(() => {
@@ -60,7 +67,7 @@ describe("/report — public demo", () => {
     expect(screen.getByLabelText(/Öffentliches GitHub-Repository/)).toBeInTheDocument();
 
     const modeSelect = screen.getByLabelText("Reportmodus") as HTMLSelectElement;
-    expect([...modeSelect.options].map((o) => o.value)).toEqual(["pruefbericht"]);
+    expect([...modeSelect.options].map((o) => o.value)).toEqual(["pruefbericht", "biografie", "roast"]);
   });
 
   it("refuses to submit an empty repository instead of calling the API", async () => {
@@ -241,5 +248,65 @@ describe("signal mapping", () => {
       now,
     });
     expect(report.atomIds).toEqual([]);
+  });
+});
+
+describe("/report — share links and fixtures", () => {
+  it("rebuilds the run from a share link without being asked twice", async () => {
+    searchParams = new URLSearchParams({ repo: "Lootziffer666/SHADED", mode: "roast", level: "3", ref: "main" });
+    render(<ReportPage />);
+
+    await waitFor(() => expect(fetch).toHaveBeenCalledTimes(1));
+    const [, init] = (fetch as unknown as ReturnType<typeof vi.fn>).mock.calls[0];
+    expect(JSON.parse((init as RequestInit).body as string)).toEqual({
+      repo: "Lootziffer666/SHADED",
+      ref: "main",
+      mode: "roast",
+      level: 3,
+    });
+    expect(await screen.findByText("Quellenlage")).toBeInTheDocument();
+  });
+
+  it("ignores a share link that names a mode it cannot compose", async () => {
+    searchParams = new URLSearchParams({ repo: "o/r", mode: "nonsense" });
+    render(<ReportPage />);
+
+    await waitFor(() => expect(fetch).toHaveBeenCalled());
+    const [, init] = (fetch as unknown as ReturnType<typeof vi.fn>).mock.calls[0];
+    expect(JSON.parse((init as RequestInit).body as string).mode).toBe("pruefbericht");
+  });
+
+  it("shows a fixture without any network call, and labels it as an example", async () => {
+    const user = userEvent.setup();
+    render(<ReportPage />);
+
+    await user.click(screen.getByRole("button", { name: "octo/tinycache" }));
+
+    expect(await screen.findByText(/Beispiel-Signale, kein Abruf/)).toBeInTheDocument();
+    expect(fetch).not.toHaveBeenCalled();
+    expect(screen.queryByText("Quellenlage")).not.toBeInTheDocument();
+  });
+
+  it("offers Markdown, HTML, JSON and a share link once a report exists", async () => {
+    const user = userEvent.setup();
+    render(<ReportPage />);
+    await user.click(screen.getByRole("button", { name: "SHADED" }));
+
+    for (const label of [/Markdown/, /HTML/, /JSON/, /Link teilen/]) {
+      expect(await screen.findByRole("button", { name: label })).toBeInTheDocument();
+    }
+    expect(screen.getByText(/Der Link enthält nur Repository, Ref und Modus/)).toBeInTheDocument();
+  });
+
+  it("shows the serious assessment alongside the tone", async () => {
+    const user = userEvent.setup();
+    render(<ReportPage />);
+    await user.click(screen.getByRole("button", { name: "SHADED" }));
+
+    expect(await screen.findByText("Kurzbewertung")).toBeInTheDocument();
+    expect(screen.getByText("Donor-Eignung")).toBeInTheDocument();
+    expect(screen.getByText(/Nicht beurteilt/)).toBeInTheDocument();
+    // Stated both as a donor blocker and as an unjudged item — deliberately.
+    expect(screen.getAllByText(/Die Lizenz wurde nicht gelesen/).length).toBeGreaterThan(1);
   });
 });
