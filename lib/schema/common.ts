@@ -11,6 +11,24 @@ export const evidenceRefSchema = z.object({
 export type EvidenceRef = z.infer<typeof evidenceRefSchema>;
 
 /**
+ * The richer pointer used by corpus, report, runner and refinery findings
+ * (plan §10.3). Every added field is optional, so the small schema above stays
+ * valid everywhere it is already used — this extends the vocabulary rather
+ * than making detailed evidence mandatory after the fact.
+ */
+export const detailedEvidenceRefSchema = evidenceRefSchema.extend({
+  repository: z.string().optional(),
+  commitSha: z.string().optional(),
+  path: z.string().optional(),
+  symbol: z.string().optional(),
+  lineStart: z.number().int().positive().optional(),
+  lineEnd: z.number().int().positive().optional(),
+  artifactHash: z.string().optional(),
+  observedAt: z.string().optional(),
+});
+export type DetailedEvidenceRef = z.infer<typeof detailedEvidenceRefSchema>;
+
+/**
  * Every piece of gathered evidence must visibly declare why it is (not)
  * present instead of silently defaulting to empty (PRD §5.2 / §5.3).
  */
