@@ -47,6 +47,13 @@ export const REPORT_SECTIONS: readonly ReportSectionSpec[] = [
   { key: "cta", order: 15, title: "CTA" },
 ] as const;
 
+/**
+ * Sections the demo shell renders itself rather than composing per mode: the
+ * iceberg and the call to action describe ALFRET, not the inspected repository.
+ * No mode owns them, and they are not "missing" from a report that omits them.
+ */
+export const SHELL_SECTIONS: readonly ReportSectionKey[] = ["iceberg", "cta"];
+
 export function sectionSpec(key: ReportSectionKey): ReportSectionSpec {
   const spec = REPORT_SECTIONS.find((s) => s.key === key);
   if (!spec) throw new Error(`Unknown report section: ${key}`);

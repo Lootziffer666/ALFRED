@@ -30,6 +30,10 @@ const SCANNED_FILES = [
 const HISTORICAL_ALLOWLIST: { file: string; needle: string }[] = [
   { file: "README.md", needle: "the earlier `Alfred_new.html` prototype" },
   { file: "lib/atoms/data.ts", needle: "(Alfred_new.html)." },
+  // Not a product name: the GitHub repository still carries the old name, so
+  // this is the address that actually resolves today. It moves when the
+  // repository is renamed (the one manual step of Etappe 0).
+  { file: "lib/report/capabilities.ts", needle: "https://github.com/Lootziffer666/ALFRED#readme" },
 ];
 
 /** Historical documents kept verbatim; each must carry a historical banner. */
