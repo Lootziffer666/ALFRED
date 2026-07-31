@@ -88,7 +88,7 @@ export function ReportView({ phases, mode }: { phases: RenderedPhase[] | null; m
 
           {ph.empty && (
             <p className="serif" style={{ color: "var(--mut)", fontStyle: "italic" }}>
-              Keine belegten Signale für diese Phase – Alfred schweigt hier, statt zu raten.
+              Keine belegten Signale für diese Phase – Alfret schweigt hier, statt zu raten.
             </p>
           )}
 

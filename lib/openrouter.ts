@@ -40,8 +40,8 @@ export async function callOpenRouter(params: OpenRouterCallParams): Promise<Open
       headers: {
         Authorization: `Bearer ${apiKey}`,
         "Content-Type": "application/json",
-        "HTTP-Referer": "https://alfred.local",
-        "X-Title": "ALFRED",
+        "HTTP-Referer": "https://alfret.local",
+        "X-Title": "ALFRET",
       },
       body: JSON.stringify({
         model,

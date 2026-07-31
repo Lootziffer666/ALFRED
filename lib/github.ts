@@ -15,7 +15,8 @@ import {
 const API_ROOT = "https://api.github.com";
 const MAX_TREE_ENTRIES = 4000;
 const MAX_DOC_EXCERPT_CHARS = 6000;
-const DOC_NAME_PATTERN = /^(readme|plan|agents)(\.[a-z0-9]+)?$/i;
+const DOC_NAME_PATTERN =
+  /^(readme|plan|agents|claude|architecture|rules?|conventions?|contributing)(\.[a-z0-9]+)?$/i;
 
 export class GitHubInputError extends Error {}
 
@@ -298,6 +299,9 @@ async function fetchDocEvidence(args: {
       const isDocsMd = /^docs\//i.test(e.path) && /\.mdx?$/i.test(base);
       return isRootDoc || isDocsMd;
     })
+    // Root documents carry the repository's own rules, so they keep their place
+    // in the budget even when docs/ is large.
+    .sort((a, b) => Number(a.path.includes("/")) - Number(b.path.includes("/")))
     .slice(0, 12);
 
   const docs: DocEvidence[] = [];

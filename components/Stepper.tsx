@@ -15,7 +15,7 @@ export function Stepper() {
   };
 
   return (
-    <nav aria-label="ALFRED workflow steps" className="scroll-x">
+    <nav aria-label="ALFRET workflow steps" className="scroll-x">
       <ol className="flex gap-2 min-w-max px-1 py-1">
         {STEPS.map((s, i) => {
           const active = s.id === step;

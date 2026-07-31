@@ -33,7 +33,7 @@ describe("session export", () => {
 
   it("produces markdown containing the key sections", () => {
     const md = sessionToMarkdown(makeSession());
-    expect(md).toMatch(/# ALFRED session export/);
+    expect(md).toMatch(/# ALFRET session export/);
     expect(md).toMatch(/## Repository inventory/);
     expect(md).toMatch(/## Contract map/);
     expect(md).toMatch(/## Agent handoff/);

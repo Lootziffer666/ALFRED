@@ -14,7 +14,7 @@ import type {
  * handoff's acceptance criteria (PRD §5.6 / §9: "Core classification and
  * audit logic must be testable without network access"). This intentionally
  * does not call a model: an LLM asked "is this done?" tends to agree with
- * confident phrasing, which is exactly the failure mode ALFRED exists to
+ * confident phrasing, which is exactly the failure mode ALFRET exists to
  * catch. Evidence has to come from the diff itself.
  */
 

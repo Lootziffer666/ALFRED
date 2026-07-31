@@ -9,7 +9,7 @@ interface Room {
 }
 
 /**
- * The "Flur" (hallway) — a row of room doors for ALFRED's other modules.
+ * The "Flur" (hallway) — a row of room doors for ALFRET's other modules.
  * Purely atmospheric worldbuilding, ported from the prototype's SOURCES
  * array: only "Butler" (this tool, Raum VII/VIII) is actually built; the
  * rest are the other modules described in the project's own vision notes
@@ -31,7 +31,7 @@ export function Flur() {
   return (
     <nav className="flur" aria-hidden="true">
       <div className="haus">
-        ALFRED · <b>Haus</b>
+        ALFRET · <b>Haus</b>
       </div>
       {ROOMS.map((r, i) => (
         <div key={i} className={`tuer${r.aktiv ? " aktiv" : ""}${r.quelle ? " quelle" : ""}`}>

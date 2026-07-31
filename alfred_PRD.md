@@ -1,3 +1,8 @@
+> **Historical document — ALFRED v0.1.** The canonical product name is now **ALFRET**.
+> This file records an earlier state of the project and is no longer a binding implementation
+> contract. The current ALFRET implementation plan takes precedence over anything stated here.
+> ALFRED references below are kept verbatim as history.
+
 # ALFRED v0.1 — Evidence-First Repository Butler
 
 **Document type:** Product Requirements Document and canonical benchmark assignment  

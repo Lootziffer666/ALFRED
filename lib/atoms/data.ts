@@ -1,7 +1,7 @@
 import type { AtomCategory, Level, Phase, Rule, Signals } from "./types";
 
 /**
- * Ported from the ALFRED "Raum VIII · Skriptorium" HTML prototype
+ * Ported from the ALFRET "Raum VIII · Skriptorium" HTML prototype
  * (Alfred_new.html). The illumination levels, extraction rules and their
  * literary "tropes" are the actual content the prototype demonstrated —
  * kept verbatim (German) rather than rewritten, since the tone is the

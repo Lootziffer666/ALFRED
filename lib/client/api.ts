@@ -1,4 +1,6 @@
-import type { ContractMap, Handoff, RepoEvidence, AcceptanceReport } from "@/lib/schema";
+import type { ContractMap, Handoff, RepoEvidence, RepoIdentity, AcceptanceReport } from "@/lib/schema";
+import type { Report, ReportMode } from "@/lib/report/modes";
+import type { SignalSource } from "@/lib/report/signals";
 
 async function postJson<T>(url: string, body: unknown): Promise<{ ok: true; data: T } | { ok: false; error: string }> {
   let res: Response;
@@ -26,6 +28,19 @@ async function postJson<T>(url: string, body: unknown): Promise<{ ok: true; data
 
 export function inspectRepo(params: { repo: string; ref?: string; token?: string }) {
   return postJson<{ evidence: RepoEvidence }>("/api/inspect", params);
+}
+
+export interface ReportResponse {
+  report: Report;
+  repo: RepoIdentity;
+  sources: SignalSource[];
+  warnings: string[];
+  fetchedAt: string;
+}
+
+/** Public demo: no token is sent, by construction. */
+export function generateReport(params: { repo: string; ref?: string; mode?: ReportMode; level?: 1 | 2 | 3 | 4 }) {
+  return postJson<ReportResponse>("/api/report", params);
 }
 
 export function generateContractMap(params: { evidence: RepoEvidence; apiKey: string; model: string }) {

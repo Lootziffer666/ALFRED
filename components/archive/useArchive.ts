@@ -30,7 +30,7 @@ export function useArchive() {
   const [repos, setRepos] = useState<RepoRecord[]>([]);
   const [dbStatus, setDbStatus] = useState<DbStatus>({
     kind: "info",
-    html: "Bereit. Zieh eine oder mehrere .sqlite / .db herein – Alfred inspiziert das Schema, bevor er einen Satz setzt.",
+    html: "Bereit. Zieh eine oder mehrere .sqlite / .db herein – Alfret inspiziert das Schema, bevor er einen Satz setzt.",
   });
 
   const [mode, setMode] = useState<Mode>("single");

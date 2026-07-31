@@ -153,13 +153,13 @@ export function AuditScreen() {
       <div style={{ display: "flex", gap: 10, marginTop: 20, flexWrap: "wrap", borderTop: "1px solid var(--line)", paddingTop: 16 }}>
         <button
           type="button"
-          onClick={() => download(`alfred-session-${Date.now()}.md`, sessionToMarkdown(buildExport()), "text/markdown")}
+          onClick={() => download(`alfret-session-${Date.now()}.md`, sessionToMarkdown(buildExport()), "text/markdown")}
         >
           ⧉ Export Markdown
         </button>
         <button
           type="button"
-          onClick={() => download(`alfred-session-${Date.now()}.json`, sessionToJson(buildExport()), "application/json")}
+          onClick={() => download(`alfret-session-${Date.now()}.json`, sessionToJson(buildExport()), "application/json")}
         >
           ⧉ Export JSON
         </button>

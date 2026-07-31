@@ -2,7 +2,7 @@ import type { Metadata, Viewport } from "next";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "ALFRED — Evidence-First Repository Butler",
+  title: "ALFRET — Evidence-First Repository Butler",
   description: "Inspect a repository, build a contract map, generate a bounded agent handoff, and audit the result — all evidence-backed.",
 };
 

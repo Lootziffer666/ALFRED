@@ -10,7 +10,7 @@ function evList(items: { source: string }[]): string {
 
 export function sessionToMarkdown(session: SessionExport): string {
   const lines: string[] = [];
-  lines.push(`# ALFRED session export — ${session.repo.owner}/${session.repo.name}@${session.repo.ref}`);
+  lines.push(`# ALFRET session export — ${session.repo.owner}/${session.repo.name}@${session.repo.ref}`);
   lines.push("");
   lines.push(`Exported: ${session.exportedAt}`);
   lines.push(`Repository: ${session.repo.url}`);
