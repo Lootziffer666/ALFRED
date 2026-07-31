@@ -32,7 +32,7 @@ function AppShell() {
       <header style={{ marginBottom: 16 }}>
         <div className="mono" style={{ fontSize: 11, letterSpacing: "0.15em", color: "var(--bordeaux)", textTransform: "uppercase", display: "flex", alignItems: "center", gap: 8 }}>
           <span className="dot" style={{ background: "var(--zinnober)" }} />
-          ALFRED · Evidence-first repository butler
+          ALFRET · Evidence-first repository butler
           {demoMode && <span className="pill" style={{ color: "var(--brass-l)", borderColor: "var(--brass-d)" }}>demo mode</span>}
           <Link href="/archive" className="pill" style={{ color: "var(--brass-l)", borderColor: "var(--brass-d)", textDecoration: "none", marginLeft: "auto" }}>
             Skriptorium (SQLite-Archiv) →
@@ -42,7 +42,7 @@ function AppShell() {
           Prepare the task. <span style={{ color: "var(--zinnober)" }}>Audit the result.</span>
         </h1>
         <p className="serif" style={{ color: "var(--paper-dim)", fontSize: 14, maxWidth: "60ch", marginTop: 8 }}>
-          ALFRED inspects a repository before you hand it to a coding agent, and checks the agent&apos;s work
+          ALFRET inspects a repository before you hand it to a coding agent, and checks the agent&apos;s work
           against evidence afterward — no completion claim is trusted on its own.
         </p>
       </header>

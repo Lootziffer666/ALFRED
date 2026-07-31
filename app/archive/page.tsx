@@ -58,7 +58,7 @@ export default function ArchivePage() {
       <header style={{ marginBottom: 16 }}>
         <div className="mono" style={{ fontSize: 11, letterSpacing: "0.15em", color: "var(--bordeaux)", textTransform: "uppercase", display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap" }}>
           <span className="dot" style={{ background: "var(--zinnober)" }} />
-          ALFRED · Raum VIII · Skriptorium
+          ALFRET · Raum VIII · Skriptorium
           <Link href="/" className="pill" style={{ color: "var(--brass-l)", borderColor: "var(--brass-d)", textDecoration: "none" }}>
             ← zum Repository-Butler
           </Link>
@@ -68,7 +68,7 @@ export default function ArchivePage() {
         </h1>
         <p className="serif" style={{ color: "var(--paper-dim)", fontSize: 14, maxWidth: "68ch", marginTop: 8 }}>
           Zieh eine SQLite-Datenbank deiner gestarrten Repos herein (z.B. die im Repo mitgelieferte{" "}
-          <code className="mono">sternkarte.sqlite</code>). Alfred inspiziert das Schema, baut ein Register, und setzt
+          <code className="mono">sternkarte.sqlite</code>). Alfret inspiziert das Schema, baut ein Register, und setzt
           aus belegten Signalen einen CUE-geprüften Prüfbericht — Einzelstern oder ganzes Archiv.
         </p>
       </header>
@@ -403,7 +403,7 @@ function buildSpec(a: ReturnType<typeof useArchive>) {
   a.atoms.forEach((atom) => atom.evidence.forEach((e, i) => nodes.push({ id: `ev_${atom.id}_${i}`, label: `${e.k}: ${e.v.slice(0, 30)}`, group: "forensik", rel: {} })));
 
   return {
-    meta: { kicker: `ALFRED · Raum VIII · ${a.mode === "meta" ? "Archiv" : "Einzelstern"} · Stufe ${a.level}`, h1: "Aus Atomen gesetzt." },
+    meta: { kicker: `ALFRET · Raum VIII · ${a.mode === "meta" ? "Archiv" : "Einzelstern"} · Stufe ${a.level}`, h1: "Aus Atomen gesetzt." },
     groups,
     rel_roles: { ESTABLISHES: { de: "ESTABLISHES / belegt", color: "#7fae6a", cat: "adjudication" } },
     nodes,

@@ -9,7 +9,7 @@ import Home from "@/app/page";
  * entirely in demo mode so it exercises the real UI and session-state logic
  * without any network access.
  */
-describe("ALFRED main workflow (demo mode)", () => {
+describe("ALFRET main workflow (demo mode)", () => {
   it("walks from session setup through inventory, contract map, handoff, to audit", async () => {
     const user = userEvent.setup();
     render(<Home />);

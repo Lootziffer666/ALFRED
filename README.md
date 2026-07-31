@@ -1,6 +1,6 @@
-# ALFRED — Evidence-First Repository Butler
+# ALFRET — Evidence-First Repository Butler
 
-ALFRED prepares a repository before you hand it to a coding agent, and audits
+ALFRET prepares a repository before you hand it to a coding agent, and audits
 the agent's work against evidence afterward. It never converts an unproven
 claim into a passed one just because someone said it was done.
 
@@ -25,7 +25,7 @@ tested code rather than a static mockup:
 
 - **Client-side SQLite reader** — drag in a `.sqlite`/`.db` file (e.g. the
   `sternkarte.sqlite` or starred-repos export already in this repo) and
-  Alfred inspects its schema via [sql.js](https://github.com/sql-js/sql.js)
+  Alfret inspects its schema via [sql.js](https://github.com/sql-js/sql.js)
   running entirely in the browser (`lib/sqlite/engine.ts`), guesses each
   table's role (repo source / classification / license) and column mapping,
   and lets you correct both.
