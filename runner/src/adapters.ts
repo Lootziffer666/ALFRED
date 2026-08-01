@@ -93,7 +93,7 @@ export const VERIFICATION_PROMPT_LLAMACPP = "Respond with exactly one word: OK";
  * Package managers this adapter will call, by platform. Absent means the
  * platform is not supported.
  */
-const INSTALLERS: Partial<Record<NodeJS.Platform, string[]>> = {
+export const INSTALLERS: Partial<Record<NodeJS.Platform, string[]>> = {
   darwin: ["brew", "install", "ollama"],
   linux: ["apt-get", "install", "-y", "ollama"],
   win32: ["choco", "install", "-y", "ollama"],

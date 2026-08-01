@@ -452,3 +452,16 @@ export const signedExecutionPlanSchema = z.object({
   signature: z.string().min(1),
 });
 export type SignedExecutionPlan = z.infer<typeof signedExecutionPlanSchema>;
+
+// plan §17 — OperatingProfile was referenced in lib/demo/policy.ts:21 and
+// app/api/demo/run/route.ts:15 but never defined. The Union lives inline in
+// middleware.ts:121; here we export the canonical Zod schema.
+
+export const operatingProfileSchema = z.union([
+  z.literal("homelab"),
+  z.literal("ci"),
+  z.literal("local-dev"),
+  z.literal("production"),
+]);
+
+export type OperatingProfile = z.infer<typeof operatingProfileSchema>;

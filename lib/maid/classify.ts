@@ -16,7 +16,7 @@ const GENERATED_PATTERNS = [
   /^\.turbo\//,
   /^node_modules\//,
   /package-lock\.json$/,
-  /bun\.lockb$/,
+  /bun\.lock$/,
   /yarn\.lock$/,
   /pnpm-lock\.yaml$/,
 ];
@@ -102,11 +102,6 @@ export function scanForTodos(
 
   return findings;
 }
-
-const PLACEHOLDER_RE =
-  /\bthrow new Error\(["'`]not implemented["'`]\)/i |
-  /\bthrow new Error\(["'`]TODO["'`]\)/i |
-  /\/\/ placeholder/i;
 
 /** Erkennt nicht implementierte Platzhalter. */
 export function scanForPlaceholders(

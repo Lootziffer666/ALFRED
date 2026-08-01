@@ -19,6 +19,7 @@ function makeProfileId(login: string): string {
 
 function repoEvidence(repo: ProfileRepo, symbol?: string): DetailedEvidenceRef {
   return {
+    source: "github-api",
     repository: repo.fullName,
     path: symbol ? undefined : ".",
     symbol,
@@ -105,6 +106,7 @@ function extractSkills(repos: ProfileRepo[]): ProfileSkill[] {
               category: skill.category,
               confidence: "observed",
               truthStatus: "observed",
+              codeShare: 0,
               evidence: [repoEvidence(repo)],
               repoCount: 1,
               primaryRepo: repo.fullName,

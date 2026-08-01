@@ -2,13 +2,24 @@
   "name": "alfret",
   "version": "0.1.0",
   "private": true,
+  "bin": {
+    "alfret-daemon": "./dist/bin/alfret-daemon.js"
+  },
+  "exports": {
+    ".": "./lib/index.ts",
+    "./daemon": "./lib/daemon/index.ts",
+    "./store": "./lib/store/index.ts",
+    "./maid": "./lib/maid/index.ts"
+  },
   "scripts": {
     "dev": "next dev",
-    "build": "next build",
+    "build": "next build && bun build --target=node --outdir=dist ./bin/alfret-daemon.ts",
+    "build:daemon": "bun build --target=node --outdir=dist ./bin/alfret-daemon.ts",
     "start": "next start",
     "lint": "eslint",
     "typecheck": "tsc --noEmit",
-    "test": "vitest run"
+    "test": "bun test",
+    "daemon": "node --loader=bun ./bin/alfret-daemon.ts"
   },
   "dependencies": {
     "next": "16.2.12",
