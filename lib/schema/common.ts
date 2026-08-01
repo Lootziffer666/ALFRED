@@ -29,6 +29,14 @@ export const detailedEvidenceRefSchema = evidenceRefSchema.extend({
 export type DetailedEvidenceRef = z.infer<typeof detailedEvidenceRefSchema>;
 
 /**
+ * How sensitive the data a repository or a task handles is. Shared by the
+ * scope registry and the homelab planner so a task's sensitivity and a
+ * repository's classification are expressed in the same vocabulary.
+ */
+export const dataClassSchema = z.enum(["public", "private", "secret"]);
+export type DataClass = z.infer<typeof dataClassSchema>;
+
+/**
  * Every piece of gathered evidence must visibly declare why it is (not)
  * present instead of silently defaulting to empty (PRD §5.2 / §5.3).
  */
