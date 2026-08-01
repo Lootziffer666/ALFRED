@@ -1,54 +1,15 @@
-/**
- * Persistanzschicht (Etappe 11a).
- *
- * AlfretStore ist die zentrale Persistenzbasis für alle ALFRET-Betriebsdaten:
- * Orders, Sessions, Events, Handoffs, Heartbeats, CueReports, MaidReports.
- *
- * Zwei Implementierungen: MemoryAlfretStore (Tests/Demo) und SqliteAlfretStore (Produktion).
- */
+// plan §17 — AlfretStore interface. close() added so Daemon can free SQLite handle at SIGTERM.
 
-import type { HermesOrder, HermesSession, HermesEvent, HandoffPackage } from "@/lib/hermes/types";
-import type { CueReport } from "@/lib/cue/types";
-import type { MaidReport } from "@/lib/maid/types";
-import type { Heartbeat } from "@/lib/health/types";
+export interface Entity {
+  kind: string;
+  id: string;
+}
 
-/**
- * Persistenzbasis für ALFRET.
- * Alle Methoden sind async zur Vorbereitung auf SQLite (bald auch verteilte Persistenz).
- */
 export interface AlfretStore {
-  // ── Orders ──────────────────────────────────────────────────────────────
-  setOrder(order: HermesOrder): Promise<void>;
-  getOrder(orderId: string): Promise<HermesOrder | null>;
-  listOrders(state?: string): Promise<HermesOrder[]>;
-
-  // ── Sessions ────────────────────────────────────────────────────────────
-  setSession(session: HermesSession): Promise<void>;
-  getSession(sessionId: string): Promise<HermesSession | null>;
-  listSessions(): Promise<HermesSession[]>;
-
-  // ── Events (append-only) ────────────────────────────────────────────────
-  appendEvent(event: HermesEvent): Promise<void>;
-  getEvents(orderId: string): Promise<HermesEvent[]>;
-  allEvents(): Promise<HermesEvent[]>;
-
-  // ── Handoffs ────────────────────────────────────────────────────────────
-  setHandoff(handoff: HandoffPackage): Promise<void>;
-  getHandoff(handoffId: string): Promise<HandoffPackage | null>;
-  listHandoffs(taskId: string): Promise<HandoffPackage[]>;
-
-  // ── Heartbeats ──────────────────────────────────────────────────────────
-  appendHeartbeat(heartbeat: Heartbeat): Promise<void>;
-  getHeartbeats(agentId: string): Promise<Heartbeat[]>;
-  getLatestHeartbeat(agentId: string, taskId: string): Promise<Heartbeat | null>;
-
-  // ── CUE Reports ─────────────────────────────────────────────────────────
-  setCueReport(report: CueReport): Promise<void>;
-  getCueReport(reportId: string): Promise<CueReport | null>;
-  listCueReports(planId: string): Promise<CueReport[]>;
-
-  // ── Maid Reports ────────────────────────────────────────────────────────
-  setMaidReport(report: MaidReport): Promise<void>;
-  getMaidReport(commitSha: string): Promise<MaidReport | null>;
-  allMaidReports(): Promise<MaidReport[]>;
+  put(entity: Entity): Promise<void>;
+  get<T extends Entity>(kind: T["kind"], id: string): Promise<T | undefined>;
+  list<T extends Entity>(kind: T["kind"]): Promise<T[]>;
+  delete(kind: string, id: string): Promise<void>;
+  /** Release any held OS resources (SQLite file handle). No-op for memory stores. */
+  close(): void;
 }

@@ -9,6 +9,7 @@ import { InMemoryHermesDispatcher } from "@/lib/hermes";
 import { MemoryAlfretStore } from "@/lib/store";
 import { makeStaticCueCheck, buildCueReport } from "@/lib/cue";
 import { classifyPath } from "@/lib/maid/classify";
+import type { FileClass } from "@/lib/maid/types";
 import { broadcaster } from "@/lib/sse/broadcaster";
 import { generateKeyPair, signPlan } from "@/lib/homelab/signing";
 import type { SignedExecutionPlan } from "@/lib/schema/homelab";
@@ -156,7 +157,7 @@ export async function POST(req: NextRequest) {
         "node_modules/.cache/build",
       ];
 
-      const classifiedFiles: Record<string, string> = {};
+      const classifiedFiles: Record<string, FileClass> = {};
       for (const file of demoFiles) {
         classifiedFiles[file] = classifyPath(file, 0);
       }
