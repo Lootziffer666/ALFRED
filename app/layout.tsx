@@ -3,7 +3,7 @@ import "./globals.css";
 
 export const metadata: Metadata = {
   title: "ALFRET — Evidence-First Repository Butler",
-  description: "Inspect a repository, build a contract map, generate a bounded agent handoff, and audit the result — all evidence-backed.",
+  description: "ALFRET orchestrates repository maintenance, contract verification, and bounded agent handoffs through deterministic policy and evidence-driven decision-making. Persistence layer with Orders, Sessions, CUE Reports, and Maid findings.",
 };
 
 export const viewport: Viewport = {
