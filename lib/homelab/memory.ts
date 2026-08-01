@@ -11,12 +11,25 @@ import type { MemoryEstimate, ModelCandidate, PlacementFit, RuntimeId } from "..
  * can be traced instead of argued about.
  */
 
-/** Bytes held per token, per unit of `layers × hiddenSize`, for K and V together. */
+/** K and V are both held, so the cache pays for two tensors. */
 const KV_TENSORS = 2;
 
-/** Reference shape: a 7B Llama-style model is 32 layers × 4096 hidden. */
-const REFERENCE_KV_FACTOR = 32 * 4096;
+/**
+ * Reference `layers × kvDim` for a 7B model with grouped-query attention.
+ *
+ * Deliberately *not* `layers × hiddenSize`: every current model of this size
+ * uses GQA, which makes the key/value projection several times narrower than
+ * the hidden state. Qwen2.5-7B is 28 × 512 = 14 336; Llama-3-8B is 32 × 1024
+ * = 32 768. Assuming full multi-head attention overstates the cache by roughly
+ * an order of magnitude, which is the difference between "runs on a 3060" and
+ * "impossible".
+ */
+const REFERENCE_KV_FACTOR = 24_000;
 const REFERENCE_PARAMS_B = 7;
+
+/** How far the real factor sits from the reference when the shape is unknown. */
+const KV_BAND_LOW = 0.55;
+const KV_BAND_HIGH = 1.6;
 
 const RUNTIME_OVERHEAD_GB: Record<RuntimeId, number> = {
   ollama: 0.6,
@@ -49,21 +62,37 @@ function inferParamsB(model: ModelCandidate): number | null {
   return (model.fileSizeGb * 8) / model.quantBits;
 }
 
+interface KvBand {
+  low: number;
+  expected: number;
+  high: number;
+  confidence: MemoryEstimate["confidence"];
+}
+
 /**
- * `layers × hiddenSize`, which is what the KV cache actually scales with.
- * Known exactly when the model states its shape; otherwise scaled from the
- * reference model, which is an approximation and says so via the confidence.
+ * `layers × kvDim`, which is what the KV cache actually scales with.
+ *
+ * Exact when the model states its attention geometry. Otherwise a band: the
+ * GQA ratio varies between architectures, and that uncertainty belongs in the
+ * range rather than in a single confident-looking number.
  */
-function kvFactor(model: ModelCandidate): { value: number; confidence: MemoryEstimate["confidence"] } {
-  if (model.layers && model.hiddenSize) {
-    return { value: model.layers * model.hiddenSize, confidence: "high" };
+function kvBand(model: ModelCandidate): KvBand {
+  if (model.layers && model.kvDim) {
+    const exact = model.layers * model.kvDim;
+    return { low: exact, expected: exact, high: exact, confidence: "high" };
   }
+
   const params = inferParamsB(model);
-  if (params) {
-    const scaled = REFERENCE_KV_FACTOR * Math.pow(params / REFERENCE_PARAMS_B, 2 / 3);
-    return { value: scaled, confidence: model.paramsB ? "medium" : "low" };
-  }
-  return { value: REFERENCE_KV_FACTOR, confidence: "low" };
+  const expected = params
+    ? REFERENCE_KV_FACTOR * Math.pow(params / REFERENCE_PARAMS_B, 2 / 3)
+    : REFERENCE_KV_FACTOR;
+
+  return {
+    low: expected * KV_BAND_LOW,
+    expected,
+    high: expected * KV_BAND_HIGH,
+    confidence: params && model.paramsB ? "medium" : "low",
+  };
 }
 
 export function estimateMemory(input: MemoryInput): MemoryEstimate {
@@ -72,29 +101,39 @@ export function estimateMemory(input: MemoryInput): MemoryEstimate {
   const kvBits = input.kvBits ?? 16;
 
   const weightsGb = model.fileSizeGb;
-  const kv = kvFactor(model);
-  const kvGb = (KV_TENSORS * kv.value * contextTokens * batch * (kvBits / 8)) / 1e9;
-  const runtimeGb = RUNTIME_OVERHEAD_GB[runtime];
+  const kv = kvBand(model);
+  const perFactor = (KV_TENSORS * contextTokens * batch * (kvBits / 8)) / 1e9;
+  const kvLowGb = kv.low * perFactor;
+  const kvGb = kv.expected * perFactor;
+  const kvHighGb = kv.high * perFactor;
 
+  const runtimeGb = RUNTIME_OVERHEAD_GB[runtime];
   const acceleratorGb = target === "gpu" ? ACCELERATOR_CONTEXT_GB : 0;
   const displayGb = target === "gpu" && input.drivesDisplay ? DISPLAY_RESERVE_GB : 0;
   const osGb = target === "cpu" ? OS_RESERVE_GB : 0;
 
+  const kvLabel =
+    kv.confidence === "high"
+      ? `KV-Cache (${contextTokens} Token, Batch ${batch}, ${kvBits} bit)`
+      : `KV-Cache (${contextTokens} Token, Batch ${batch}, ${kvBits} bit, Attention-Geometrie geschätzt)`;
+
   const breakdown = [
     { label: "Gewichte", gb: round(weightsGb) },
-    { label: `KV-Cache (${contextTokens} Token, Batch ${batch}, ${kvBits} bit)`, gb: round(kvGb) },
+    { label: kvLabel, gb: round(kvGb) },
     { label: `Runtime-Overhead (${runtime})`, gb: round(runtimeGb) },
   ];
   if (acceleratorGb) breakdown.push({ label: "Accelerator-Kontext", gb: round(acceleratorGb) });
   if (displayGb) breakdown.push({ label: "Display-Reserve", gb: round(displayGb) });
   if (osGb) breakdown.push({ label: "Betriebssystem-Reserve", gb: round(osGb) });
 
-  const expected = weightsGb + kvGb + runtimeGb + acceleratorGb + displayGb + osGb;
-  // Best case: a tight allocator and no fragmentation. Still pays for weights,
-  // cache and the accelerator context — those are not optional.
-  const minimum = weightsGb + kvGb + runtimeGb * 0.8 + acceleratorGb;
-  // Worst case: fragmentation plus the transient peaks of a long generation.
-  const maximum = expected * (target === "gpu" ? 1.2 : 1.15);
+  const fixedGb = runtimeGb + acceleratorGb + displayGb + osGb;
+  const expected = weightsGb + kvGb + fixedGb;
+  // Best case: a tight allocator, no fragmentation, and the narrow end of the
+  // cache. Weights, some cache and the accelerator context are not optional.
+  const minimum = weightsGb + kvLowGb + runtimeGb * 0.8 + acceleratorGb;
+  // Worst case: the wide end of the cache, plus fragmentation and the
+  // transient peaks of a long generation.
+  const maximum = (weightsGb + kvHighGb + fixedGb) * (target === "gpu" ? 1.2 : 1.15);
 
   return {
     minimumGb: round(minimum),

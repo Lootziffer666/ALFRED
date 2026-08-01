@@ -1,6 +1,8 @@
 import type { ContractMap, Handoff, RepoEvidence, RepoIdentity, AcceptanceReport } from "@/lib/schema";
 import type { Report, ReportMode } from "@/lib/report/modes";
 import type { SignalSource } from "@/lib/report/signals";
+import type { ModelCandidate } from "@/lib/schema/homelab";
+import type { ScoutResult } from "@/lib/homelab/scout";
 
 async function postJson<T>(url: string, body: unknown): Promise<{ ok: true; data: T } | { ok: false; error: string }> {
   let res: Response;
@@ -41,6 +43,23 @@ export interface ReportResponse {
 /** Public demo: no token is sent, by construction. */
 export function generateReport(params: { repo: string; ref?: string; mode?: ReportMode; level?: 1 | 2 | 3 | 4 }) {
   return postJson<ReportResponse>("/api/report", params);
+}
+
+export function searchModelCandidates(params: { query: string; limit?: number; token?: string }) {
+  return postJson<{ candidates: ModelCandidate[]; skipped: { repository: string; reason: string }[] }>(
+    "/api/models",
+    params,
+  );
+}
+
+export function scoutAlternatives(params: {
+  need: { capabilityId: string; label: string };
+  stack: string[];
+  licenseRequirement?: "permissive" | "any-open" | "any";
+  keywords?: string[];
+  limit?: number;
+}) {
+  return postJson<ScoutResult>("/api/scout", params);
 }
 
 export function generateContractMap(params: { evidence: RepoEvidence; apiKey: string; model: string }) {

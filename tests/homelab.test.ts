@@ -104,7 +104,7 @@ describe("memory is a range, not a number", () => {
     // ~11 GB expected against a 12 GB card: the usual case fits, a peak does not.
     const estimate = estimateMemory({
       model: model("mid-8b-q4"),
-      contextTokens: 8000,
+      contextTokens: 32000,
       runtime: "ollama",
       target: "gpu",
       drivesDisplay: true,
@@ -128,6 +128,50 @@ describe("memory is a range, not a number", () => {
     expect(fitFor(estimate, 12)).toBe("infeasible");
   });
 
+  it("sizes the KV cache from the key/value width, not from the hidden size", () => {
+    // Qwen2.5-Coder-7B as the repository states it: 28 layers, 28 attention
+    // heads, 4 KV heads of 128 — so 28 × 512, not 28 × 3584. Assuming full
+    // multi-head attention here overstates the cache sevenfold, which is the
+    // difference between "runs on a 3060" and "impossible".
+    const qwen: ModelCandidate = {
+      ...model("mid-8b-q4"),
+      id: "qwen2.5-coder-7b-q4",
+      fileSizeGb: 4.68,
+      paramsB: 7.62,
+      layers: 28,
+      hiddenSize: 3584,
+      kvDim: 4 * 128,
+    };
+
+    const estimate = estimateMemory({
+      model: qwen,
+      contextTokens: 32000,
+      runtime: "ollama",
+      target: "gpu",
+      drivesDisplay: true,
+    });
+
+    const kv = estimate.breakdown.find((b) => b.label.startsWith("KV-Cache"))!;
+    // 2 tensors × 28 × 512 × 32000 tokens × 2 bytes = 1.835 GB.
+    expect(kv.gb).toBeCloseTo(1.84, 2);
+    expect(estimate.confidence).toBe("high");
+    expect(fitFor(estimate, 12)).toBe("fits");
+  });
+
+  it("widens the range instead of guessing when the attention geometry is unknown", () => {
+    const known = { ...model("mid-8b-q4"), kvDim: 1024 };
+    const unknown = { ...known, layers: undefined, kvDim: undefined };
+
+    const withShape = estimateMemory({ model: known, contextTokens: 32000, runtime: "ollama", target: "gpu" });
+    const withoutShape = estimateMemory({ model: unknown, contextTokens: 32000, runtime: "ollama", target: "gpu" });
+
+    expect(withShape.confidence).toBe("high");
+    expect(withoutShape.confidence).toBe("medium");
+    // Not knowing the shape shows up as a wider band, not as a bolder number.
+    const spread = (e: typeof withShape) => e.maximumGb - e.minimumGb;
+    expect(spread(withoutShape)).toBeGreaterThan(spread(withShape));
+  });
+
   it("lowers its confidence when the model does not state its shape", () => {
     const vague = { ...model("mid-8b-q4"), layers: undefined, hiddenSize: undefined };
     expect(estimateMemory({ model: vague, contextTokens: 8000, runtime: "ollama", target: "gpu" }).confidence).toBe(
@@ -143,7 +187,7 @@ describe("memory is a range, not a number", () => {
   it("refuses to keep two models resident beyond the budget", () => {
     const each = estimateMemory({
       model: model("small-3b-q4"),
-      contextTokens: 8000,
+      contextTokens: 32000,
       runtime: "ollama",
       target: "gpu",
       drivesDisplay: true,
@@ -231,9 +275,7 @@ describe("model choice", () => {
   });
 
   it("promotes a model only once it was measured for this very task", () => {
-    // 8B at 32k context needs well past 24 GB once the KV cache is counted,
-    // so this asks about suitability on a card that genuinely has the room.
-    const roomy = { ...ctx, availableGb: 40 };
+    const roomy = { ...ctx, availableGb: 24 };
 
     const best = bestModel(rankModels([...FIXTURE_MODELS], roomy));
     expect(best?.candidate.id).toBe("mid-8b-q4");
@@ -246,8 +288,9 @@ describe("model choice", () => {
   });
 
   it("will not choose a model whose peak exceeds the card, even when measured", () => {
-    // Same measured model, same task, 24 GB: the KV cache alone makes it tight.
-    const ranked = rankModels([model("mid-8b-q4")], ctx);
+    // Same measured model and task on the 12 GB card: the usual case fits, the
+    // peak does not, so it stays a suggestion.
+    const ranked = rankModels([model("mid-8b-q4")], { ...ctx, availableGb: 12 });
     expect(ranked[0].fit).toBe("tight");
     expect(bestModel(ranked)).toBeNull();
   });
@@ -386,13 +429,18 @@ describe("planner", () => {
   });
 
   it("never offers a measured, too-small node as a fallback — it rules it out and says why", () => {
-    // 8B at 32k context needs far past 12 GB once the KV cache is counted, so
-    // the measured workstation is out. The unmeasured laptop is the only thing
-    // left, and the reason the better machine lost must travel with it.
+    // A measured 4 GB card cannot hold any of these at 32k context. The
+    // unmeasured laptop is the only thing left, and the reason the measured
+    // machine lost must travel with the proposal.
     const { proposals } = planPlacements({
       tasks: [taskProfile("repository.reasoning")],
       nodes: [
-        { declaration: fixtureNode("workstation"), observation: observe("workstation") },
+        {
+          declaration: fixtureNode("workstation"),
+          observation: observe("workstation", {
+            gpus: [{ vendor: "nvidia", model: "GeForce GTX 1050 Ti", vramGb: 4, drivesDisplay: true }],
+          }),
+        },
         { declaration: fixtureNode("laptop") },
       ],
       models,
