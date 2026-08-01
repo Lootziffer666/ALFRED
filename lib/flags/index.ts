@@ -91,3 +91,30 @@ export function getCtaContent(variant: CtaVariant): CtaContent {
       };
   }
 }
+
+// plan §31 — Daemon Feature Flags (global, nie hardcodiert in Unit-Datei).
+export interface DaemonFeatureFlags {
+  allowLlmGeneration: boolean;
+  allowAutoMerge: boolean;
+  allowRefactoringProposals: boolean;
+}
+
+export const DEFAULT_DAEMON_FLAGS: DaemonFeatureFlags = {
+  allowLlmGeneration: false,
+  allowAutoMerge: false,
+  allowRefactoringProposals: false,
+};
+
+export function createDaemonFlags(
+  overrides: Partial<DaemonFeatureFlags> = {},
+): DaemonFeatureFlags {
+  return { ...DEFAULT_DAEMON_FLAGS, ...overrides };
+}
+
+export function isLlmGenerationAllowed(flags: DaemonFeatureFlags): boolean {
+  return flags.allowLlmGeneration;
+}
+
+export function isAutoMergeAllowed(flags: DaemonFeatureFlags): boolean {
+  return flags.allowAutoMerge;
+}

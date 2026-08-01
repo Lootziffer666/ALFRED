@@ -68,7 +68,7 @@ type GhResult<T> =
   | { ok: true; data: T }
   | { ok: false; kind: "permissions" | "rate_limited" | "failed"; reason: string };
 
-async function ghFetch<T>(path: string, opts: GhRequestOptions = {}): Promise<GhResult<T>> {
+async function ghFetchLegacy<T>(path: string, opts: GhRequestOptions = {}): Promise<GhResult<T>> {
   const headers: Record<string, string> = {
     Accept: opts.accept ?? "application/vnd.github+json",
     "X-GitHub-Api-Version": "2022-11-28",
@@ -589,4 +589,49 @@ export function parseUnifiedDiff(diffText: string): ChangedFile[] {
   }
   flush();
   return files;
+}
+
+// plan §27 — Neuer ghFetch Export für Daemon-Schicht: mit method, body, fetchImpl.
+export interface GhFetchOptions {
+  method?: "GET" | "POST" | "PATCH" | "PUT" | "DELETE";
+  body?: unknown;
+  fetchImpl?: typeof fetch;
+}
+
+export interface GhFetchResult<T> {
+  ok: boolean;
+  status: number;
+  data: T | undefined;
+  error?: string;
+}
+
+export async function ghFetch<T>(
+  url: string,
+  token: string,
+  opts: GhFetchOptions = {},
+): Promise<GhFetchResult<T>> {
+  const { method = "GET", body, fetchImpl = fetch } = opts;
+
+  const res = await fetchImpl(url, {
+    method,
+    headers: {
+      Authorization: `Bearer ${token}`,
+      Accept: "application/vnd.github+json",
+      "X-GitHub-Api-Version": "2022-11-28",
+      ...(body !== undefined ? { "Content-Type": "application/json" } : {}),
+    },
+    body: body !== undefined ? JSON.stringify(body) : undefined,
+  });
+
+  if (res.status === 204) {
+    return { ok: true, status: 204, data: undefined };
+  }
+
+  if (!res.ok) {
+    const text = await res.text().catch(() => "");
+    return { ok: false, status: res.status, data: undefined, error: text };
+  }
+
+  const data = (await res.json()) as T;
+  return { ok: true, status: res.status, data };
 }
