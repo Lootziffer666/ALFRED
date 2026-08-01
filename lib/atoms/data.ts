@@ -306,6 +306,75 @@ export const RULES: Rule[] = [
       4: "Die Dichte an PRs, die 'falsche Menschenbilder' korrigieren, zeichnet ein System im Dauer-Krisenmodus: jede Review ein dokumentierter Zusammenbruch.",
     },
   },
+  {
+    id: "multi_agent_workflow",
+    cat: "causality",
+    scan: (s: Signals) => {
+      const coAuthMatches = s.commits.match(/Co-Authored-By:\s+([^\n<]+)/gi) || [];
+      if (coAuthMatches.length < 2) return null;
+      const agents = new Set(
+        coAuthMatches.map((m) => m.replace(/Co-Authored-By:\s+/i, "").split("<")[0].trim()),
+      );
+      if (agents.size < 2) return null;
+      const ev: Array<{ k: string; v: string }> = [];
+      ev.push({ k: "Co-Authors", v: `${agents.size} unterschiedliche Agenten registriert` });
+      Array.from(agents)
+        .slice(0, 4)
+        .forEach((a) => ev.push({ k: "Agent", v: a }));
+      return ev.length > 1 ? ev : null;
+    },
+    trope: {
+      1: "Mehrere unterschiedliche Coding-Agenten erscheinen als Co-Authors in der Commit-Historie.",
+      2: "Das Repository zeigt ein systematisches Muster von Multi-Agenten-Orchestrierung – unterschiedliche Agenten, immer derselbe Orchestrator.",
+      3: "Die Implementierung erfolgt durch eine rotierende Gruppe von KI-Agenten, während die Planungs- und Integrations-Autorität zentral bleibt.",
+      4: "Nicht klassische manuelle Programmierung, sondern agentengestützte Produktentwicklung: Agenten implementieren, Menschen orchestrieren.",
+    },
+  },
+  {
+    id: "contributor_role_asymmetry",
+    cat: "authority",
+    scan: (s: Signals) => {
+      const mergeCommits = s.commits.match(/Merge pull request/gi)?.length || 0;
+      const planningCommits = s.commits.match(
+        /Plan|Architektur|Spezifikation|Entwurf|Etappe|Phase/gi,
+      )?.length || 0;
+      const hasCoAuthors = /Co-Authored-By:/i.test(s.commits);
+      if ((!mergeCommits && !planningCommits) || !hasCoAuthors) return null;
+      const ev: Array<{ k: string; v: string }> = [];
+      if (mergeCommits) ev.push({ k: "Merges", v: `${mergeCommits} Merge-Commits durch Inhaber` });
+      if (planningCommits) ev.push({ k: "Planning", v: `${planningCommits} Commits mit Architektur-/Plan-Titeln` });
+      return ev.length > 0 ? ev : null;
+    },
+    trope: {
+      1: "Der Inhaber führt Merges durch und formuliert Architektur-Entscheidungen; Implementierung erfolgt unter Co-Author-Beteiligung.",
+      2: "Spezifikations- und Integrations-Autorität bleiben beim Inhaber, während Implementierung auf mehrere Agenten verteilt ist.",
+      3: "Klare Rollenteilung: Mensch steuert Richtung und prüft; Agenten führen aus und rotieren. Governance bleibt zentralisiert.",
+      4: "Asymmetrischer Contributor-Graph: Eine Kontrollinstanz bestimmt Ziele, Kanäle und Abnahmekriterien; Agenten sind Werkzeuge der Umsetzung.",
+    },
+  },
+  {
+    id: "implementation_provenance",
+    cat: "epistemic",
+    scan: (s: Signals) => {
+      const coAuthAgents = (s.commits.match(/Co-Authored-By:\s+([^\n<]+)/gi) || []).length;
+      const singleAuthor = s.commits.split("\n").filter((l) => l.length > 0 && !/Co-Authored-By/i.test(l)).length;
+      if (coAuthAgents < 2) return null;
+      const ratio = coAuthAgents / (coAuthAgents + singleAuthor);
+      const ev: Array<{ k: string; v: string }> = [];
+      ev.push({ k: "Commits", v: `${coAuthAgents} mit Multi-Agent, ${singleAuthor} mit Single-Agent` });
+      if (ratio > 0.5) {
+        ev.push({ k: "Implementierungsmuster", v: "Überwiegend KI-gestützte Multi-Agenten-Workflows" });
+      }
+      ev.push({ k: "Status", v: "Provenianz und Herkunft dokumentiert" });
+      return ev;
+    },
+    trope: {
+      1: "Implementierungsherkunft ist dokumentiert: Co-Author-Trailer zeigen, welche Agents welche Commits beitrugen.",
+      2: "Provenianz ist nicht verborgen: Multi-Agenten-Workflow ist transparent in der Git-Historie hinterlegt.",
+      3: "Ein Repository dieser Art zu lesen, erfordert ein Modell: nicht 'wer programmiert', sondern 'wie wird programmiert' und 'wer entscheidet'.",
+      4: "Provenianz-Transparenz ist nicht Schwäche – es ist epistemische Ehrlichkeit: die Herkunft jeder Zeile Code ist nachverfolgbar.",
+    },
+  },
 ];
 
 export const CATMETA: Record<AtomCategory, { color: string; row: number }> = {
@@ -320,6 +389,7 @@ export const PHASES: Phase[] = [
   { key: "verfass", title: "Die Verfassung", lvlKey: null, pick: ["constitution", "monopoly", "marker", "melderecht"] },
   { key: "behörd", title: "Die Behördenstruktur", lvlKey: null, pick: ["verify", "oracle", "commit_precedent", "pr_tribunal"] },
   { key: "para", title: "Paradoxa & ehrliches Nicht-Wissen", lvlKey: null, pick: ["unknown", "realm", "recursive", "inherit", "semantic", "worldlaws"] },
+  { key: "prov", title: "Provenianz & Agentengestützung", lvlKey: null, pick: ["multi_agent_workflow", "contributor_role_asymmetry", "implementation_provenance"] },
   { key: "quint", title: "Quintessenz", lvlKey: "close", pick: [] },
 ];
 

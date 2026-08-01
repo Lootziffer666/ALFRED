@@ -151,6 +151,30 @@ export const BIOGRAPHY_RULES: BiographyRule[] = [
       };
     },
   },
+  {
+    id: "agentic_development_model",
+    section: "actual-outcome",
+    scan: ({ atoms }) => {
+      const multiAgent = atoms.find((a) => a.id === "multi_agent_workflow");
+      const roleAsymmetry = atoms.find((a) => a.id === "contributor_role_asymmetry");
+      const provenance = atoms.find((a) => a.id === "implementation_provenance");
+
+      if (!multiAgent || !roleAsymmetry) return null;
+
+      const evidence: Evidence[] = [
+        { k: "Pattern", v: "Multi-Agenten-Orchestrierung mit zentraler Kontrollinstanz" },
+        ...(multiAgent.evidence || []).slice(0, 2),
+        ...(roleAsymmetry.evidence || []).slice(0, 2),
+        ...(provenance?.evidence || []).slice(0, 1),
+      ];
+
+      return {
+        kind: "backed",
+        text: "Dieses Repository entstand nicht durch klassische individuelle Programmierung. Es folgt einem Modell agentischer Produktentwicklung: Der Nutzer spezifiziert Architektur, orchestriert wechselnde Coding-Agenten und prüft Integration; Implementierung erfolgt durch systematisch rotierende KI-Agenten.",
+        evidence,
+      };
+    },
+  },
 ];
 
 export function deriveBiography(ctx: BiographyContext): BiographyFinding[] {
