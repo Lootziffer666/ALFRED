@@ -2,6 +2,7 @@ export * from "./common";
 export * from "./truth";
 export * from "./corpus";
 export * from "./scope";
+export * from "./homelab";
 export * from "./evidence";
 export * from "./contract";
 export * from "./handoff";

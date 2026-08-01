@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { dataClassSchema } from "./common";
 
 /**
  * The scope registry (plan §11). ALFRET works only inside explicitly released
@@ -20,7 +21,7 @@ export const repositoryScopeSchema = z.object({
   destructiveCleanup: permission.default(false),
   /** Paths that stay untouched even where writing is allowed. */
   protectedPaths: z.array(z.string()).default([]),
-  dataClass: z.enum(["public", "private", "secret"]).default("private"),
+  dataClass: dataClassSchema.default("private"),
   /** How much the system may do before asking. */
   autonomy: z.enum(["observe-only", "propose", "act"]).default("observe-only"),
 });
