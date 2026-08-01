@@ -81,8 +81,8 @@ function extractSkills(repos: ProfileRepo[]): ProfileSkill[] {
       skills.push({
         name: lang,
         category,
-        confidence: "verified",
-        truthStatus: "verified",
+        confidence: "observed",
+        truthStatus: "observed",
         evidence: [repoEvidence(repos.find(r => r.fullName === stats.primaryRepo)!)],
         codeShare,
         repoCount: stats.repos.length,
@@ -91,12 +91,37 @@ function extractSkills(repos: ProfileRepo[]): ProfileSkill[] {
     }
   }
 
+  // Extract framework/tool skills from repo topics
+  const topicSkills = new Set<string>();
+  for (const repo of repos) {
+    if (repo.isForked || repo.isMirror) continue;
+    for (const topic of repo.topics) {
+      for (const skill of TOPIC_SKILLS) {
+        if (skill.pattern.test(topic)) {
+          const existing = skills.find(s => s.name === skill.name);
+          if (!existing) {
+            skills.push({
+              name: skill.name,
+              category: skill.category,
+              confidence: "observed",
+              truthStatus: "observed",
+              evidence: [repoEvidence(repo)],
+              repoCount: 1,
+              primaryRepo: repo.fullName,
+            });
+            topicSkills.add(skill.name);
+          }
+        }
+      }
+    }
+  }
+
   return skills.sort((a, b) => (b.codeShare ?? 0) - (a.codeShare ?? 0));
 }
 
 function extractProjects(repos: ProfileRepo[]): ProfileProject[] {
   return repos
-    .filter(r => !r.isForked && !r.isMirror && r.stars > 0)
+    .filter(r => !r.isForked && !r.isMirror)
     .sort((a, b) => b.stars - a.stars)
     .slice(0, 10)
     .map((repo) => ({
@@ -105,7 +130,7 @@ function extractProjects(repos: ProfileRepo[]): ProfileProject[] {
       url: repo.url,
       headline: repo.description ?? `${repo.name} repository`,
       role: "author",
-      truthStatus: "verified",
+      truthStatus: "observed",
       usageSignals: [
         ...(repo.stars > 0 ? [{ kind: "stars" as const, value: repo.stars, note: `${repo.stars} stars` }] : []),
         ...(repo.forks > 0 ? [{ kind: "forks" as const, value: repo.forks, note: `${repo.forks} forks` }] : []),

@@ -14,3 +14,5 @@ export {
   recordPostMergeHealth,
   canMerge,
 } from "./simulate";
+export type { PrAssessment } from "./pr-gate";
+export { assessCommitForPr } from "./pr-gate";
