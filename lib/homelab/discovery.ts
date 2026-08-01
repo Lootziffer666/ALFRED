@@ -48,13 +48,20 @@ export interface ConfirmDiscoveryInput {
 }
 
 /**
- * Turns a confirmed discovery into a node. Demo fixtures are the one exception
- * to pairing: they are planning assumptions that never pretend to be a device,
- * and everything downstream keeps treating them as unmeasured.
+ * Sources the user authored themselves. Typing a machine in *is* the
+ * confirmation, so these need no pairing — and because nothing measured them,
+ * they stay declared-only for good.
+ */
+const USER_AUTHORED: readonly NodeDiscovery["source"][] = ["demo-fixture", "manual-declaration"];
+
+/**
+ * Turns a confirmed discovery into a node. A device that announced itself has
+ * to be paired first; a machine the user described needs no pairing, because
+ * describing it was the act of confirmation.
  */
 export function confirmDiscovery(discovery: NodeDiscovery, input: ConfirmDiscoveryInput): NodeDeclaration {
-  const isFixture = discovery.source === "demo-fixture";
-  if (!isFixture && discovery.pairingStatus !== "paired") {
+  const userAuthored = USER_AUTHORED.includes(discovery.source);
+  if (!userAuthored && discovery.pairingStatus !== "paired") {
     throw new UnconfirmedDiscoveryError(discovery);
   }
 
@@ -80,6 +87,11 @@ export function isMeasured(node: NodeDeclaration, observation?: NodeObservation)
 /** A fixture is a planning assumption, never evidence about a real machine. */
 export function isFixtureNode(node: NodeDeclaration): boolean {
   return node.discovery.source === "demo-fixture";
+}
+
+/** True when nothing but a person's description stands behind this node. */
+export function isUserAuthored(node: NodeDeclaration): boolean {
+  return USER_AUTHORED.includes(node.discovery.source);
 }
 
 const TOLERANCE = 0.1;
