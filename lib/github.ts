@@ -260,6 +260,76 @@ export async function fetchRepoEvidence(params: FetchEvidenceParams): Promise<Re
   };
 }
 
+export interface RepoSearchHit {
+  fullName: string;
+  description: string | null;
+  url: string;
+  stars: number;
+  language: string | null;
+  license: string | null;
+  pushedAt: string | null;
+  openIssues: number;
+  topics: string[];
+  sizeKb: number;
+  archived: boolean;
+  fork: boolean;
+}
+
+interface GhSearchResponse {
+  items: {
+    full_name: string;
+    description: string | null;
+    html_url: string;
+    stargazers_count: number;
+    language: string | null;
+    license: { spdx_id?: string | null } | null;
+    pushed_at: string | null;
+    open_issues_count: number;
+    topics?: string[];
+    size: number;
+    archived: boolean;
+    fork: boolean;
+  }[];
+}
+
+/**
+ * Repository search, used by the scout. Kept here so every GitHub REST call
+ * still lives in this one adapter.
+ */
+export async function searchRepositories(
+  query: string,
+  opts: { token?: string; perPage?: number } = {},
+): Promise<Availability<RepoSearchHit[]>> {
+  const params = new URLSearchParams({
+    q: query,
+    sort: "stars",
+    order: "desc",
+    per_page: String(opts.perPage ?? 10),
+  });
+  const result = await ghFetch<GhSearchResponse>(`/search/repositories?${params.toString()}`, {
+    token: opts.token,
+    accept: "application/vnd.github.mercy-preview+json",
+  });
+  if (!result.ok) return toAvailability(result);
+
+  return loaded(
+    result.data.items.map((item) => ({
+      fullName: item.full_name,
+      description: item.description,
+      url: item.html_url,
+      stars: item.stargazers_count,
+      language: item.language,
+      license: item.license?.spdx_id ?? null,
+      pushedAt: item.pushed_at,
+      openIssues: item.open_issues_count,
+      topics: item.topics ?? [],
+      sizeKb: item.size,
+      archived: item.archived,
+      fork: item.fork,
+    })),
+  );
+}
+
 async function fetchFileText(
   owner: string,
   name: string,

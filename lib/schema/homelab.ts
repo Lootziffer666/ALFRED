@@ -250,6 +250,12 @@ export const modelCandidateSchema = z.object({
   paramsB: z.number().positive().optional(),
   layers: z.number().int().positive().optional(),
   hiddenSize: z.number().int().positive().optional(),
+  /**
+   * Width of the key/value projection per layer — `kvHeads × headDim`. This,
+   * not `hiddenSize`, is what the KV cache scales with: grouped-query
+   * attention makes it several times smaller than the hidden size.
+   */
+  kvDim: z.number().int().positive().optional(),
   contextLength: z.number().int().positive(),
   runtimes: z.array(runtimeIdSchema).min(1),
   license: licenseStatusSchema,
