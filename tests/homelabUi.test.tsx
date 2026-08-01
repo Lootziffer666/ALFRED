@@ -278,3 +278,30 @@ describe("plan export", () => {
     expect(JSON.parse(planToJson(refusedInput)).unplaced.length).toBeGreaterThan(0);
   });
 });
+
+describe("Runner installieren", () => {
+  it("shows one command per platform and downloadable script", async () => {
+    const user = userEvent.setup();
+    render(<HomelabClient />);
+
+    expect(screen.getByText(/Ein Befehl, einmal auf dem Gerät/)).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: /alfret-runner-bootstrap\.ps1/ })).toBeInTheDocument();
+
+    await user.click(screen.getByRole("button", { name: "linux" }));
+    expect(await screen.findByRole("button", { name: /alfret-runner-bootstrap\.sh/ })).toBeInTheDocument();
+
+    await user.click(screen.getByRole("button", { name: "android" }));
+    expect(await screen.findByRole("button", { name: /termux/ })).toBeInTheDocument();
+  });
+
+  it("states that the runner is paired before it accepts anything", () => {
+    render(<HomelabClient />);
+    expect(screen.getByText(/einmaligen Pairing-Code/)).toBeInTheDocument();
+    expect(screen.getByText(/erst dann nimmt er Pläne an/)).toBeInTheDocument();
+  });
+
+  it("says installing stays a decision made on the machine", () => {
+    render(<HomelabClient />);
+    expect(screen.getByText(/--allow-install/)).toBeInTheDocument();
+  });
+});

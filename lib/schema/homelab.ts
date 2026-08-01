@@ -394,6 +394,52 @@ export const runnerStepSchema = z.object({
 });
 export type RunnerStep = z.infer<typeof runnerStepSchema>;
 
+export const stepResultSchema = z.object({
+  kind: runnerStepKindSchema,
+  adapterId: z.string(),
+  startedAt: z.string(),
+  finishedAt: z.string(),
+  exitCode: z.number().int().nullable(),
+  /** Trimmed output, kept for evidence. Never contains pairing material. */
+  output: z.string(),
+  error: z.string().optional(),
+});
+export type StepResult = z.infer<typeof stepResultSchema>;
+
+/**
+ * Verdicts for a check (plan §18). `not_proven` is the default: an exit code
+ * of zero on its own proves nothing.
+ */
+export const checkVerdictSchema = z.enum([
+  "passed",
+  "partially_passed",
+  "failed",
+  "not_proven",
+  "not_applicable",
+]);
+export type CheckVerdict = z.infer<typeof checkVerdictSchema>;
+
+export const checkResultSchema = z.object({
+  id: z.string(),
+  description: z.string(),
+  verdict: checkVerdictSchema,
+  /** What was actually observed, in the check's own words. */
+  observed: z.string(),
+});
+export type CheckResult = z.infer<typeof checkResultSchema>;
+
+export const executionReportSchema = z.object({
+  planId: z.string(),
+  nodeId: z.string(),
+  startedAt: z.string(),
+  finishedAt: z.string(),
+  steps: z.array(stepResultSchema),
+  checks: z.array(checkResultSchema),
+  /** The report's own verdict, never better than its weakest check. */
+  verdict: checkVerdictSchema,
+});
+export type ExecutionReport = z.infer<typeof executionReportSchema>;
+
 export const signedExecutionPlanSchema = z.object({
   planId: z.string().min(1),
   nodeId: z.string().min(1),

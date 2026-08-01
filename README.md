@@ -180,3 +180,26 @@ logged.
 
 See `IMPLEMENTATION_REPORT.md` for what was built, what was run, and the
 results.
+
+## ALFRET Runner (`runner/`)
+
+A small Bun process, one per released node. It reads by default and installs
+nothing unless the machine itself was started with `--allow-install`.
+
+```bash
+bun runner/src/index.ts probe            # print this machine's hardware
+bun runner/src/index.ts pair             # open a one-time pairing window
+bun runner/src/index.ts                  # serve, reading only
+bun runner/src/index.ts --allow-install  # serve with the Ollama adapter
+```
+
+It binds to `127.0.0.1:7717`. Reaching it from another machine is Tailscale's
+job, not a wider bind; CORS is not treated as authentication.
+
+Plans are ECDSA-signed by the paired ALFRET instance over a canonical
+serialisation (`lib/homelab/signing.ts`) and checked for signature, node id,
+expiry, nonce replay, adapter identity and version, and strict parameters
+before a single step is interpreted. Adapters ship with the runner — a plan can
+reference one, never carry one — and every command is an argument vector, so no
+shell is spawned anywhere in `runner/src`. Local policy has the last word and
+can refuse a perfectly valid plan.

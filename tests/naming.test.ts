@@ -39,6 +39,9 @@ const HISTORICAL_ALLOWLIST: { file: string; needle: string }[] = [
   // the rename itself. Removing them would make the fixture a lie.
   { file: "lib/report/fixtures.ts", needle: "Portiert aus einem früheren Single-File-Prototyp (Alfred_new.html)" },
   { file: "lib/report/fixtures.ts", needle: "rename the active system from ALFRED to ALFRET" },
+  // Same as above: the clone URL the bootstrap script uses has to be the one
+  // that resolves today, which is still the old repository name.
+  { file: "lib/homelab/bootstrap.ts", needle: "https://github.com/Lootziffer666/ALFRED" },
 ];
 
 /** Historical documents kept verbatim; each must carry a historical banner. */
