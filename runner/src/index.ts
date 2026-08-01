@@ -2,7 +2,7 @@ import path from "node:path";
 import os from "node:os";
 import { fingerprint } from "../../lib/homelab/signing";
 import { loadOrCreateIdentity, loadPairing } from "./identity";
-import { readOnlyRegistry, verticalSliceRegistry } from "./adapters";
+import { readOnlyRegistry, fullRegistry } from "./adapters";
 import { READ_ONLY_POLICY, type LocalNodePolicy } from "./guard";
 import { createRunnerServer } from "./server";
 import { probeNode } from "./probe";
@@ -39,7 +39,7 @@ async function main() {
   }
 
   const allowInstall = has("allow-install");
-  const adapters = allowInstall ? verticalSliceRegistry() : readOnlyRegistry();
+  const adapters = allowInstall ? fullRegistry() : readOnlyRegistry();
   const policy: LocalNodePolicy = allowInstall
     ? { allowInstall: true, allowedAdapters: adapters.ids(), refusedKinds: [] }
     : READ_ONLY_POLICY;

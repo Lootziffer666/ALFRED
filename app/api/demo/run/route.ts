@@ -141,7 +141,7 @@ export async function POST(req: NextRequest) {
 
       const classifiedFiles: Record<string, string> = {};
       for (const file of demoFiles) {
-        classifiedFiles[file] = classifyPath(file);
+        classifiedFiles[file] = classifyPath(file, 0);
       }
 
       const maidReport = {
