@@ -37,9 +37,11 @@ export class SqliteAlfretStore implements AlfretStore {
         orderId TEXT NOT NULL,
         kind TEXT NOT NULL,
         data TEXT NOT NULL,
-        timestamp TEXT NOT NULL,
-        INDEX idx_orderId (orderId)
+        timestamp TEXT NOT NULL
       )
+    `);
+    this.db.exec(`
+      CREATE INDEX IF NOT EXISTS idx_event_orderId ON event_store(orderId)
     `);
 
     // Heartbeat Store — append-only time-series
@@ -50,11 +52,17 @@ export class SqliteAlfretStore implements AlfretStore {
         taskId TEXT NOT NULL,
         sessionId TEXT NOT NULL,
         data TEXT NOT NULL,
-        timestamp TEXT NOT NULL,
-        INDEX idx_agent (agentId),
-        INDEX idx_task (taskId),
-        INDEX idx_agent_task (agentId, taskId)
+        timestamp TEXT NOT NULL
       )
+    `);
+    this.db.exec(`
+      CREATE INDEX IF NOT EXISTS idx_heartbeat_agent ON heartbeat_store(agentId)
+    `);
+    this.db.exec(`
+      CREATE INDEX IF NOT EXISTS idx_heartbeat_task ON heartbeat_store(taskId)
+    `);
+    this.db.exec(`
+      CREATE INDEX IF NOT EXISTS idx_heartbeat_agent_task ON heartbeat_store(agentId, taskId)
     `);
   }
 
