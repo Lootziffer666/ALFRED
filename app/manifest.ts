@@ -90,7 +90,5 @@ export default function manifest(): MetadataRoute.Manifest {
     ],
 
     categories: ["productivity", "utilities"],
-    screenshots_for_help: true,
-    iarc_rating_id: undefined,
   };
 }

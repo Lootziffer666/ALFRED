@@ -9,6 +9,8 @@ import { InMemoryHermesDispatcher } from "@/lib/hermes";
 import { MemoryAlfretStore } from "@/lib/store";
 import { makeStaticCueCheck, buildCueReport } from "@/lib/cue";
 import { classifyPath } from "@/lib/maid/classify";
+import { broadcaster } from "@/lib/sse/broadcaster";
+import { generateKeyPair, signPlan } from "@/lib/homelab/signing";
 import type { SignedExecutionPlan } from "@/lib/schema/homelab";
 import type { OperatingProfile } from "@/lib/schema/homelab";
 import { checkDemoPolicy, withDemoTimeout, DemoPolicyError } from "@/lib/demo/policy";
@@ -19,8 +21,8 @@ function resolveProfile(req: NextRequest): OperatingProfile {
   return "public-demo";
 }
 
-function createDemoPlan(repoUrl: string): SignedExecutionPlan {
-  return {
+async function createDemoPlan(repoUrl: string, privateKey: string, keyId: string): Promise<SignedExecutionPlan> {
+  const unsignedPlan = {
     planId: `plan-demo-${Date.now()}`,
     nodeId: "demo-node",
     issuedAt: new Date().toISOString(),
@@ -35,9 +37,10 @@ function createDemoPlan(repoUrl: string): SignedExecutionPlan {
       },
     ],
     artifactHashes: {},
-    signerKeyId: "demo-key",
-    signature: "demo-signature",
+    signerKeyId: keyId,
   };
+
+  return signPlan(unsignedPlan, privateKey);
 }
 
 export async function POST(req: NextRequest) {
@@ -72,13 +75,18 @@ export async function POST(req: NextRequest) {
 
     // ── Ausführung mit Timeout ───────────────────────────────────────────────
     const store = new MemoryAlfretStore();
-    const dispatcher = new InMemoryHermesDispatcher();
+    const keyPair = await generateKeyPair();
+    const dispatcher = new InMemoryHermesDispatcher(keyPair.publicKey);
 
     const result = await withDemoTimeout(async () => {
       // ── Schritt 1: Plan einreichen ──────────────────────────────────────────
-      const plan = createDemoPlan(repoUrl);
+      const plan = await createDemoPlan(repoUrl, keyPair.privateKey, keyPair.keyId);
       const order = await dispatcher.submit(plan);
       await store.setOrder(order);
+      broadcaster.broadcast("order-update", {
+        orderId: order.orderId,
+        state: order.state,
+      });
 
       // ── Schritt 2: Session simulieren ───────────────────────────────────────
       const taskId = `task-demo-${Date.now()}`;
@@ -101,6 +109,10 @@ export async function POST(req: NextRequest) {
         terminatedAt: null,
       };
       await store.setSession(mockSession);
+      broadcaster.broadcast("session-update", {
+        sessionId: mockSession.sessionId,
+        phase: mockSession.phase,
+      });
 
       // ── Schritt 3: CUE-Verifikation ────────────────────────────────────────
       // Statische Checks für Demo
@@ -127,6 +139,11 @@ export async function POST(req: NextRequest) {
 
       const cueReport = buildCueReport(taskId, plan.planId, cueChecks);
       await store.setCueReport(cueReport);
+      broadcaster.broadcast("supervisor-tick", {
+        taskId,
+        planId: plan.planId,
+        decision: "proceed",
+      });
 
       // ── Schritt 4: Maid-Scanning ───────────────────────────────────────────
       // Demo-Dateien klassifizieren
@@ -141,7 +158,7 @@ export async function POST(req: NextRequest) {
 
       const classifiedFiles: Record<string, string> = {};
       for (const file of demoFiles) {
-        classifiedFiles[file] = classifyPath(file);
+        classifiedFiles[file] = classifyPath(file, 0);
       }
 
       const maidReport = {
@@ -153,6 +170,10 @@ export async function POST(req: NextRequest) {
         runAt: now,
       };
       await store.setMaidReport(maidReport);
+      broadcaster.broadcast("heartbeat", {
+        agentId: mockSession.agentId,
+        status: "maid-scan-complete",
+      });
 
       // ── Schritt 5: Zusammenfassung zurückgeben ─────────────────────────────
       const sessions = await store.listSessions();

@@ -127,6 +127,7 @@ export function assessContext(ctx: SupervisorContext): SupervisorVerdict {
 /**
  * Minimalimplementierung des Supervisor-Interfaces.
  * Delegiert alle Dispatches an den HermesDispatcher.
+ * Erzwingt Ordering: authorize() darf nur nach assess() mit decision="authorize" aufgerufen werden.
  */
 export class LoopSupervisor implements Supervisor {
   private state: LoopState = initialLoopState();
@@ -140,6 +141,13 @@ export class LoopSupervisor implements Supervisor {
   }
 
   async authorize(plan: SignedExecutionPlan): Promise<HermesOrder> {
+    if (this.state.lastVerdict?.decision !== "authorize") {
+      throw new Error(
+        `authorize() kann nur nach einem erfolgreichem assess() mit decision="authorize" aufgerufen werden. ` +
+        `Aktuelle Entscheidung: ${this.state.lastVerdict?.decision ?? "keine"}`,
+      );
+    }
+
     const order = await this.hermes.submit(plan);
 
     this.state = {

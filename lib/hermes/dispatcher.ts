@@ -6,6 +6,7 @@ import type {
   HermesSession,
 } from "./types";
 import type { SignedExecutionPlan } from "../../lib/schema/homelab";
+import { verifySignature } from "../../lib/homelab/signing";
 import { createOrder, isDuplicate, transitionOrder } from "./orders";
 import { createSession, detectWorktreeConflict } from "./sessions";
 import { createHandoff } from "./handoffs";
@@ -31,8 +32,20 @@ export class InMemoryHermesDispatcher implements HermesDispatcher {
   private sessions = new Map<string, HermesSession>();
   private handoffs = new Map<string, HandoffPackage>();
   private eventLog = new OrderEventLog();
+  private publicKey: string | null = null;
+
+  constructor(publicKey?: string) {
+    this.publicKey = publicKey ?? null;
+  }
 
   async submit(plan: SignedExecutionPlan): Promise<HermesOrder> {
+    if (this.publicKey) {
+      const isValid = await verifySignature(plan, this.publicKey);
+      if (!isValid) {
+        throw new Error(`Plan-Signatur ist ungültig oder beschädigt.`);
+      }
+    }
+
     const all = [...this.orders.values()];
 
     if (isDuplicate(all, plan.planId)) {

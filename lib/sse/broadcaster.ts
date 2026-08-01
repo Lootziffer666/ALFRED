@@ -9,8 +9,7 @@
  * Skaliert nicht horizontal — das ist bekannt und akzeptiert.
  *
  * Jede Verbindung bekommt eine ReadableStream-Instanz.
- * Der Broadcaster hält eine WeakRef auf den Controller um
- * GC nicht zu blockieren wenn die Verbindung bereits geschlossen ist.
+ * Der Broadcaster hält starke Referenzen auf die Controller.
  */
 
 import { encodeSseEvent, encodePing, encodeRetry } from "./encoder";

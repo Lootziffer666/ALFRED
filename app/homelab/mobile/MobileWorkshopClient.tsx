@@ -36,6 +36,8 @@ function useBattery(): BatteryState {
   useEffect(() => {
     if (!("getBattery" in navigator)) return;
 
+    let cleanup: (() => void) | null = null;
+
     (navigator as Navigator & { getBattery(): Promise<BatteryManager> })
       .getBattery()
       .then((bm: BatteryManager) => {
@@ -49,12 +51,14 @@ function useBattery(): BatteryState {
         bm.addEventListener("levelchange", update);
         bm.addEventListener("chargingchange", update);
 
-        return () => {
+        cleanup = () => {
           bm.removeEventListener("levelchange", update);
           bm.removeEventListener("chargingchange", update);
         };
       })
       .catch(() => {/* Battery API nicht erlaubt */});
+
+    return () => cleanup?.();
   }, []);
 
   return battery;

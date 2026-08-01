@@ -134,7 +134,7 @@ export function middleware(req: NextRequest) {
   // ── Demo-Routen: Private-IP-Check ────────────────────────────────────────
   // Verhindert dass /api/demo/* intern auf lokale Dienste weitergeleitet wird.
   // Betrifft den Referer und den Origin-Header.
-  if (DEMO_ONLY_ROUTES.some((p) => pathname.startsWith(p))) {
+  if (profile === "public-demo" && DEMO_ONLY_ROUTES.some((p) => pathname.startsWith(p))) {
     const origin = req.headers.get("origin") ?? "";
     if (origin && isPrivateOrigin(origin)) {
       return NextResponse.json(
@@ -170,18 +170,19 @@ export function middleware(req: NextRequest) {
     }
 
     // Erlaubt — Header setzen und weiterleiten
-    const response = NextResponse.next();
+    const requestHeaders = new Headers(req.headers);
+    requestHeaders.set("x-alfret-profile", profile);
+    const response = NextResponse.next({ request: { headers: requestHeaders } });
     response.headers.set("X-RateLimit-Limit", String(RATE_LIMIT_MAX));
     response.headers.set("X-RateLimit-Remaining", String(remaining));
     response.headers.set("X-RateLimit-Reset", String(Math.ceil(resetAt / 1000)));
-    response.headers.set("X-Alfret-Profile", profile);
     return response;
   }
 
   // ── Alle anderen Routen: nur Profile-Header setzen ────────────────────────
-  const response = NextResponse.next();
-  response.headers.set("X-Alfret-Profile", profile);
-  return response;
+  const requestHeaders = new Headers(req.headers);
+  requestHeaders.set("x-alfret-profile", profile);
+  return NextResponse.next({ request: { headers: requestHeaders } });
 }
 
 export const config = {

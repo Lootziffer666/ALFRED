@@ -26,7 +26,16 @@ export function exportProfile(
   profile: DeveloperProfile,
   config: ExportConfig
 ): ExportResult {
-  const content = exportAsMarkdown(profile, config);
+  let content: string;
+
+  if (config.format === "json") {
+    content = JSON.stringify(profile, null, 2);
+  } else if (config.format === "text") {
+    content = exportAsText(profile, config);
+  } else {
+    content = exportAsMarkdown(profile, config);
+  }
+
   const lines = content.split("\n").length;
 
   return {
@@ -35,6 +44,42 @@ export function exportProfile(
     charCount: content.length,
     lineCount: lines,
   };
+}
+
+function exportAsText(profile: DeveloperProfile, config: ExportConfig): string {
+  const lines: string[] = [];
+
+  lines.push(`${profile.displayName || profile.login}`);
+  lines.push("");
+
+  if (profile.bio) {
+    lines.push(profile.bio);
+    lines.push("");
+  }
+
+  if (profile.location || profile.source.company) {
+    if (profile.location) lines.push(`Location: ${profile.location}`);
+    if (profile.source.company) lines.push(`Company: ${profile.source.company}`);
+    lines.push("");
+  }
+
+  lines.push("SKILLS");
+  for (const skill of profile.skills.slice(0, 15)) {
+    const share = skill.codeShare ? ` (${Math.round(skill.codeShare * 100)}%)` : "";
+    lines.push(`- ${skill.name} [${skill.category}]${share}`);
+  }
+  lines.push("");
+
+  if (profile.projects.length > 0) {
+    lines.push("NOTABLE PROJECTS");
+    for (const proj of profile.projects.slice(0, 5)) {
+      lines.push(proj.repoName);
+      lines.push(proj.headline);
+      lines.push("");
+    }
+  }
+
+  return lines.join("\n");
 }
 
 function exportAsMarkdown(profile: DeveloperProfile, config: ExportConfig): string {
