@@ -8,6 +8,8 @@ import type { HardwareReconciliation, NodeDeclaration, TaskProfileId } from "@/l
 import { isFixtureNode, isUserAuthored } from "@/lib/homelab/discovery";
 import { rankModels } from "@/lib/homelab/models";
 import { planToJson, planToMarkdown } from "@/lib/homelab/export";
+import { buildBootstrap } from "@/lib/homelab/bootstrap";
+import type { NodeOs } from "@/lib/schema/homelab";
 
 type Homelab = ReturnType<typeof useHomelab>;
 
@@ -58,6 +60,8 @@ export function DevicesStep({ h }: { h: Homelab }) {
     availability: "always",
   });
   const [address, setAddress] = useState("");
+  const [bootstrapOs, setBootstrapOs] = useState<NodeOs>("windows");
+  const bootstrap = buildBootstrap({ os: bootstrapOs });
 
   return (
     <div style={{ display: "grid", gap: 16 }}>
@@ -158,6 +162,45 @@ export function DevicesStep({ h }: { h: Homelab }) {
           </div>
           <button type="submit" style={{ justifySelf: "start" }}>Gerät hinzufügen</button>
         </form>
+      </Card>
+
+      <Card title="Runner installieren">
+        <p style={{ color: "var(--paper-dim)", fontSize: 13.5, lineHeight: 1.6, margin: "0 0 12px" }}>
+          Ein Befehl, einmal auf dem Gerät. Der Runner installiert sich, erzeugt sein eigenes
+          Schlüsselpaar und zeigt einen einmaligen Pairing-Code. Danach vergleichst du den
+          Fingerprint — erst dann nimmt er Pläne an.
+        </p>
+        <div style={{ display: "flex", gap: 8, flexWrap: "wrap", marginBottom: 10 }}>
+          {(["linux", "windows", "android"] as const).map((os) => (
+            <button
+              key={os}
+              type="button"
+              className={bootstrapOs === os ? "" : "ghost"}
+              onClick={() => setBootstrapOs(os)}
+            >
+              {os}
+            </button>
+          ))}
+        </div>
+        <pre
+          className="mono card-inset"
+          style={{ fontSize: 11.5, padding: 10, margin: 0, overflowX: "auto", color: "var(--paper)" }}
+        >
+          {bootstrap.command}
+        </pre>
+        <ul style={{ listStyle: "none", padding: 0, margin: "10px 0 0", display: "grid", gap: 4 }}>
+          {bootstrap.notes.map((n) => (
+            <li key={n} style={{ color: "var(--mut)", fontSize: 12, lineHeight: 1.5 }}>· {n}</li>
+          ))}
+        </ul>
+        <button
+          type="button"
+          className="ghost"
+          style={{ marginTop: 10 }}
+          onClick={() => downloadText(bootstrap.filename, bootstrap.script)}
+        >
+          ⧉ {bootstrap.filename}
+        </button>
       </Card>
 
       <Card title="Runner-Adresse vormerken">
@@ -514,6 +557,10 @@ export function PlanStep({ h }: { h: Homelab }) {
 }
 
 // ── 7 · Export ──────────────────────────────────────────────────────────────
+
+function downloadText(filename: string, content: string) {
+  download(filename, content, "text/plain");
+}
 
 function download(filename: string, content: string, type: string) {
   const url = URL.createObjectURL(new Blob([content], { type }));
