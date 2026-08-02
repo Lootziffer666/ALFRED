@@ -19,6 +19,7 @@
 // Ein Config-Flip später kann das ändern, ist aber nicht Teil dieser Etappe.
 
 import type { Job, JobContext, JobResult } from "./types.js";
+import { ghFetch } from "../../github.js";
 import {
   replaceMarkedBlock,
   findStaleEtappenClaim,
@@ -191,7 +192,6 @@ async function fetchLastMergedPr(
   token: string,
   excludeAuthor: string,
 ): Promise<{ mergedAt: string; number: number } | null> {
-  const { ghFetch } = await import("../../github.js");
   const [owner, name] = repo.split("/");
 
   // Fetch merged PRs, excluding daemon-authored commits.
@@ -220,7 +220,6 @@ async function fetchLastReadmeCommit(
   repo: string,
   token: string,
 ): Promise<{ date: string } | null> {
-  const { ghFetch } = await import("../../github.js");
   const [owner, name] = repo.split("/");
 
   const url = `https://api.github.com/repos/${owner}/${name}/commits?path=README.md&per_page=1`;
@@ -241,7 +240,6 @@ async function anyDocRelevantChangesSince(
   sinceDate: string,
   globs: string[],
 ): Promise<boolean> {
-  const { ghFetch } = await import("../../github.js");
   const [owner, name] = repo.split("/");
 
   // Convert date string to ISO format if needed.
@@ -278,7 +276,6 @@ async function fetchReadmeContent(
   repo: string,
   token: string,
 ): Promise<string> {
-  const { ghFetch } = await import("../../github.js");
   const [owner, name] = repo.split("/");
 
   const url = `https://api.github.com/repos/${owner}/${name}/contents/README.md`;
@@ -300,7 +297,6 @@ async function countPlanEtappen(
   repo: string,
   token: string,
 ): Promise<number> {
-  const { ghFetch } = await import("../../github.js");
   const [owner, name] = repo.split("/");
 
   const url = `https://api.github.com/repos/${owner}/${name}/contents/PLAN.md`;
