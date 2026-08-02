@@ -43,6 +43,22 @@
   --font-technical-data: var(--font-ibm-plex-mono), ui-monospace, monospace;
 }
 
+/* Scroll-driven "mystical" ambient glow (main app only). Registering these
+   as typed custom properties is what makes them smoothly interpolate on
+   their own — a plain `--x: value` swap has no notion of "in between", but
+   a registered <color> property animates like any other color transition,
+   so scrolling up reverses the same way it went down without extra JS. */
+@property --mystic-a {
+  syntax: "<color>";
+  inherits: true;
+  initial-value: rgba(163, 22, 22, 0.16);
+}
+@property --mystic-b {
+  syntax: "<color>";
+  inherits: true;
+  initial-value: rgba(233, 193, 118, 0.1);
+}
+
 /* Self-hosted (public/fonts/), synced from @material-symbols/font-400 —
    no runtime dependency on fonts.googleapis.com. */
 @font-face {

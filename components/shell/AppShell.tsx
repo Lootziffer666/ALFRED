@@ -2,6 +2,7 @@
 
 import Image from "next/image";
 import Link from "next/link";
+import { useEffect } from "react";
 import { STEPS, useSession, type Step } from "../session/SessionContext";
 
 /**
@@ -42,6 +43,61 @@ const MODULES: ModuleLink[] = [
   { href: "/workshop", label: "Workshop", sublabel: "Orders, Sessions, Findings", icon: "monitoring" },
 ];
 
+/**
+ * Scroll position drives an ambient glow from crimson/gold (top of page)
+ * toward violet/indigo "mystical" tones (deeper in) — and reverses the same
+ * way on the way back up, since it's a direct function of scroll position
+ * rather than a one-shot animation. The colors themselves live in CSS
+ * custom properties registered via @property in globals.css, which is what
+ * lets the browser interpolate them smoothly instead of jumping between
+ * values on every scroll-driven update.
+ */
+function lerp(a: number, b: number, t: number): number {
+  return Math.round(a + (b - a) * t);
+}
+
+function lerpRgba(from: [number, number, number, number], to: [number, number, number, number], t: number): string {
+  const r = lerp(from[0], to[0], t);
+  const g = lerp(from[1], to[1], t);
+  const b = lerp(from[2], to[2], t);
+  const a = from[3] + (to[3] - from[3]) * t;
+  return `rgba(${r}, ${g}, ${b}, ${a.toFixed(3)})`;
+}
+
+const MYSTIC_A_FROM: [number, number, number, number] = [163, 22, 22, 0.32]; // crimson (primary-container)
+const MYSTIC_A_TO: [number, number, number, number] = [124, 58, 237, 0.42]; // violet (richer than the surface accents)
+const MYSTIC_B_FROM: [number, number, number, number] = [233, 193, 118, 0.2]; // gold (tertiary)
+const MYSTIC_B_TO: [number, number, number, number] = [67, 56, 202, 0.46]; // deep indigo
+
+function useMysticScroll() {
+  useEffect(() => {
+    const root = document.documentElement;
+    let ticking = false;
+
+    function apply() {
+      ticking = false;
+      const max = document.documentElement.scrollHeight - window.innerHeight;
+      const progress = max > 0 ? Math.min(1, Math.max(0, window.scrollY / max)) : 0;
+      root.style.setProperty("--mystic-a", lerpRgba(MYSTIC_A_FROM, MYSTIC_A_TO, progress));
+      root.style.setProperty("--mystic-b", lerpRgba(MYSTIC_B_FROM, MYSTIC_B_TO, progress));
+    }
+
+    function onScroll() {
+      if (ticking) return;
+      ticking = true;
+      requestAnimationFrame(apply);
+    }
+
+    apply();
+    window.addEventListener("scroll", onScroll, { passive: true });
+    window.addEventListener("resize", onScroll, { passive: true });
+    return () => {
+      window.removeEventListener("scroll", onScroll);
+      window.removeEventListener("resize", onScroll);
+    };
+  }, []);
+}
+
 function useReachability() {
   const { inventory, contractMap, handoff } = useSession();
   return (id: Step) => {
@@ -57,9 +113,10 @@ function useReachability() {
 export function AppShell({ children }: { children: React.ReactNode }) {
   const { step, setStep, demoMode, repoInput } = useSession();
   const isReachable = useReachability();
+  useMysticScroll();
 
   return (
-    <div className="lg:pl-72 min-h-screen flex flex-col bg-background text-on-surface">
+    <div className="relative isolate lg:pl-72 min-h-screen flex flex-col text-on-surface">
       {/* ═══ Desktop sidebar ═══ */}
       <aside className="hidden lg:flex fixed left-0 top-0 h-full w-72 bg-surface-container-low border-r border-outline-variant/30 flex-col z-50">
         <div className="p-8 flex flex-col items-center border-b border-outline-variant/20 mb-4">
@@ -195,8 +252,21 @@ export function AppShell({ children }: { children: React.ReactNode }) {
         </div>
       </div>
 
+      {/* Ambient glow — fixed to the viewport, not the (tall, scrolling) content,
+          so the mystical shift stays visible no matter how far down the page
+          the user has scrolled. */}
+      <div
+        className="fixed inset-0 z-0 pointer-events-none"
+        style={{
+          backgroundImage:
+            "radial-gradient(ellipse at 50% 15%, var(--mystic-a) 0%, var(--mystic-b) 60%, var(--mystic-b) 100%)",
+          backgroundColor: "#0d0e0f",
+          transition: "--mystic-a 400ms ease-out, --mystic-b 400ms ease-out",
+        }}
+      />
+
       {/* ═══ Main content ═══ */}
-      <main className="flex-1 flex flex-col bg-[radial-gradient(circle_at_50%_0%,#1a1c1c_0%,#0d0e0f_100%)]">
+      <main className="relative z-10 flex-1 flex flex-col">
         <div className="max-w-3xl mx-auto w-full px-4 py-8 lg:px-10 lg:py-12">{children}</div>
       </main>
     </div>
