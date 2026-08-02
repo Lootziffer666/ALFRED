@@ -163,24 +163,28 @@ export async function fetchRepoEvidence(params: FetchEvidenceParams): Promise<Re
   const { owner, name, token } = params;
   const warnings: string[] = [];
 
-  const metaResult = await ghFetch<GhRepoMeta>(`/repos/${owner}/${name}`, { token });
-  if (!metaResult.ok) {
+  if (!token) {
+    throw new GitHubInputError("GitHub token is required to fetch repository evidence");
+  }
+
+  const metaResult = await ghFetch<GhRepoMeta>(`${API_ROOT}/repos/${owner}/${name}`, token);
+  if (!metaResult.ok || !metaResult.data) {
     throw new GitHubInputError(
-      `Could not load repository ${owner}/${name}: ${metaResult.reason}`,
+      `Could not load repository ${owner}/${name}: ${metaResult.error || "Unknown error"}`,
     );
   }
   const meta = metaResult.data;
   const ref = params.ref?.trim() || meta.default_branch;
 
   const [treeResult, commitsResult, pullsResult] = await Promise.all([
-    ghFetch<GhTreeResponse>(`/repos/${owner}/${name}/git/trees/${encodeURIComponent(ref)}?recursive=1`, { token }),
-    ghFetch<GhCommit[]>(`/repos/${owner}/${name}/commits?sha=${encodeURIComponent(ref)}&per_page=15`, { token }),
-    ghFetch<GhPull[]>(`/repos/${owner}/${name}/pulls?state=open&per_page=10`, { token }),
+    ghFetch<GhTreeResponse>(`${API_ROOT}/repos/${owner}/${name}/git/trees/${encodeURIComponent(ref)}?recursive=1`, token),
+    ghFetch<GhCommit[]>(`${API_ROOT}/repos/${owner}/${name}/commits?sha=${encodeURIComponent(ref)}&per_page=15`, token),
+    ghFetch<GhPull[]>(`${API_ROOT}/repos/${owner}/${name}/pulls?state=open&per_page=10`, token),
   ]);
 
   let tree: Availability<FileEntry[]>;
   let treeEntries: GhTreeEntry[] = [];
-  if (treeResult.ok) {
+  if (treeResult.ok && treeResult.data) {
     treeEntries = treeResult.data.tree;
     if (treeResult.data.truncated) {
       warnings.push(`Repository tree was truncated by GitHub beyond ${treeEntries.length} entries.`);
@@ -197,13 +201,13 @@ export async function fetchRepoEvidence(params: FetchEvidenceParams): Promise<Re
       })),
     );
   } else {
-    tree = toAvailability(treeResult);
+    tree = unavailable("failed", treeResult.error || "Could not fetch repository tree");
   }
 
   const docs = await fetchDocEvidence({ owner, name, ref, token, treeEntries });
   const packageManifest = await fetchPackageManifest({ owner, name, ref, token, treeEntries });
 
-  const commits: Availability<CommitEvidence[]> = commitsResult.ok
+  const commits: Availability<CommitEvidence[]> = commitsResult.ok && commitsResult.data
     ? loaded(
         commitsResult.data.map((c) => ({
           sha: c.sha.slice(0, 12),
@@ -213,11 +217,11 @@ export async function fetchRepoEvidence(params: FetchEvidenceParams): Promise<Re
           url: c.html_url,
         })),
       )
-    : toAvailability(commitsResult);
+    : unavailable("failed", commitsResult.error || "Could not fetch commits");
 
   let pullRequests: Availability<PullRequestSummary>;
   let openPullCount = 0;
-  if (pullsResult.ok) {
+  if (pullsResult.ok && pullsResult.data) {
     openPullCount = pullsResult.data.length;
     pullRequests = loaded({
       openCount: pullsResult.data.length,
@@ -229,10 +233,10 @@ export async function fetchRepoEvidence(params: FetchEvidenceParams): Promise<Re
       })),
     });
   } else {
-    pullRequests = toAvailability(pullsResult);
+    pullRequests = unavailable("failed", pullsResult.error || "Could not fetch pull requests");
   }
 
-  const issues: Availability<IssueSummary> = pullsResult.ok
+  const issues: Availability<IssueSummary> = pullsResult.ok && pullsResult.data
     ? loaded({ openCount: Math.max(0, meta.open_issues_count - openPullCount) })
     : loaded({ openCount: meta.open_issues_count });
   if (!pullsResult.ok) {

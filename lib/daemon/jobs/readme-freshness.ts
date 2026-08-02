@@ -19,6 +19,7 @@
 // Ein Config-Flip später kann das ändern, ist aber nicht Teil dieser Etappe.
 
 import type { Job, JobContext, JobResult } from "./types.js";
+import { ghFetch } from "../../github.js";
 import {
   replaceMarkedBlock,
   findStaleEtappenClaim,
@@ -30,6 +31,7 @@ import {
   jobStateId,
 } from "./job-state.js";
 import { globToRegExp } from "../../maid/gitignore.js";
+import { narrator } from "../narration.js";
 
 const DOC_RELEVANT_GLOBS = ["lib/**", "app/api/**", "bin/**", "PLAN.md"];
 const DAEMON_AUTHOR_MARKER = "alfret-daemon[bot]";
@@ -44,9 +46,9 @@ export const readmeFreshnessJob: Job = {
 
     const state = await getJobState(ctx.store, "readme-freshness", repo.repository);
     if (hasOpenProposal(state)) {
-      log.info("Offener README-Vorschlag existiert bereits — übersprungen.", {
-        pr: state?.openPrNumber,
-      });
+      log.info(
+        narrator.general.nothing({ repository: repo.repository, detail: "Offener README-PR existiert bereits" })
+      );
       return { status: "skipped", findings: [], writes: [] };
     }
 
@@ -60,6 +62,13 @@ export const readmeFreshnessJob: Job = {
     );
     const staleClaim = findStaleEtappenClaim(readmeContent, planEtappenCount);
     if (staleClaim) {
+      log.warn(
+        narrator.readme.etappenMismatch({
+          repository: repo.repository,
+          detail: `Alle ${staleClaim.claimed} Etappen`,
+          metric: planEtappenCount,
+        })
+      );
       findings.push({
         kind: "stale-documentation",
         severity: "warning",
@@ -77,8 +86,10 @@ export const readmeFreshnessJob: Job = {
       DAEMON_AUTHOR_MARKER,
     );
 
-    if (!lastMergedPr)
+    if (!lastMergedPr) {
+      log.info(narrator.readme.noLastPr({ repository: repo.repository }));
       return { status: "ok", findings, writes: [] };
+    }
 
     // Read 2: letzte README-Änderung
     const lastReadmeChange = await fetchLastReadmeCommit(
@@ -99,6 +110,12 @@ export const readmeFreshnessJob: Job = {
     );
 
     if (!touchedDocRelevant) {
+      log.info(
+        narrator.readme.noChange({
+          repository: repo.repository,
+          detail: "README ist älter, aber keine doc-relevanten Änderungen",
+        })
+      );
       findings.push({
         kind: "stale-documentation",
         severity: "info",
@@ -120,8 +137,10 @@ export const readmeFreshnessJob: Job = {
 
     if (!replacement.changed) {
       log.info(
-        "Marker fehlen oder kein inhaltlicher Unterschied — README bleibt unangetastet.",
-        { reason: replacement.reason },
+        narrator.readme.markersMissing({
+          repository: repo.repository,
+          detail: replacement.reason,
+        })
       );
       findings.push({
         kind: "doc-update-needed",
@@ -134,6 +153,13 @@ export const readmeFreshnessJob: Job = {
 
       return { status: "ok", findings, writes: [] };
     }
+
+    log.warn(
+      narrator.readme.updateNeeded({
+        repository: repo.repository,
+        detail: "README ist veraltet und Doku-Relevantes wurde geändert",
+      })
+    );
 
     findings.push({
       kind: "doc-update-needed",
@@ -185,46 +211,139 @@ export const readmeFreshnessJob: Job = {
   },
 };
 
-// Platzhalter für tatsächliche GitHub-Reads — echte Implementierung nutzt ghFetch/compareRefs aus Etappe 27.
+// GitHub API implementation for readme-freshness checks.
 async function fetchLastMergedPr(
-  _repo: string,
-  _token: string,
-  _excludeAuthor: string,
+  repo: string,
+  token: string,
+  excludeAuthor: string,
 ): Promise<{ mergedAt: string; number: number } | null> {
+  const [owner, name] = repo.split("/");
+
+  // Fetch merged PRs, excluding daemon-authored commits.
+  const url = `https://api.github.com/repos/${owner}/${name}/pulls?state=closed&sort=updated&direction=desc&per_page=30`;
+  const result = await ghFetch<Array<{
+    number: number;
+    merged_at: string | null;
+    user?: { login: string };
+  }>>(url, token);
+
+  if (!result.ok || !result.data) return null;
+
+  for (const pr of result.data) {
+    if (pr.merged_at && pr.user?.login !== excludeAuthor) {
+      return {
+        mergedAt: pr.merged_at,
+        number: pr.number,
+      };
+    }
+  }
+
   return null;
 }
 
 async function fetchLastReadmeCommit(
-  _repo: string,
-  _token: string,
+  repo: string,
+  token: string,
 ): Promise<{ date: string } | null> {
-  return null;
+  const [owner, name] = repo.split("/");
+
+  const url = `https://api.github.com/repos/${owner}/${name}/commits?path=README.md&per_page=1`;
+  const result = await ghFetch<Array<{
+    commit: { author?: { date: string } };
+  }>>(url, token);
+
+  if (!result.ok || !result.data || result.data.length === 0) return null;
+
+  return {
+    date: result.data[0].commit.author?.date || new Date().toISOString(),
+  };
 }
 
 async function anyDocRelevantChangesSince(
-  _repo: string,
-  _token: string,
-  _sinceDate: string,
+  repo: string,
+  token: string,
+  sinceDate: string,
   globs: string[],
 ): Promise<boolean> {
-  void globs.map((g) => globToRegExp(g));
+  const [owner, name] = repo.split("/");
+
+  // Convert date string to ISO format if needed.
+  const since = new Date(sinceDate).toISOString().split("T")[0];
+
+  // Fetch commits since the given date.
+  const url = `https://api.github.com/repos/${owner}/${name}/commits?since=${encodeURIComponent(since)}&per_page=100`;
+  const result = await ghFetch<Array<{
+    files?: Array<{ filename: string }>;
+  }>>(url, token);
+
+  if (!result.ok || !result.data) return false;
+
+  // Compile globs into regex patterns.
+  const patterns = globs.map((g) => globToRegExp(g));
+
+  // Check if any file matches the doc-relevant globs.
+  for (const commit of result.data) {
+    if (commit.files) {
+      for (const file of commit.files) {
+        for (const pattern of patterns) {
+          if (pattern.test(file.filename)) {
+            return true;
+          }
+        }
+      }
+    }
+  }
+
   return false;
 }
 
 async function fetchReadmeContent(
-  _repo: string,
-  _token: string,
+  repo: string,
+  token: string,
 ): Promise<string> {
-  return "";
+  const [owner, name] = repo.split("/");
+
+  const url = `https://api.github.com/repos/${owner}/${name}/contents/README.md`;
+  const result = await ghFetch<{
+    content: string;
+  }>(url, token);
+
+  if (!result.ok || !result.data) return "";
+
+  // GitHub returns base64-encoded content.
+  try {
+    return Buffer.from(result.data.content, "base64").toString("utf-8");
+  } catch {
+    return "";
+  }
 }
 
 async function countPlanEtappen(
-  _repo: string,
-  _token: string,
+  repo: string,
+  token: string,
 ): Promise<number> {
-  return 0;
+  const [owner, name] = repo.split("/");
+
+  const url = `https://api.github.com/repos/${owner}/${name}/contents/PLAN.md`;
+  const result = await ghFetch<{
+    content: string;
+  }>(url, token);
+
+  if (!result.ok || !result.data) return 0;
+
+  try {
+    const planContent = Buffer.from(result.data.content, "base64").toString("utf-8");
+    // Count occurrences of "## §N" pattern in PLAN.md.
+    const matches = planContent.match(/^##\s+§(\d+)/gm) || [];
+    return matches.length;
+  } catch {
+    return 0;
+  }
 }
 
-function buildStatusBlock(_repo: string, _pr: { number: number }): string {
-  return "";
+function buildStatusBlock(repo: string, pr: { number: number }): string {
+  // Build a markdown status block showing the latest PR status.
+  return `<!-- alfret:begin status -->
+**Latest Update:** PR #${pr.number} (${repo})
+<!-- alfret:end status -->`;
 }

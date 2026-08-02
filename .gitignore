@@ -40,3 +40,9 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# build artifacts (organized in .build/)
+.build/artifacts/**
+.build/cache/**
+!.build/artifacts/.gitkeep
+!.build/cache/.gitkeep
