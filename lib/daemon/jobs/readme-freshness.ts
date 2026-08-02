@@ -185,46 +185,144 @@ export const readmeFreshnessJob: Job = {
   },
 };
 
-// Platzhalter für tatsächliche GitHub-Reads — echte Implementierung nutzt ghFetch/compareRefs aus Etappe 27.
+// GitHub API implementation for readme-freshness checks.
 async function fetchLastMergedPr(
-  _repo: string,
-  _token: string,
-  _excludeAuthor: string,
+  repo: string,
+  token: string,
+  excludeAuthor: string,
 ): Promise<{ mergedAt: string; number: number } | null> {
+  const { ghFetch } = await import("../../github.js");
+  const [owner, name] = repo.split("/");
+
+  // Fetch merged PRs, excluding daemon-authored commits.
+  const url = `https://api.github.com/repos/${owner}/${name}/pulls?state=closed&sort=updated&direction=desc&per_page=30`;
+  const result = await ghFetch<Array<{
+    number: number;
+    merged_at: string | null;
+    user?: { login: string };
+  }>>(url, token);
+
+  if (!result.ok || !result.data) return null;
+
+  for (const pr of result.data) {
+    if (pr.merged_at && pr.user?.login !== excludeAuthor) {
+      return {
+        mergedAt: pr.merged_at,
+        number: pr.number,
+      };
+    }
+  }
+
   return null;
 }
 
 async function fetchLastReadmeCommit(
-  _repo: string,
-  _token: string,
+  repo: string,
+  token: string,
 ): Promise<{ date: string } | null> {
-  return null;
+  const { ghFetch } = await import("../../github.js");
+  const [owner, name] = repo.split("/");
+
+  const url = `https://api.github.com/repos/${owner}/${name}/commits?path=README.md&per_page=1`;
+  const result = await ghFetch<Array<{
+    commit: { author?: { date: string } };
+  }>>(url, token);
+
+  if (!result.ok || !result.data || result.data.length === 0) return null;
+
+  return {
+    date: result.data[0].commit.author?.date || new Date().toISOString(),
+  };
 }
 
 async function anyDocRelevantChangesSince(
-  _repo: string,
-  _token: string,
-  _sinceDate: string,
+  repo: string,
+  token: string,
+  sinceDate: string,
   globs: string[],
 ): Promise<boolean> {
-  void globs.map((g) => globToRegExp(g));
+  const { ghFetch } = await import("../../github.js");
+  const [owner, name] = repo.split("/");
+
+  // Convert date string to ISO format if needed.
+  const since = new Date(sinceDate).toISOString().split("T")[0];
+
+  // Fetch commits since the given date.
+  const url = `https://api.github.com/repos/${owner}/${name}/commits?since=${encodeURIComponent(since)}&per_page=100`;
+  const result = await ghFetch<Array<{
+    files?: Array<{ filename: string }>;
+  }>>(url, token);
+
+  if (!result.ok || !result.data) return false;
+
+  // Compile globs into regex patterns.
+  const patterns = globs.map((g) => globToRegExp(g));
+
+  // Check if any file matches the doc-relevant globs.
+  for (const commit of result.data) {
+    if (commit.files) {
+      for (const file of commit.files) {
+        for (const pattern of patterns) {
+          if (pattern.test(file.filename)) {
+            return true;
+          }
+        }
+      }
+    }
+  }
+
   return false;
 }
 
 async function fetchReadmeContent(
-  _repo: string,
-  _token: string,
+  repo: string,
+  token: string,
 ): Promise<string> {
-  return "";
+  const { ghFetch } = await import("../../github.js");
+  const [owner, name] = repo.split("/");
+
+  const url = `https://api.github.com/repos/${owner}/${name}/contents/README.md`;
+  const result = await ghFetch<{
+    content: string;
+  }>(url, token);
+
+  if (!result.ok || !result.data) return "";
+
+  // GitHub returns base64-encoded content.
+  try {
+    return Buffer.from(result.data.content, "base64").toString("utf-8");
+  } catch {
+    return "";
+  }
 }
 
 async function countPlanEtappen(
-  _repo: string,
-  _token: string,
+  repo: string,
+  token: string,
 ): Promise<number> {
-  return 0;
+  const { ghFetch } = await import("../../github.js");
+  const [owner, name] = repo.split("/");
+
+  const url = `https://api.github.com/repos/${owner}/${name}/contents/PLAN.md`;
+  const result = await ghFetch<{
+    content: string;
+  }>(url, token);
+
+  if (!result.ok || !result.data) return 0;
+
+  try {
+    const planContent = Buffer.from(result.data.content, "base64").toString("utf-8");
+    // Count occurrences of "## §N" pattern in PLAN.md.
+    const matches = planContent.match(/^##\s+§(\d+)/gm) || [];
+    return matches.length;
+  } catch {
+    return 0;
+  }
 }
 
-function buildStatusBlock(_repo: string, _pr: { number: number }): string {
-  return "";
+function buildStatusBlock(repo: string, pr: { number: number }): string {
+  // Build a markdown status block showing the latest PR status.
+  return `<!-- alfret:begin status -->
+**Latest Update:** PR #${pr.number} (${repo})
+<!-- alfret:end status -->`;
 }
