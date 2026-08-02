@@ -1,7 +1,7 @@
 // plan §36 — POST-Verification: Nach jedem Commit echte Systeme-Checks
 // "Grün leuchten" reicht nicht. Wir müssen wissen, dass es funktioniert.
 
-import type { Logger } from "./log.js";
+import type { DaemonLogger } from "./log.js";
 import { narrator } from "./narration.js";
 
 export interface VerificationResult {
@@ -31,9 +31,9 @@ export interface VerificationCheck {
  */
 
 export class PostVerifier {
-  private log: Logger;
+  private log: DaemonLogger;
 
-  constructor(log: Logger) {
+  constructor(log: DaemonLogger) {
     this.log = log;
   }
 

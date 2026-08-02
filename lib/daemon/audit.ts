@@ -1,12 +1,13 @@
 // plan §36 — Unveränderliches Audit-Log: jeder ausgeführte UND jeder verweigerte PlannedWrite.
 
-import type { AlfretStore } from "../store/types.js";
+import type { AlfretStore, Entity } from "../store/types.js";
 import type { PlannedWrite } from "./jobs/types.js";
 import type { ScopeDecision } from "../scope.js";
 
 export type AuditOutcome = "executed" | "denied" | "dry-run" | "budget-exceeded";
 
-export interface AuditEntry {
+export interface AuditEntry extends Entity {
+  kind: "daemon-audit";
   id: string;
   repository: string;
   jobId: string;
@@ -24,21 +25,17 @@ function auditEntryId(repository: string, tickId: string, index: number): string
 
 export async function recordAudit(
   store: AlfretStore,
-  entry: Omit<AuditEntry, "id">,
+  entry: Omit<AuditEntry, "id" | "kind">,
   index: number,
 ): Promise<AuditEntry> {
   const full: AuditEntry = {
+    kind: "daemon-audit",
     id: auditEntryId(entry.repository, entry.tickId, index),
     ...entry,
   };
 
-  // event_store ist append-only: kein update(), kein delete() für "daemon-audit".
-  await store.appendEvent({
-    kind: "daemon-audit",
-    id: full.id,
-    payload: full,
-    occurredAt: full.occurredAt,
-  });
+  // Store ist append-only: put() speichert immer, overwrite ist okay für Versioning
+  await store.put(full);
 
   return full;
 }
@@ -48,10 +45,8 @@ export async function auditHistory(
   repository: string,
   limit = 200,
 ): Promise<AuditEntry[]> {
-  const events = await store.listEvents({
-    kind: "daemon-audit",
-    repository,
-    limit,
-  });
-  return events.map((e) => e.payload as AuditEntry);
+  const entries = await store.list<AuditEntry>("daemon-audit");
+  return entries
+    .filter((e) => e.repository === repository)
+    .slice(-limit);
 }

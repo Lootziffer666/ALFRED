@@ -32,7 +32,7 @@ const COMMANDS = [
 type Command = (typeof COMMANDS)[number];
 
 async function main(): Promise<void> {
-  const { positional, values } = parseArgs({
+  const { positionals, values } = parseArgs({
     options: {
       help: { type: "boolean", short: "h" },
       version: { type: "boolean", short: "v" },
@@ -40,7 +40,7 @@ async function main(): Promise<void> {
     allowPositionals: true,
   });
 
-  const cmd = (positional[0] as Command | undefined) ?? "run";
+  const cmd = (positionals[0] as Command | undefined) ?? "run";
 
   if (values.help || !COMMANDS.includes(cmd)) {
     console.log(`
@@ -72,7 +72,7 @@ Options:
   }
 
   try {
-    await execCommand(cmd, positional.slice(1) as string[]);
+    await execCommand(cmd, positionals.slice(1) as string[]);
   } catch (err) {
     console.error(`Error: ${err instanceof Error ? err.message : String(err)}`);
     process.exit(1);
@@ -109,7 +109,7 @@ async function execCommand(cmd: Command, args: string[]): Promise<void> {
 }
 
 async function runDaemon(): Promise<void> {
-  const log = createLogger({ level: "info" });
+  const log = createLogger({ minLevel: "info" });
 
   try {
     await acquireLock();
@@ -121,10 +121,11 @@ async function runDaemon(): Promise<void> {
     throw err;
   }
 
-  const config = loadConfig({});
-  const creds = loadCredentials();
+  const configResult = await loadConfig({});
+  const config = configResult.config;
+  const credsResult = await loadCredentials();
   const store = await openStore({ kind: "sqlite" });
-  const ctx = await createContext({ config, creds, store, log });
+  const ctx = await createContext({ config, creds: credsResult, store, log });
 
   const scheduler = startScheduler({
     ctx,
@@ -164,7 +165,7 @@ async function runDaemon(): Promise<void> {
 }
 
 async function runOnce(): Promise<void> {
-  const log = createLogger({ level: "info" });
+  const log = createLogger({ minLevel: "info" });
 
   try {
     await acquireLock();
@@ -177,10 +178,11 @@ async function runOnce(): Promise<void> {
   }
 
   try {
-    const config = loadConfig({});
-    const creds = loadCredentials();
+    const configResult = await loadConfig({});
+    const config = configResult.config;
+    const credsResult = await loadCredentials();
     const store = await openStore({ kind: "sqlite" });
-    const ctx = await createContext({ config, creds, store, log });
+    const ctx = await createContext({ config, creds: credsResult, store, log });
 
     const { runOnce } = await import("../lib/daemon/scheduler.js");
     const result = await runOnce(ctx, [maidScanJob]);
@@ -197,7 +199,7 @@ async function runOnce(): Promise<void> {
 }
 
 async function showStatus(): Promise<void> {
-  const log = createLogger({ level: "info" });
+  const log = createLogger({ minLevel: "info" });
 
   try {
     await acquireLock();
@@ -214,26 +216,27 @@ async function showStatus(): Promise<void> {
     throw err;
   }
 
-  const config = loadConfig({});
-  console.log("Config:", JSON.stringify(config, null, 2));
+  const configResult = await loadConfig({});
+  console.log("Config:", JSON.stringify(configResult.config, null, 2));
 }
 
 async function runDoctor(): Promise<void> {
-  const log = createLogger({ level: "info" });
+  const log = createLogger({ minLevel: "info" });
 
   console.log("=== ALFRET Daemon Health Check ===\n");
 
-  const config = loadConfig({});
+  const configResult = await loadConfig({});
+  const config = configResult.config;
   console.log("✓ Config loaded");
 
-  const creds = loadCredentials();
-  console.log(creds.token ? "✓ GitHub token found" : "⚠ No GitHub token");
+  const credsResult = await loadCredentials();
+  console.log(credsResult.token ? "✓ GitHub token found" : "⚠ No GitHub token");
 
-  const scope = loadScopeRegistry();
-  console.log(`✓ Scope: ${Object.keys(scope.repositories).length} repositories`);
+  const scopeResult = await loadScopeRegistry();
+  console.log(`✓ Scope: ${Object.keys(scopeResult.registry.repositories).length} repositories`);
 
   const store = await openStore({ kind: "sqlite" });
-  const ctx = await createContext({ config, creds, store, log });
+  const ctx = await createContext({ config, creds: credsResult, store, log });
 
   if (ctx.git) {
     console.log(`✓ Git: ${ctx.git.version} at ${ctx.git.path}`);
@@ -266,11 +269,10 @@ async function addRepo(repo: string): Promise<void> {
 }
 
 async function setArmed(armed: boolean): Promise<void> {
-  const config = loadConfig({});
-  const updated = { ...config, armed };
+  const configResult = await loadConfig({});
+  const updated = { ...configResult.config, armed };
 
-  const { configPath } = await import("../lib/daemon/paths.js");
-  const { writeJson } = await import("../lib/daemon/paths.js");
+  const { configPath, writeJson } = await import("../lib/daemon/paths.js");
   await writeJson(configPath(), updated);
 
   console.log(`Daemon ${armed ? "armed" : "disarmed"}`);
@@ -301,7 +303,7 @@ async function pauseDaemon(): Promise<void> {
 }
 
 async function resumeDaemon(): Promise<void> {
-  const log = createLogger({ level: "info" });
+  const log = createLogger({ minLevel: "info" });
 
   try {
     await acquireLock();
@@ -313,10 +315,11 @@ async function resumeDaemon(): Promise<void> {
     throw err;
   }
 
-  const config = loadConfig({});
-  const creds = loadCredentials();
+  const configResult = await loadConfig({});
+  const config = configResult.config;
+  const credsResult = await loadCredentials();
   const store = await openStore({ kind: "sqlite" });
-  const ctx = await createContext({ config, creds, store, log });
+  const ctx = await createContext({ config, creds: credsResult, store, log });
 
   const { runOnce } = await import("../lib/daemon/scheduler.js");
   await runOnce(ctx, [maidScanJob]);

@@ -18,8 +18,8 @@ import { checkDemoPolicy, withDemoTimeout, DemoPolicyError } from "@/lib/demo/po
 
 function resolveProfile(req: NextRequest): OperatingProfile {
   const header = req.headers.get("x-alfret-profile");
-  if (header === "local-installation") return "local-installation";
-  return "public-demo";
+  if (header === "local-dev" || header === "homelab") return header;
+  return "production";
 }
 
 async function createDemoPlan(repoUrl: string, privateKey: string, keyId: string): Promise<SignedExecutionPlan> {
@@ -31,13 +31,11 @@ async function createDemoPlan(repoUrl: string, privateKey: string, keyId: string
     nonce: `demo-nonce-${Math.random()}`,
     steps: [
       {
-        adapterId: "probe",
-        adapterVersion: "1.0.0",
-        kind: "probe-node",
+        kind: "probe-node" as const,
         params: { repoUrl },
       },
     ],
-    artifactHashes: {},
+    artifactHashes: [],
     signerKeyId: keyId,
   };
 
