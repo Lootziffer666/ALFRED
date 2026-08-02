@@ -1,0 +1,333 @@
+<div class="flex flex-row h-[calc(100vh-64px-80px)]">
+
+  <!-- ═══════════════════════════════════════════════
+       LEFT VERTICAL TOOLBAR (w-16)
+       Secondary tool strip — history, stories, bookmarks
+       ═══════════════════════════════════════════════ -->
+  <div class="hidden lg:flex flex-col w-16 bg-surface-container border-r border-outline-variant/10 items-center py-8 gap-10 shrink-0">
+
+    <!-- Vertical label -->
+    <div class="[writing-mode:vertical-rl] rotate-180 font-technical-data text-on-surface-variant/25 text-[10px] tracking-[0.5em] uppercase select-none">
+      CHRONICLE_LOG
+    </div>
+
+    <!-- Tool buttons -->
+    <div class="flex flex-col gap-4">
+      <button title="Version history"
+        class="w-10 h-10 rounded-lg border border-outline-variant/20 flex items-center justify-center text-on-surface-variant hover:bg-primary-container hover:text-on-primary-container transition-all">
+        <span class="material-symbols-outlined text-sm">history</span>
+      </button>
+
+      <button title="Story map"
+        class="w-10 h-10 rounded-lg border border-outline-variant/20 flex items-center justify-center text-on-surface-variant hover:bg-primary-container hover:text-on-primary-container transition-all">
+        <span class="material-symbols-outlined text-sm">auto_stories</span>
+      </button>
+
+      <button title="Bookmarks"
+        class="w-10 h-10 rounded-lg border border-outline-variant/20 flex items-center justify-center text-on-surface-variant hover:bg-primary-container hover:text-on-primary-container transition-all">
+        <span class="material-symbols-outlined text-sm">bookmark</span>
+      </button>
+
+      <button title="Annotations"
+        class="w-10 h-10 rounded-lg border border-outline-variant/20 flex items-center justify-center text-on-surface-variant hover:bg-primary-container hover:text-on-primary-container transition-all">
+        <span class="material-symbols-outlined text-sm">edit_note</span>
+      </button>
+    </div>
+
+  </div>
+
+  <!-- ═══════════════════════════════════════════════
+       CENTER WORKSPACE
+       Sticky formatting toolbar + scrollable parchment
+       ═══════════════════════════════════════════════ -->
+  <div class="flex-1 relative overflow-y-auto" id="editor-scroll-root">
+
+    <!-- Sticky formatting toolbar -->
+    <div class="sticky top-0 z-30 w-full px-12 py-4 bg-surface-container/90 backdrop-blur-lg border-b border-outline-variant/10 flex items-center justify-between">
+
+      <div class="flex items-center gap-2 flex-wrap">
+
+        <!-- Primary AI action -->
+        <button
+          class="flex items-center gap-3 px-6 py-2 bg-primary-container text-on-primary-container hover:brightness-110 transition-all rounded font-ui-label text-xs uppercase tracking-widest font-bold border border-primary-container/60 shadow-md">
+          <span class="material-symbols-outlined text-lg">magic_button</span>
+          <span>Rewrite</span>
+        </button>
+
+        <div class="h-6 w-px bg-outline-variant/20 mx-1"></div>
+
+        <!-- Formatting tools -->
+        <button title="Indent" class="p-2 text-on-surface-variant hover:text-secondary transition-colors">
+          <span class="material-symbols-outlined">format_indent_increase</span>
+        </button>
+        <button title="Outdent" class="p-2 text-on-surface-variant hover:text-secondary transition-colors">
+          <span class="material-symbols-outlined">format_indent_decrease</span>
+        </button>
+        <button title="Block quote" class="p-2 text-on-surface-variant hover:text-secondary transition-colors">
+          <span class="material-symbols-outlined">format_quote</span>
+        </button>
+        <button title="Bold" class="p-2 text-on-surface-variant hover:text-secondary transition-colors">
+          <span class="material-symbols-outlined">format_bold</span>
+        </button>
+        <button title="Italic" class="p-2 text-on-surface-variant hover:text-secondary transition-colors">
+          <span class="material-symbols-outlined">format_italic</span>
+        </button>
+
+        <div class="h-6 w-px bg-outline-variant/20 mx-1"></div>
+
+        <!-- Tone shift -->
+        <button
+          class="flex items-center gap-2 px-4 py-2 text-on-surface-variant hover:text-secondary transition-colors rounded hover:bg-surface-container-high">
+          <span class="material-symbols-outlined text-lg">psychology_alt</span>
+          <span class="font-ui-label text-xs uppercase tracking-widest">Change Tone</span>
+        </button>
+
+        <!-- Insert -->
+        <button
+          class="flex items-center gap-2 px-4 py-2 text-on-surface-variant hover:text-secondary transition-colors rounded hover:bg-surface-container-high">
+          <span class="material-symbols-outlined text-lg">add_circle</span>
+          <span class="font-ui-label text-xs uppercase tracking-widest">Insert</span>
+        </button>
+
+      </div>
+
+      <!-- Right: live stats -->
+      <div class="flex items-center gap-6 shrink-0">
+        <span id="word-count" class="font-technical-data text-[10px] text-on-surface-variant/60 uppercase tracking-widest">WORDS: 0</span>
+        <span id="autosave-tag" class="font-technical-data text-[10px] text-primary uppercase tracking-widest">AUTOSAVE: ACTIVE</span>
+      </div>
+
+    </div>
+
+    <!-- ─── The Document Slab ─── -->
+    <div class="max-w-4xl mx-auto my-16 px-12 relative">
+
+      <article
+        id="parchment-doc"
+        class="parchment-texture text-[#2b251a] p-16 min-h-[900px] rounded-sm transition-transform duration-500"
+      >
+        <!-- Document header -->
+        <header class="mb-12 border-b border-black/10 pb-8">
+
+          <div class="font-technical-data text-[11px] uppercase tracking-[0.3em] text-[#92040c] mb-4"
+               id="doc-meta">Draft No. — // Project: ALFRET</div>
+
+          <!-- Editable title -->
+          <h1
+            contenteditable="true"
+            id="doc-title"
+            class="font-document-heading text-[42px] font-bold leading-tight mb-2 text-[#1a1c1c] outline-none focus:border-b-2 focus:border-[#92040c]/30 empty:before:content-['Untitled_Document'] empty:before:text-[#2b251a]/30"
+          >Untitled Document</h1>
+
+          <!-- Editable subtitle / abstract -->
+          <p
+            contenteditable="true"
+            id="doc-subtitle"
+            class="font-body-md text-black/50 italic text-lg leading-relaxed outline-none empty:before:content-['Add_a_subtitle...'] empty:before:text-black/20"
+          ></p>
+
+        </header>
+
+        <!-- Editable body -->
+        <section
+          contenteditable="true"
+          id="doc-body"
+          class="space-y-8 font-body-md text-xl leading-relaxed text-justify text-[#2c271e] outline-none min-h-[400px]
+                 focus:outline-none
+                 empty:before:content-['Begin_writing...'] empty:before:text-[#2b251a]/25 empty:before:italic"
+        >
+        </section>
+
+      </article>
+
+    </div>
+
+  </div>
+
+  <!-- ═══════════════════════════════════════════════
+       RIGHT CONTEXT RAIL (w-96, xl only)
+       Evidence, references, linked data
+       ═══════════════════════════════════════════════ -->
+  <div class="hidden xl:flex flex-col w-96 bg-surface-container-low border-l border-outline-variant/10 shrink-0">
+
+    <!-- Rail header -->
+    <div class="p-8 border-b border-outline-variant/20">
+      <h2 class="font-room-heading text-xl uppercase tracking-[0.4em] text-primary mb-1">Evidence Rail</h2>
+      <p class="font-technical-data text-[10px] text-on-surface-variant/40 uppercase tracking-widest">Analytical Reference Library</p>
+    </div>
+
+    <!-- Rail body -->
+    <div class="flex-1 overflow-y-auto p-6 space-y-10">
+
+      <!-- Tier: Critical -->
+      <div>
+        <div class="flex items-center gap-3 mb-4">
+          <span class="w-1.5 h-1.5 bg-[#92040c] rounded-full"></span>
+          <h3 class="font-technical-data text-[11px] uppercase tracking-[0.2em] text-[#92040c] font-bold">Critical Evidence</h3>
+        </div>
+        <div class="space-y-4" id="evidence-critical">
+          <div class="bg-surface-container-highest/40 border border-outline-variant/20 p-5 hover:border-secondary/40 transition-all cursor-pointer group rounded-lg">
+            <div class="flex justify-between items-start mb-3">
+              <span class="font-technical-data text-[10px] text-secondary font-bold">REF: #—</span>
+              <span class="material-symbols-outlined text-sm text-on-surface-variant group-hover:text-primary transition-colors">open_in_new</span>
+            </div>
+            <p class="font-ui-label text-xs text-on-surface uppercase leading-relaxed mb-4 tracking-wide">No critical evidence linked yet.</p>
+            <div class="flex gap-2">
+              <span class="bg-primary-container/10 border border-primary-container/20 px-2 py-0.5 text-[9px] font-technical-data text-primary uppercase">PENDING</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Tier: Supporting -->
+      <div>
+        <div class="flex items-center gap-3 mb-4">
+          <span class="w-1.5 h-1.5 bg-secondary/40 rounded-full"></span>
+          <h3 class="font-technical-data text-[11px] uppercase tracking-[0.2em] text-secondary/60">Supporting Data</h3>
+        </div>
+        <div class="space-y-4" id="evidence-supporting">
+          <div class="bg-surface-container p-5 border border-outline-variant/10 hover:border-secondary/20 transition-all cursor-pointer group rounded-lg">
+            <div class="flex justify-between items-start mb-3">
+              <span class="font-technical-data text-[10px] text-on-surface-variant/60 font-bold uppercase">Reference: —</span>
+              <span class="material-symbols-outlined text-sm text-on-surface-variant/40 group-hover:text-secondary transition-colors">open_in_new</span>
+            </div>
+            <p class="font-ui-label text-[11px] text-on-surface-variant uppercase leading-relaxed mb-4 tracking-wide">No supporting data linked.</p>
+            <div class="flex gap-2">
+              <span class="bg-surface-container-highest/30 px-2 py-0.5 text-[9px] font-technical-data text-on-surface-variant/40 uppercase">EMPTY</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Tier: Sentiment analysis -->
+      <div>
+        <div class="flex items-center gap-3 mb-4">
+          <span class="w-1.5 h-1.5 bg-on-surface-variant/20 rounded-full"></span>
+          <h3 class="font-technical-data text-[11px] uppercase tracking-[0.2em] text-on-surface-variant/40">Archive Context</h3>
+        </div>
+        <div class="border border-outline-variant/10 p-5 bg-surface-container-lowest/50 rounded-lg">
+          <p class="font-technical-data text-[10px] uppercase text-on-surface-variant/60 tracking-widest mb-6">Draft Sentiment Analysis</p>
+          <div class="h-1.5 w-full bg-surface-container-highest/20 rounded-full flex mb-4 overflow-hidden">
+            <div id="sentiment-formal"   class="h-full bg-primary-container transition-all duration-700" style="width:0%"></div>
+            <div id="sentiment-evidential" class="h-full bg-secondary transition-all duration-700" style="width:0%"></div>
+            <div id="sentiment-arcane"  class="h-full bg-outline-variant transition-all duration-700" style="width:0%"></div>
+          </div>
+          <div class="flex justify-between font-technical-data text-[9px] text-on-surface-variant/40 uppercase tracking-widest">
+            <span id="label-formal">Formal: 0%</span>
+            <span id="label-evidential">Evidential: 0%</span>
+            <span id="label-arcane">Arcane: 0%</span>
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- Add evidence CTA -->
+    <div class="p-8 border-t border-outline-variant/20">
+      <button
+        id="btn-add-evidence"
+        class="w-full h-12 flex items-center justify-center gap-4 bg-surface-container-highest/50 border border-outline-variant/20 text-on-surface-variant hover:bg-primary-container hover:text-on-primary-container transition-all uppercase font-ui-label text-[10px] font-bold tracking-[0.2em] rounded-lg">
+        <span class="material-symbols-outlined text-sm">add_link</span>
+        <span>Add New Evidence</span>
+      </button>
+    </div>
+
+  </div>
+
+</div>
+
+<template id="footer-actions-document-editor">
+  <button class="px-6 h-11 flex items-center gap-3 border border-outline-variant/30 text-on-surface-variant hover:bg-surface-container-high hover:text-on-surface transition-all uppercase font-ui-label text-[10px] tracking-widest rounded-lg">
+    <span class="material-symbols-outlined text-lg">picture_as_pdf</span>
+    <span>Export PDF</span>
+  </button>
+  <button class="px-6 h-11 flex items-center gap-3 border border-outline-variant/30 text-on-surface-variant hover:bg-surface-container-high hover:text-on-surface transition-all uppercase font-ui-label text-[10px] tracking-widest rounded-lg">
+    <span class="material-symbols-outlined text-lg">code</span>
+    <span>Markdown</span>
+  </button>
+  <button class="px-8 h-11 flex items-center gap-4 bg-primary-container text-on-primary-container hover:brightness-110 transition-all uppercase font-ui-label text-xs font-bold tracking-[0.3em] rounded-lg shadow-lg shadow-primary-container/20">
+    <span class="material-symbols-outlined text-lg">publish</span>
+    <span>Publish to Repo</span>
+  </button>
+</template>
+
+<script>
+(function () {
+
+  /* ── Nodes ── */
+  const body       = document.getElementById('doc-body');
+  const title      = document.getElementById('doc-title');
+  const wordCount  = document.getElementById('word-count');
+  const autosaveEl = document.getElementById('autosave-tag');
+  const scrollRoot = document.getElementById('editor-scroll-root');
+  const parchment  = document.getElementById('parchment-doc');
+  const footerSt   = document.getElementById('footer-status');
+
+  /* ── Footer status ── */
+  if (footerSt) footerSt.textContent = 'READY TO EDIT';
+
+  /* ── Autosave ticker ── */
+  setInterval(() => {
+    const now  = new Date();
+    const time = [now.getHours(), now.getMinutes(), now.getSeconds()]
+      .map(n => String(n).padStart(2,'0')).join(':');
+    if (autosaveEl) autosaveEl.textContent = `AUTOSAVE: ${time}`;
+  }, 1000);
+
+  /* ── Word counter + sentiment ── */
+  function countWords(el) {
+    return (el.innerText.trim().match(/\S+/g) || []).length;
+  }
+
+  const FORMAL_WORDS     = ['analysis','therefore','pursuant','herein','verified','manifest','protocol'];
+  const EVIDENTIAL_WORDS = ['evidence','commit','reference','source','data','log','record'];
+  const ARCANE_WORDS     = ['alchemical','arcane','sanctum','ether','rune','sigil','chronicle'];
+
+  function scoreText(text) {
+    const t = text.toLowerCase();
+    const f = FORMAL_WORDS.filter(w => t.includes(w)).length;
+    const e = EVIDENTIAL_WORDS.filter(w => t.includes(w)).length;
+    const a = ARCANE_WORDS.filter(w => t.includes(w)).length;
+    const total = f + e + a || 1;
+    return {
+      formal:      Math.round(f / total * 100),
+      evidential:  Math.round(e / total * 100),
+      arcane:      Math.round(a / total * 100),
+    };
+  }
+
+  function updateStats() {
+    const wc = countWords(body) + countWords(title);
+    if (wordCount) wordCount.textContent = `WORDS: ${wc.toLocaleString()}`;
+
+    const s = scoreText(body.innerText);
+    document.getElementById('sentiment-formal').style.width      = s.formal + '%';
+    document.getElementById('sentiment-evidential').style.width  = s.evidential + '%';
+    document.getElementById('sentiment-arcane').style.width      = s.arcane + '%';
+    document.getElementById('label-formal').textContent          = `Formal: ${s.formal}%`;
+    document.getElementById('label-evidential').textContent      = `Evidential: ${s.evidential}%`;
+    document.getElementById('label-arcane').textContent          = `Arcane: ${s.arcane}%`;
+  }
+
+  [body, title].forEach(el => {
+    if (el) el.addEventListener('input', updateStats);
+  });
+  updateStats();
+
+  /* ── Scroll parallax on parchment ── */
+  if (scrollRoot && parchment) {
+    scrollRoot.addEventListener('scroll', () => {
+      const s = scrollRoot.scrollTop;
+      parchment.style.transform = `translateY(${s * 0.04}px) rotate(${s * 0.0008}deg)`;
+    }, { passive: true });
+  }
+
+  /* ── Footer actions: inject from template ── */
+  const tmpl = document.getElementById('footer-actions-document-editor');
+  const footerActions = document.getElementById('footer-actions');
+  if (tmpl && footerActions) {
+    footerActions.innerHTML = tmpl.innerHTML;
+  }
+
+})();
+</script>

@@ -1,0 +1,66 @@
+<div class="flex flex-col w-full pb-24">
+
+  <section class="px-16 pt-12 pb-8 border-b border-outline-variant/10">
+    <div class="flex items-center gap-2 mb-2">
+      <span class="text-primary font-ui-label text-[10px] tracking-[0.4em] uppercase font-bold">Inventory</span>
+      <div class="h-px w-8 bg-primary/30"></div>
+    </div>
+    <h1 class="font-room-heading text-4xl uppercase tracking-tight text-on-surface mb-2">Repository Inventory</h1>
+    <p class="font-body-md text-on-surface-variant italic text-base">
+      Complete catalog of linked repositories and their metadata.
+    </p>
+  </section>
+
+  <section class="px-16 py-12">
+    <div class="overflow-x-auto">
+      <table class="w-full text-sm">
+        <thead>
+          <tr class="border-b border-outline-variant/20">
+            <th class="text-left pb-4 font-ui-label text-[10px] uppercase tracking-widest text-on-surface-variant/40">Repository</th>
+            <th class="text-left pb-4 font-ui-label text-[10px] uppercase tracking-widest text-on-surface-variant/40">Status</th>
+            <th class="text-right pb-4 font-ui-label text-[10px] uppercase tracking-widest text-on-surface-variant/40">Commits</th>
+            <th class="text-right pb-4 font-ui-label text-[10px] uppercase tracking-widest text-on-surface-variant/40">Last Updated</th>
+          </tr>
+        </thead>
+        <tbody class="divide-y divide-outline-variant/10">
+          <tr class="group hover:bg-surface-container transition-colors">
+            <td class="py-4">
+              <p class="font-ui-label text-xs text-on-surface uppercase tracking-wide">ALFRET</p>
+              <p class="font-technical-data text-[10px] text-on-surface-variant/40">lootziffer666/alfret</p>
+            </td>
+            <td class="py-4">
+              <span class="inline-flex items-center gap-1.5 px-2 py-0.5 bg-primary-container/10 border border-primary-container/20 text-primary-container rounded-full font-technical-data text-[9px] uppercase">
+                <span class="w-1.5 h-1.5 rounded-full bg-primary-container animate-pulse"></span>Active
+              </span>
+            </td>
+            <td class="py-4 text-right font-technical-data text-xs text-on-surface">142</td>
+            <td class="py-4 text-right font-technical-data text-xs text-on-surface-variant/60">2 hours ago</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+</div>
+
+<template id="footer-actions-repository-inventory">
+  <button class="px-6 h-11 flex items-center gap-3 border border-outline-variant/30 text-on-surface-variant hover:bg-surface-container-high hover:text-on-surface transition-all uppercase font-ui-label text-[10px] tracking-widest rounded-lg">
+    <span class="material-symbols-outlined text-lg">refresh</span>
+    <span>Sync Repos</span>
+  </button>
+  <button class="px-8 h-11 flex items-center gap-4 bg-primary-container text-on-primary-container hover:brightness-110 transition-all uppercase font-ui-label text-xs font-bold tracking-[0.3em] rounded-lg shadow-lg shadow-primary-container/20">
+    <span class="material-symbols-outlined text-lg">add_circle</span>
+    <span>Add Repository</span>
+  </button>
+</template>
+
+<script>
+(function () {
+  const tmpl = document.getElementById('footer-actions-repository-inventory');
+  const fa   = document.getElementById('footer-actions');
+  if (tmpl && fa) fa.innerHTML = tmpl.innerHTML;
+
+  const fs = document.getElementById('footer-status');
+  if (fs) fs.textContent = 'SCANNING REPOSITORIES';
+})();
+</script>
