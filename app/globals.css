@@ -2,39 +2,50 @@
 
 /* =====================================================================
    Scriptorium design tokens — additive Tailwind v4 theme extension.
-   Source: Stitch mockup ("Nice.md") → Perplexity design system draft.
    Used by the main session workflow (AppShell + screens/*). Does not
    replace the --ink/--brass/--zinnober tokens above, which /archive,
    /homelab, /report and /workshop keep using untouched.
+
+   Palette is deliberately six raw colors and nothing else — two reds,
+   two grays, black, white. No pink, no gold, no third hue anywhere,
+   including places that are not obviously visible (e.g. the scroll
+   ambient glow in AppShell.tsx interpolates between the two reds, not
+   toward a different color). Every token below resolves to one of:
+     RED_BRIGHT #c81e1e · RED_DARK #7a0d10
+     GRAY_LIGHT #6e6e6e · GRAY_DARK #1a1a1a
+     BLACK      #050505 · WHITE     #f2f2f2
    ===================================================================== */
 @theme {
-  --color-primary: #ffb4ab;
-  --color-on-primary: #690005;
-  --color-primary-container: #a31616;
-  --color-on-primary-container: #ffb2a9;
+  --color-primary: #c81e1e;
+  --color-on-primary: #f2f2f2;
+  --color-primary-container: #c81e1e;
+  --color-on-primary-container: #f2f2f2;
 
-  --color-secondary: #ffb4ac;
-  --color-on-secondary: #611110;
-  --color-secondary-container: #802824;
-  --color-on-secondary-container: #ff9990;
+  --color-secondary: #7a0d10;
+  --color-on-secondary: #f2f2f2;
+  --color-secondary-container: #7a0d10;
+  --color-on-secondary-container: #f2f2f2;
 
-  --color-tertiary: #e9c176;
-  --color-on-tertiary: #412d00;
-  --color-tertiary-container: #6a4d0c;
-  --color-on-tertiary-container: #e8c075;
+  /* No third hue for "tertiary" (previously gold) — reused as a neutral
+     white/gray signal so status indicators still read as "no alarm"
+     without introducing a color outside the six above. */
+  --color-tertiary: #f2f2f2;
+  --color-on-tertiary: #050505;
+  --color-tertiary-container: #1a1a1a;
+  --color-on-tertiary-container: #f2f2f2;
 
-  --color-background: #0d0e0f;
-  --color-surface: #121414;
-  --color-surface-container-lowest: #0d0e0f;
-  --color-surface-container-low: #1a1c1c;
-  --color-surface-container: #1e2020;
-  --color-surface-container-high: #282a2b;
-  --color-surface-container-highest: #333535;
+  --color-background: #050505;
+  --color-surface: #050505;
+  --color-surface-container-lowest: #050505;
+  --color-surface-container-low: #1a1a1a;
+  --color-surface-container: #1a1a1a;
+  --color-surface-container-high: #1a1a1a;
+  --color-surface-container-highest: #1a1a1a;
 
-  --color-on-surface: #e2e2e2;
-  --color-on-surface-variant: #e3beba;
-  --color-outline: #aa8985;
-  --color-outline-variant: #5a403d;
+  --color-on-surface: #f2f2f2;
+  --color-on-surface-variant: #6e6e6e;
+  --color-outline: #6e6e6e;
+  --color-outline-variant: #1a1a1a;
 
   --font-room-heading: var(--font-cormorant-sc), serif;
   --font-document-heading: var(--font-cormorant-garamond), serif;
@@ -51,12 +62,12 @@
 @property --mystic-a {
   syntax: "<color>";
   inherits: true;
-  initial-value: rgba(163, 22, 22, 0.16);
+  initial-value: rgba(200, 30, 30, 0.3);
 }
 @property --mystic-b {
   syntax: "<color>";
   inherits: true;
-  initial-value: rgba(233, 193, 118, 0.1);
+  initial-value: rgba(122, 13, 16, 0.18);
 }
 
 /* Self-hosted (public/fonts/), synced from @material-symbols/font-400 —
@@ -86,6 +97,18 @@
   -moz-osx-font-smoothing: grayscale;
   text-rendering: optimizeLegibility;
 }
+
+/* Everything below predates the Scriptorium tokens above and was never
+   wrapped in a Tailwind cascade layer. Unlayered CSS always wins over
+   Tailwind's own (layered) utility classes regardless of selector
+   specificity — so a plain `a { color: var(--brass-l) }` here was
+   silently overriding `text-*` utility classes on every <Link> in the
+   Scriptorium screens, no matter how specific. @layer base is where
+   Tailwind expects element-default styling like this to live; it changes
+   nothing for /archive, /homelab, /report (they don't apply competing
+   utility classes to these elements) and fixes the override everywhere
+   a Scriptorium component does. */
+@layer base {
 
 :root {
   --ink: #0b0d12;
@@ -579,3 +602,5 @@ button.ghost {
   --tile-opacity: 1;
   animation: fall 0.45s forwards, fall-fade 0.45s forwards;
 }
+
+} /* @layer base */

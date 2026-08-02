@@ -64,10 +64,13 @@ function lerpRgba(from: [number, number, number, number], to: [number, number, n
   return `rgba(${r}, ${g}, ${b}, ${a.toFixed(3)})`;
 }
 
-const MYSTIC_A_FROM: [number, number, number, number] = [163, 22, 22, 0.32]; // crimson (primary-container)
-const MYSTIC_A_TO: [number, number, number, number] = [124, 58, 237, 0.42]; // violet (richer than the surface accents)
-const MYSTIC_B_FROM: [number, number, number, number] = [233, 193, 118, 0.2]; // gold (tertiary)
-const MYSTIC_B_TO: [number, number, number, number] = [67, 56, 202, 0.46]; // deep indigo
+// Palette is strictly two reds, two grays, black and white — the scroll
+// effect stays inside that set too: bright red dims into dark red, which
+// itself deepens toward black the further you scroll.
+const MYSTIC_A_FROM: [number, number, number, number] = [200, 30, 30, 0.3]; // bright red (primary)
+const MYSTIC_A_TO: [number, number, number, number] = [122, 13, 16, 0.42]; // dark red (secondary)
+const MYSTIC_B_FROM: [number, number, number, number] = [122, 13, 16, 0.18]; // dark red (secondary)
+const MYSTIC_B_TO: [number, number, number, number] = [5, 5, 5, 0.5]; // near-black
 
 function useMysticScroll() {
   useEffect(() => {
@@ -126,7 +129,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
             width={1536}
             height={716}
             priority
-            className="w-40 h-auto mb-3 drop-shadow-[0_0_12px_rgba(163,22,22,0.35)]"
+            className="w-40 h-auto mb-3 drop-shadow-[0_0_12px_rgba(200,30,30,0.35)]"
           />
           <span className="font-technical-data text-[10px] uppercase tracking-[0.2em] text-on-surface-variant/60">
             Repository-Butler
@@ -187,7 +190,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
             <span className="text-[10px] font-technical-data uppercase text-on-surface-variant/40 tracking-widest">
               System Core
             </span>
-            <div className="w-2 h-2 rounded-full bg-secondary shadow-[0_0_8px_rgba(255,180,172,0.5)] animate-pulse" />
+            <div className="w-2 h-2 rounded-full bg-primary shadow-[0_0_8px_rgba(200,30,30,0.5)] animate-pulse" />
           </div>
           <div className="space-y-1">
             <div className="flex justify-between items-center text-[11px] font-technical-data uppercase">
@@ -260,7 +263,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
         style={{
           backgroundImage:
             "radial-gradient(ellipse at 50% 15%, var(--mystic-a) 0%, var(--mystic-b) 60%, var(--mystic-b) 100%)",
-          backgroundColor: "#0d0e0f",
+          backgroundColor: "#050505",
           transition: "--mystic-a 400ms ease-out, --mystic-b 400ms ease-out",
         }}
       />

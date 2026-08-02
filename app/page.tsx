@@ -30,7 +30,7 @@ function AppBody() {
     <AppShell>
       <header className="mb-8">
         <div className="flex items-center gap-2 mb-3 flex-wrap">
-          <span className="w-1.5 h-1.5 rounded-full bg-primary shadow-[0_0_6px_#ffb4ab]" />
+          <span className="w-1.5 h-1.5 rounded-full bg-primary shadow-[0_0_6px_#c81e1e]" />
           <span className="font-technical-data text-[10px] text-on-surface-variant uppercase tracking-widest">
             Uplink Active
           </span>
