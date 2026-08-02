@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { useSession } from "../session/SessionContext";
-import { CARD_CLASS, GHOST_BUTTON_CLASS, LABEL_CLASS, PRIMARY_BUTTON_CLASS, SECTION_KICKER_CLASS, TEXTAREA_CLASS } from "./styles";
+import { CARD_CLASS, DOCUMENT_TEXTAREA_CLASS, GHOST_BUTTON_CLASS, LABEL_CLASS, PRIMARY_BUTTON_CLASS, SECTION_KICKER_CLASS } from "./styles";
 
 function linesToArray(v: string): string[] {
   return v
@@ -66,7 +66,7 @@ export function HandoffScreen() {
                     next[i] = { ...c, text: e.target.value };
                     updateHandoff({ acceptanceCriteria: next });
                   }}
-                  className={TEXTAREA_CLASS}
+                  className={DOCUMENT_TEXTAREA_CLASS}
                 />
               </div>
             ))}
@@ -99,7 +99,7 @@ function TextField({ label, value, onChange, rows = 2, mono = false }: { label: 
         rows={rows}
         value={value}
         onChange={(e) => onChange(e.target.value)}
-        className={`${TEXTAREA_CLASS} ${mono ? "font-technical-data" : "font-body-md"}`}
+        className={`${DOCUMENT_TEXTAREA_CLASS} ${mono ? "font-technical-data" : "font-body-md"}`}
       />
     </label>
   );
@@ -115,7 +115,7 @@ function ListField({ label, values, onChange, mono = false }: { label: string; v
         rows={Math.max(2, values.length)}
         value={values.join("\n")}
         onChange={(e) => onChange(linesToArray(e.target.value))}
-        className={`${TEXTAREA_CLASS} ${mono ? "font-technical-data" : "font-body-md"}`}
+        className={`${DOCUMENT_TEXTAREA_CLASS} ${mono ? "font-technical-data" : "font-body-md"}`}
       />
     </label>
   );

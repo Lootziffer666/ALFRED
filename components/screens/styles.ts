@@ -12,6 +12,14 @@ export const INPUT_CLASS =
 
 export const TEXTAREA_CLASS = `${INPUT_CLASS} resize-none`;
 
+/* The Refinery/Handoff screen is the "document" page — its text fields are
+   the literal sheet of paper from the reference mockup and stay pure white
+   with dark ink, unlike every other input on the fixed six-keyframe scroll
+   palette (see AppShell.tsx). Deliberately hardcoded #fff/#0a0a0a rather
+   than theme tokens, since this is the one surface that must NOT move. */
+export const DOCUMENT_TEXTAREA_CLASS =
+  "w-full bg-white text-[#0a0a0a] border border-black/15 px-4 py-3 font-technical-data text-sm focus:outline-none focus:border-primary/60 focus:ring-1 focus:ring-primary/20 transition-all rounded resize-none placeholder:text-black/30";
+
 export const PRIMARY_BUTTON_CLASS =
   "flex items-center gap-3 px-6 py-3 bg-primary-container text-on-primary-container hover:brightness-110 transition-all rounded font-ui-label text-xs uppercase tracking-widest font-bold shadow-md shadow-primary-container/20 disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:brightness-100";
 
