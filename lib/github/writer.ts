@@ -6,13 +6,14 @@ import type { PlannedWrite } from "../daemon/jobs/types.js";
 export type GitHubWriteKind = "commit-files" | "create-pr" | "update-pr-branch" | "delete-branch";
 
 export interface CommitPayload {
-  files: Record<string, string>; // path → content
+  files: Array<{ path: string; content: string }>;
   message: string;
   branch: string;
 }
 
 export interface PRPayload {
-  branch: string;
+  head: string;
+  base: string;
   title: string;
   body: string;
   draft?: boolean;
@@ -39,7 +40,7 @@ export function planCommit(opts: {
   repository: string;
   reason: string;
   branch: string;
-  files: Record<string, string>;
+  files: Array<{ path: string; content: string }>;
   message: string;
 }): PlannedWrite {
   return {
@@ -60,7 +61,8 @@ export function planCommit(opts: {
 export function planCreatePR(opts: {
   repository: string;
   reason: string;
-  branch: string;
+  head: string;
+  base: string;
   title: string;
   body: string;
   draft?: boolean;
@@ -71,7 +73,8 @@ export function planCreatePR(opts: {
     repository: opts.repository,
     reason: opts.reason,
     payload: {
-      branch: opts.branch,
+      head: opts.head,
+      base: opts.base,
       title: opts.title,
       body: opts.body,
       draft: opts.draft ?? false,
@@ -143,10 +146,10 @@ export function validatePlannedWrite(write: PlannedWrite): { valid: boolean; err
   switch (write.kind) {
     case "commit-files": {
       const p = write.payload as unknown as CommitPayload;
-      if (!p.branch || !p.message || !p.files) {
+      if (!p.branch || !p.message || !Array.isArray(p.files)) {
         errors.push("commit-files: missing branch, message, or files");
       }
-      if (Object.keys(p.files).length === 0) {
+      if (Array.isArray(p.files) && p.files.length === 0) {
         errors.push("commit-files: no files to commit");
       }
       break;
@@ -154,8 +157,8 @@ export function validatePlannedWrite(write: PlannedWrite): { valid: boolean; err
 
     case "create-pr": {
       const p = write.payload as unknown as PRPayload;
-      if (!p.branch || !p.title || !p.body) {
-        errors.push("create-pr: missing branch, title, or body");
+      if (!p.head || !p.base || !p.title || !p.body) {
+        errors.push("create-pr: missing head, base, title, or body");
       }
       if (p.title.length > 256) {
         errors.push("create-pr: title too long (max 256 chars)");

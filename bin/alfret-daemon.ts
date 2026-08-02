@@ -14,6 +14,8 @@ import { loadScopeRegistry, saveScopeRegistry, addRepository } from "../lib/daem
 import { openStore } from "../lib/store/factory.js";
 import { startScheduler } from "../lib/daemon/scheduler.js";
 import { maidScanJob } from "../lib/daemon/jobs/maid-scan.js";
+import { readmeFreshnessJob } from "../lib/daemon/jobs/readme-freshness.js";
+import { branchCareJob } from "../lib/daemon/jobs/branch-care.js";
 
 const COMMANDS = [
   "run",
@@ -129,7 +131,7 @@ async function runDaemon(): Promise<void> {
 
   const scheduler = startScheduler({
     ctx,
-    jobs: [maidScanJob],
+    jobs: [maidScanJob, readmeFreshnessJob, branchCareJob],
     onTick: (result) => {
       log.info("tick complete", {
         totalDurationMs: result.totalDurationMs,
@@ -185,7 +187,7 @@ async function runOnce(): Promise<void> {
     const ctx = await createContext({ config, creds: credsResult, store, log });
 
     const { runOnce } = await import("../lib/daemon/scheduler.js");
-    const result = await runOnce(ctx, [maidScanJob]);
+    const result = await runOnce(ctx, [maidScanJob, readmeFreshnessJob, branchCareJob]);
 
     log.info("tick complete", {
       totalDurationMs: result.totalDurationMs,
@@ -322,7 +324,7 @@ async function resumeDaemon(): Promise<void> {
   const ctx = await createContext({ config, creds: credsResult, store, log });
 
   const { runOnce } = await import("../lib/daemon/scheduler.js");
-  await runOnce(ctx, [maidScanJob]);
+  await runOnce(ctx, [maidScanJob, readmeFreshnessJob, branchCareJob]);
 
   disposeContext(ctx);
   await releaseLock();
