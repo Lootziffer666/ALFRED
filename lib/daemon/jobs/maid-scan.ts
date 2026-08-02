@@ -19,9 +19,14 @@ export const maidScanJob: Job = {
       return { status: "skipped", findings: [], writes: [] };
     }
 
+    const [owner, name] = repo.repository.split("/");
+    if (!owner || !name) {
+      return { status: "failed", findings: [], writes: [], meta: { error: "Invalid repository format" } };
+    }
+
     let evidence: Awaited<ReturnType<typeof fetchRepoEvidence>>;
     try {
-      evidence = await fetchRepoEvidence(repo.repository, ctx.creds.token);
+      evidence = await fetchRepoEvidence({ owner, name, token: ctx.creds.token });
     } catch (err) {
       const msg = String(err);
       if (msg.includes("rate limit") || msg.includes("403")) {
@@ -37,7 +42,7 @@ export const maidScanJob: Job = {
       return { status: "failed", findings: [], writes: [], meta: { error: msg } };
     }
 
-    const commitSha = evidence.headCommit ?? "unknown";
+    const commitSha = evidence.commits?.status === "loaded" ? evidence.commits.data[0]?.sha ?? "unknown" : "unknown";
     const now = ctx.now().toISOString();
 
     const report: MaidReport = {
@@ -49,7 +54,8 @@ export const maidScanJob: Job = {
       runAt: now,
     };
 
-    for (const file of evidence.files ?? []) {
+    const treeEntries = evidence.tree?.status === "loaded" ? evidence.tree.data : [];
+    for (const file of treeEntries ?? []) {
       const cls = classifyPath(file.path, file.size ?? 0);
       report.classifiedFiles[file.path] = cls;
 

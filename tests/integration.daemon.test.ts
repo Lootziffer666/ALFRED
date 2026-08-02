@@ -1,8 +1,7 @@
 // plan §36 — Integration test: daemon running on ALFRET itself in dry-run mode
 import { describe, it, expect, beforeAll, afterAll } from "bun:test";
-import { MemoryAlfretStore } from "../lib/store/memory.js";
+import { MemoryAlfretStore } from "../lib/store/index.js";
 import { createLogger } from "../lib/daemon/log.js";
-import { runDaemonTick } from "../lib/daemon/index.js";
 import type { DaemonContext } from "../lib/daemon/types.js";
 
 describe("Integration: Daemon on ALFRET self-analysis", () => {
@@ -11,7 +10,7 @@ describe("Integration: Daemon on ALFRET self-analysis", () => {
 
   beforeAll(async () => {
     store = new MemoryAlfretStore();
-    const logger = createLogger({ level: "info" });
+    const logger = createLogger({ minLevel: "info" });
 
     daemonContext = {
       now: () => new Date(),

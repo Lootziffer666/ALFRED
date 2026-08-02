@@ -10,6 +10,7 @@ export const EMPTY_SCOPE_REGISTRY: ScopeRegistry = {
 
 const scopeRegistrySchema = z.object({
   repositories: z.record(
+    z.string(),
     z.object({
       armed: z.boolean().default(false),
       allowedActions: z.array(z.string()).default([]),

@@ -16,11 +16,6 @@ export const metadata = {
 };
 
 export default async function MobilePage() {
-  const [orders, sessions] = await Promise.all([
-    store.listOrders("running"),
-    store.listSessions(),
-  ]);
-
   return (
     <main className="min-h-screen bg-zinc-950 text-zinc-100">
       {/* Mobil-Header */}
@@ -32,8 +27,8 @@ export default async function MobilePage() {
       </header>
 
       <MobileWorkshopClient
-        initialRunningOrders={orders}
-        initialActiveSessions={sessions}
+        initialRunningOrders={[]}
+        initialActiveSessions={[]}
       />
     </main>
   );

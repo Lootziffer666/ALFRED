@@ -42,15 +42,29 @@ export function assertScope(
 
 /**
  * Check if a path is protected in the repository
+ * @param repository The repository identifier (e.g., "owner/repo")
+ * @param path The file path to check
+ * @returns true if the path is protected
  */
-export function isPathProtected(
-  path: string,
-  protectedPaths: string[],
-): boolean {
+export function isPathProtected(repository: string, path: string): boolean {
+  // Default protected paths that apply to all repositories
+  const defaultProtectedPaths = [
+    "package.json",
+    "package-lock.json",
+    "tsconfig.json",
+    ".env*",
+    "*.key",
+    "*.pem",
+    "secrets/*",
+  ];
+
   // Simple implementation: check if path matches any protected path
-  return protectedPaths.some((p) => {
+  return defaultProtectedPaths.some((p) => {
     // Basic glob matching: * = any chars, ** = any dirs
-    const pattern = p.replace(/\./g, "\\.").replace(/\*/g, "[^/]*").replace(/\*\*/g, ".*");
+    const pattern = p
+      .replace(/\./g, "\\.")
+      .replace(/\*\*/g, ".*")
+      .replace(/\*/g, "[^/]*");
     const regex = new RegExp(`^${pattern}$`);
     return regex.test(path);
   });

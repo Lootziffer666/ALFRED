@@ -32,6 +32,8 @@ async function createDemoPlan(repoUrl: string, privateKey: string, keyId: string
     steps: [
       {
         kind: "probe-node" as const,
+        adapterId: "github-scout",
+        adapterVersion: "0.1.0",
         params: { repoUrl },
       },
     ],
@@ -81,7 +83,6 @@ export async function POST(req: NextRequest) {
       // ── Schritt 1: Plan einreichen ──────────────────────────────────────────
       const plan = await createDemoPlan(repoUrl, keyPair.privateKey, keyPair.keyId);
       const order = await dispatcher.submit(plan);
-      await store.setOrder(order);
       broadcaster.broadcast("order-update", {
         orderId: order.orderId,
         state: order.state,
@@ -107,7 +108,6 @@ export async function POST(req: NextRequest) {
         updatedAt: now,
         terminatedAt: null,
       };
-      await store.setSession(mockSession);
       broadcaster.broadcast("session-update", {
         sessionId: mockSession.sessionId,
         phase: mockSession.phase,
@@ -137,7 +137,6 @@ export async function POST(req: NextRequest) {
       ];
 
       const cueReport = buildCueReport(taskId, plan.planId, cueChecks);
-      await store.setCueReport(cueReport);
       broadcaster.broadcast("supervisor-tick", {
         taskId,
         planId: plan.planId,
@@ -168,16 +167,12 @@ export async function POST(req: NextRequest) {
         classifiedFiles,
         runAt: now,
       };
-      await store.setMaidReport(maidReport);
       broadcaster.broadcast("heartbeat", {
         agentId: mockSession.agentId,
         status: "maid-scan-complete",
       });
 
       // ── Schritt 5: Zusammenfassung zurückgeben ─────────────────────────────
-      const sessions = await store.listSessions();
-      const cueReports = await store.listCueReports(plan.planId);
-
       return {
         planId: plan.planId,
         orderId: order.orderId,
@@ -200,10 +195,6 @@ export async function POST(req: NextRequest) {
           classifiedFilesCount: Object.keys(maidReport.classifiedFiles).length,
           findings: maidReport.findings.length,
           proposals: maidReport.proposals.length,
-        },
-        storedCount: {
-          sessions: sessions.length,
-          cueReports: cueReports.length,
         },
       };
     });

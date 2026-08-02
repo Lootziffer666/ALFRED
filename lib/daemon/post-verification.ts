@@ -276,7 +276,7 @@ export class PostVerifier {
  */
 let verifier: PostVerifier;
 
-export function createVerifier(log: Logger): PostVerifier {
+export function createVerifier(log: DaemonLogger): PostVerifier {
   verifier = new PostVerifier(log);
   return verifier;
 }
