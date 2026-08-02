@@ -31,6 +31,7 @@ import {
   jobStateId,
 } from "./job-state.js";
 import { globToRegExp } from "../../maid/gitignore.js";
+import { narrator } from "../narration.js";
 
 const DOC_RELEVANT_GLOBS = ["lib/**", "app/api/**", "bin/**", "PLAN.md"];
 const DAEMON_AUTHOR_MARKER = "alfret-daemon[bot]";
@@ -45,9 +46,9 @@ export const readmeFreshnessJob: Job = {
 
     const state = await getJobState(ctx.store, "readme-freshness", repo.repository);
     if (hasOpenProposal(state)) {
-      log.info("Offener README-Vorschlag existiert bereits — übersprungen.", {
-        pr: state?.openPrNumber,
-      });
+      log.info(
+        narrator.general.nothing({ repository: repo.repository, detail: "Offener README-PR existiert bereits" })
+      );
       return { status: "skipped", findings: [], writes: [] };
     }
 
@@ -61,6 +62,13 @@ export const readmeFreshnessJob: Job = {
     );
     const staleClaim = findStaleEtappenClaim(readmeContent, planEtappenCount);
     if (staleClaim) {
+      log.warn(
+        narrator.readme.etappenMismatch({
+          repository: repo.repository,
+          detail: `Alle ${staleClaim.claimed} Etappen`,
+          metric: planEtappenCount,
+        })
+      );
       findings.push({
         kind: "stale-documentation",
         severity: "warning",
@@ -78,8 +86,10 @@ export const readmeFreshnessJob: Job = {
       DAEMON_AUTHOR_MARKER,
     );
 
-    if (!lastMergedPr)
+    if (!lastMergedPr) {
+      log.info(narrator.readme.noLastPr({ repository: repo.repository }));
       return { status: "ok", findings, writes: [] };
+    }
 
     // Read 2: letzte README-Änderung
     const lastReadmeChange = await fetchLastReadmeCommit(
@@ -100,6 +110,12 @@ export const readmeFreshnessJob: Job = {
     );
 
     if (!touchedDocRelevant) {
+      log.info(
+        narrator.readme.noChange({
+          repository: repo.repository,
+          detail: "README ist älter, aber keine doc-relevanten Änderungen",
+        })
+      );
       findings.push({
         kind: "stale-documentation",
         severity: "info",
@@ -121,8 +137,10 @@ export const readmeFreshnessJob: Job = {
 
     if (!replacement.changed) {
       log.info(
-        "Marker fehlen oder kein inhaltlicher Unterschied — README bleibt unangetastet.",
-        { reason: replacement.reason },
+        narrator.readme.markersMissing({
+          repository: repo.repository,
+          detail: replacement.reason,
+        })
       );
       findings.push({
         kind: "doc-update-needed",
@@ -135,6 +153,13 @@ export const readmeFreshnessJob: Job = {
 
       return { status: "ok", findings, writes: [] };
     }
+
+    log.warn(
+      narrator.readme.updateNeeded({
+        repository: repo.repository,
+        detail: "README ist veraltet und Doku-Relevantes wurde geändert",
+      })
+    );
 
     findings.push({
       kind: "doc-update-needed",
