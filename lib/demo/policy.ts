@@ -121,7 +121,7 @@ export function checkDemoPolicy(
   profile: OperatingProfile,
 ): DemoPolicyViolation[] {
   // In der lokalen Installation gelten keine Demo-Limits.
-  if (profile === "local-installation") return [];
+  if (profile === "local-dev" || profile === "homelab") return [];
 
   const violations: DemoPolicyViolation[] = [];
 

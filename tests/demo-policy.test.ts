@@ -10,7 +10,7 @@ describe("checkDemoPolicy", () => {
   it("erlaubt gültige öffentliche GitHub-URL in public-demo", () => {
     const violations = checkDemoPolicy(
       { repoUrl: "https://github.com/Lootziffer666/ALFRED" },
-      "public-demo",
+      "production",
     );
     expect(violations).toHaveLength(0);
   });
@@ -22,7 +22,7 @@ describe("checkDemoPolicy", () => {
         nodeId: "local-workstation",
         executor: "native-runner",
       },
-      "local-installation",
+      "local-dev",
     );
     expect(violations).toHaveLength(0);
   });
@@ -30,7 +30,7 @@ describe("checkDemoPolicy", () => {
   it("lehnt SSH-URL in public-demo ab", () => {
     const violations = checkDemoPolicy(
       { repoUrl: "git@github.com:someone/repo.git" },
-      "public-demo",
+      "production",
     );
     expect(violations.some((v) => v.kind === "private-repository")).toBe(true);
   });
@@ -41,7 +41,7 @@ describe("checkDemoPolicy", () => {
         repoUrl: "https://github.com/someone/repo",
         nodeId: "local-workstation",
       },
-      "public-demo",
+      "production",
     );
     expect(violations.some((v) => v.kind === "local-runner-reference")).toBe(true);
   });
@@ -52,7 +52,7 @@ describe("checkDemoPolicy", () => {
         repoUrl: "https://github.com/someone/repo",
         executor: "native-runner",
       },
-      "public-demo",
+      "production",
     );
     expect(violations.some((v) => v.kind === "disallowed-executor")).toBe(true);
   });
@@ -63,7 +63,7 @@ describe("checkDemoPolicy", () => {
         repoUrl: "https://github.com/someone/repo",
         executor: "deterministic-demo",
       },
-      "public-demo",
+      "production",
     );
     expect(violations.filter((v) => v.kind === "disallowed-executor")).toHaveLength(0);
   });
@@ -74,7 +74,7 @@ describe("checkDemoPolicy", () => {
         repoUrl: "https://github.com/someone/repo",
         rawBody: JSON.stringify({ token: "ghp_" + "A".repeat(36) }),
       },
-      "public-demo",
+      "production",
     );
     expect(violations.some((v) => v.kind === "secret-detected")).toBe(true);
   });
@@ -85,7 +85,7 @@ describe("checkDemoPolicy", () => {
         repoUrl: "https://github.com/someone/repo",
         bodySizeBytes: DEMO_RESOURCE_LIMITS.maxOutputBytes + 1,
       },
-      "public-demo",
+      "production",
     );
     expect(violations.some((v) => v.kind === "payload-too-large")).toBe(true);
   });

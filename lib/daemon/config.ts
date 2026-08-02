@@ -65,7 +65,7 @@ export const daemonConfigSchema = z.object({
   maxPrsPerRepoPerDay: z.number().int().min(1).default(3),
 
   /** Repositories the daemon monitors. Keys are "owner/repo". */
-  repositories: z.record(repoConfigSchema).default({}),
+  repositories: z.record(z.string(), repoConfigSchema).default({}),
 
   /** Patterns (RegExp strings) marking paths as documentation-relevant. */
   docRelevantGlobs: z.array(regexpString("docRelevantGlob")).default([
@@ -74,7 +74,7 @@ export const daemonConfigSchema = z.object({
     "\\.md$",
   ]),
 
-  skills: skillsConfigSchema.default({}),
+  skills: skillsConfigSchema.default({ allowLlmGeneration: false }),
 
   /** Bridge endpoint — where the daemon POSTs status events. */
   bridgeUrl: z.string().url().default("http://localhost:3000/api/daemon/ingest"),
@@ -173,12 +173,18 @@ export function resolveRepoConfig(
   config: DaemonConfig,
   repository: string,
 ): ResolvedRepoConfig {
-  const repoEntry = config.repositories[repository] ?? repoConfigSchema.parse({});
+  const repoEntry = config.repositories[repository];
+  const defaults = repoConfigSchema.parse({});
+
+  const merged = {
+    ...defaults,
+    ...repoEntry,
+  };
 
   return {
-    ...repoEntry,
+    ...merged,
     repository,
-    tickIntervalMs: repoEntry.tickIntervalMs ?? config.tickIntervalMs,
+    tickIntervalMs: merged.tickIntervalMs ?? config.tickIntervalMs,
     dryRun: config.dryRun,
   };
 }

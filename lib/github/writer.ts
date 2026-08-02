@@ -142,7 +142,7 @@ export function validatePlannedWrite(write: PlannedWrite): { valid: boolean; err
 
   switch (write.kind) {
     case "commit-files": {
-      const p = write.payload as CommitPayload;
+      const p = write.payload as unknown as CommitPayload;
       if (!p.branch || !p.message || !p.files) {
         errors.push("commit-files: missing branch, message, or files");
       }
@@ -153,7 +153,7 @@ export function validatePlannedWrite(write: PlannedWrite): { valid: boolean; err
     }
 
     case "create-pr": {
-      const p = write.payload as PRPayload;
+      const p = write.payload as unknown as PRPayload;
       if (!p.branch || !p.title || !p.body) {
         errors.push("create-pr: missing branch, title, or body");
       }
@@ -164,7 +164,7 @@ export function validatePlannedWrite(write: PlannedWrite): { valid: boolean; err
     }
 
     case "update-pr-branch": {
-      const p = write.payload as UpdatePRPayload;
+      const p = write.payload as unknown as UpdatePRPayload;
       if (!Number.isInteger(p.prNumber) || p.prNumber <= 0) {
         errors.push("update-pr-branch: invalid PR number");
       }
@@ -175,7 +175,7 @@ export function validatePlannedWrite(write: PlannedWrite): { valid: boolean; err
     }
 
     case "delete-branch": {
-      const p = write.payload as DeleteBranchPayload;
+      const p = write.payload as unknown as DeleteBranchPayload;
       if (!p.branch) {
         errors.push("delete-branch: missing branch");
       }
@@ -205,16 +205,16 @@ export function auditInfoOf(write: PlannedWrite): {
 
   switch (write.kind) {
     case "commit-files":
-      target = (write.payload as CommitPayload).branch;
+      target = (write.payload as unknown as CommitPayload).branch;
       break;
     case "create-pr":
-      target = `new PR from ${(write.payload as PRPayload).branch}`;
+      target = `new PR from ${(write.payload as unknown as PRPayload).branch}`;
       break;
     case "update-pr-branch":
-      target = `PR#${(write.payload as UpdatePRPayload).prNumber}`;
+      target = `PR#${(write.payload as unknown as UpdatePRPayload).prNumber}`;
       break;
     case "delete-branch":
-      target = (write.payload as DeleteBranchPayload).branch;
+      target = (write.payload as unknown as DeleteBranchPayload).branch;
       break;
   }
 

@@ -42,7 +42,7 @@ export function scanRepository(
     // .gitignore als Signal — unabhängig von der Klassifikation oben.
     const gitignoreSignal = classifyAgainstGitignore(file.path, gitignoreRules);
 
-    if (gitignoreSignal === "temporary" && cls !== "ignored") {
+    if (gitignoreSignal === "temporary") {
       findings.push({
         kind: "temporary-output",
         severity: "info",

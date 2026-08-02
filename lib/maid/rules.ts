@@ -46,7 +46,7 @@ export const DEFAULT_CLASSIFY_RULES: ClassifyRule[] = [
     test: (p) => /\.(tmp|temp|bak|swp)$/.test(p),
     result: "temporary",
   },
-  { name: "source-default", test: () => true, result: "source" },
+  { name: "source-default", test: () => true, result: "active" },
 ];
 
 export function classifyWith(
@@ -58,7 +58,7 @@ export function classifyWith(
     if (rule.test(path, size)) return rule.result;
   }
 
-  return "source";
+  return "active";
 }
 
 // Verhaltensgleicher Wrapper — bestehende Aufrufer bleiben unverändert.

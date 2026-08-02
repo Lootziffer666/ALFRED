@@ -21,7 +21,7 @@ export async function getJobState(
   store: AlfretStore,
   jobName: string,
   repository: string,
-): Promise<DaemonJobState | null> {
+): Promise<DaemonJobState | undefined> {
   return store.get<DaemonJobState>(
     "daemon-job-state",
     jobStateId(jobName, repository),
@@ -36,6 +36,6 @@ export async function saveJobState(
 }
 
 // true, wenn bereits ein offener PR für dieses Anliegen existiert.
-export function hasOpenProposal(state: DaemonJobState | null): boolean {
+export function hasOpenProposal(state: DaemonJobState | undefined | null): boolean {
   return state?.openPrNumber !== null && state?.openPrNumber !== undefined;
 }

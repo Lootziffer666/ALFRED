@@ -68,6 +68,13 @@ type GhResult<T> =
   | { ok: true; data: T }
   | { ok: false; kind: "permissions" | "rate_limited" | "failed"; reason: string };
 
+function ghFetchResultToGhResult<T>(result: GhFetchResult<T>): GhResult<T> {
+  if (result.ok && result.data !== undefined) {
+    return { ok: true, data: result.data };
+  }
+  return { ok: false, kind: "failed", reason: result.error || "Unknown error" };
+}
+
 async function ghFetchLegacy<T>(path: string, opts: GhRequestOptions = {}): Promise<GhResult<T>> {
   const headers: Record<string, string> = {
     Accept: opts.accept ?? "application/vnd.github+json",
@@ -310,14 +317,18 @@ export async function searchRepositories(
     order: "desc",
     per_page: String(opts.perPage ?? 10),
   });
-  const result = await ghFetch<GhSearchResponse>(`/search/repositories?${params.toString()}`, {
-    token: opts.token,
-    accept: "application/vnd.github.mercy-preview+json",
-  });
-  if (!result.ok) return toAvailability(result);
+  const result = await ghFetch<GhSearchResponse>(
+    `${API_ROOT}/search/repositories?${params.toString()}`,
+    opts.token ?? "",
+  );
 
+  if (!result.ok || !result.data) {
+    return unavailable("failed", result.error || "Could not fetch repositories");
+  }
+
+  const data = result.data;
   return loaded(
-    result.data.items.map((item) => ({
+    data.items.map((item) => ({
       fullName: item.full_name,
       description: item.description,
       url: item.html_url,
@@ -342,10 +353,11 @@ async function fetchFileText(
   token?: string,
 ): Promise<string | null> {
   const result = await ghFetch<{ content?: string; encoding?: string }>(
-    `/repos/${owner}/${name}/contents/${encodeURIComponent(path)}?ref=${encodeURIComponent(ref)}`,
-    { token },
+    `${API_ROOT}/repos/${owner}/${name}/contents/${encodeURIComponent(path)}?ref=${encodeURIComponent(ref)}`,
+    token ?? "",
   );
-  if (!result.ok || !result.data.content) return null;
+  if (!result.ok || !result.data?.content) return null;
+  const data = result.data;
   try {
     return Buffer.from(result.data.content, "base64").toString("utf-8");
   } catch {
@@ -477,10 +489,10 @@ export async function fetchPullRequestFiles(
   token?: string,
 ): Promise<{ files: ChangedFile[] } | { error: string }> {
   const result = await ghFetch<GhDiffFile[]>(
-    `/repos/${owner}/${name}/pulls/${pullNumber}/files?per_page=100`,
-    { token },
+    `${API_ROOT}/repos/${owner}/${name}/pulls/${pullNumber}/files?per_page=100`,
+    token ?? "",
   );
-  if (!result.ok) return { error: result.reason };
+  if (!result.ok || !result.data) return { error: "Failed to fetch PR files" };
   return {
     files: result.data.map((f) => ({
       path: f.filename,
@@ -500,10 +512,10 @@ export async function fetchCompareFiles(
   token?: string,
 ): Promise<{ files: ChangedFile[] } | { error: string }> {
   const result = await ghFetch<{ files: GhDiffFile[] }>(
-    `/repos/${owner}/${name}/compare/${encodeURIComponent(base)}...${encodeURIComponent(head)}`,
-    { token },
+    `${API_ROOT}/repos/${owner}/${name}/compare/${encodeURIComponent(base)}...${encodeURIComponent(head)}`,
+    token ?? "",
   );
-  if (!result.ok) return { error: result.reason };
+  if (!result.ok || !result.data?.files) return { error: "Failed to fetch compare files" };
   return {
     files: result.data.files.map((f) => ({
       path: f.filename,

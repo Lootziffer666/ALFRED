@@ -21,7 +21,7 @@ function fakePlan(planId = "plan-1"): SignedExecutionPlan {
     expiresAt: new Date(Date.now() + 3600_000).toISOString(),
     nonce: `nonce-${Math.random()}`,
     steps: [{ adapterId: "probe", adapterVersion: "1.0.0", kind: "probe-node", params: {} }],
-    artifactHashes: {},
+    artifactHashes: [],
     signerKeyId: "key-1",
     signature: "sig-placeholder",
   };

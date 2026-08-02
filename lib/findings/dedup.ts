@@ -64,11 +64,11 @@ export function filterMerged(
 ): Map<string, MergedFinding> {
   const filtered = new Map<string, MergedFinding>();
 
-  for (const [key, merged] of merged) {
-    if (opts?.minObservations && merged.observations < opts.minObservations) continue;
-    if (opts?.severities && !opts.severities.includes(merged.finding.severity)) continue;
-    if (opts?.kinds && !opts.kinds.includes(merged.finding.kind)) continue;
-    filtered.set(key, merged);
+  for (const [key, entry] of merged) {
+    if (opts?.minObservations && entry.observations < opts.minObservations) continue;
+    if (opts?.severities && !opts.severities.includes(entry.finding.severity)) continue;
+    if (opts?.kinds && !opts.kinds.includes(entry.finding.kind)) continue;
+    filtered.set(key, entry);
   }
 
   return filtered;
