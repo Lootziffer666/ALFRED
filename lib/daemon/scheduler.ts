@@ -7,6 +7,9 @@
 import type { DaemonContext } from "./context.js";
 import type { Job, JobResult, TickResult, RepoTickSummary } from "./jobs/types.js";
 import { resolveRepoConfig } from "./config.js";
+import { sealCapsule } from "../findings/capsule.js";
+import { logPlannedWrite, resolveWrite, plannedWriteId } from "./writes-log.js";
+import { recordAudit, type AuditOutcome } from "./audit.js";
 
 // ---------------------------------------------------------------------------
 // Konstanten
@@ -163,6 +166,84 @@ async function runOnceInternal(
         findings: result.findings.length,
         writes: result.writes.length,
       });
+
+      const capsuleSecret =
+        process.env.ALFRET_CAPSULE_SECRET ?? ctx.creds.token;
+
+      for (let fi = 0; fi < result.findings.length; fi++) {
+        const capsule = sealCapsule({
+          finding: result.findings[fi],
+          repository: resolvedRepo.repository,
+          commitSha: "HEAD",
+          source: "daemon-scan",
+          secret: capsuleSecret,
+        });
+
+        await ctx.store.put({
+          kind: "finding-capsule" as const,
+          id: capsule.id,
+          ...capsule,
+        });
+      }
+
+      for (let wi = 0; wi < result.writes.length; wi++) {
+        await logPlannedWrite(ctx.store, {
+          write: result.writes[wi],
+          tickId: now.toISOString(),
+          jobName: job.name,
+          index: wi,
+          status: "pending-approval",
+        });
+
+        // Armed-Gate — kein echter GitHub-API-Call, solange nicht explizit armed
+        if (ctx.config.armed && !ctx.config.dryRun) {
+          const { executeWrite } = await import("../github/write.js");
+          const writeResult = await executeWrite(result.writes[wi], {
+            token: ctx.creds.token,
+            dryRun: false,
+            armed: true,
+          });
+
+          const outcome: AuditOutcome = writeResult.applied ? "executed" : "denied";
+          await resolveWrite(
+            ctx.store,
+            plannedWriteId(
+              result.writes[wi].repository,
+              now.toISOString(),
+              job.name,
+              wi,
+            ),
+            writeResult.applied ? "executed" : "denied",
+          );
+          await recordAudit(
+            ctx.store,
+            {
+              repository: resolvedRepo.repository,
+              jobId: job.name,
+              tickId: now.toISOString(),
+              write: result.writes[wi],
+              outcome,
+              reason: writeResult.reason,
+              occurredAt: new Date().toISOString(),
+            },
+            wi,
+          );
+        } else if (ctx.config.dryRun) {
+          // Dry-run: Audit-Eintrag mit outcome "dry-run", kein API-Call
+          await recordAudit(
+            ctx.store,
+            {
+              repository: resolvedRepo.repository,
+              jobId: job.name,
+              tickId: now.toISOString(),
+              write: result.writes[wi],
+              outcome: "dry-run",
+              occurredAt: new Date().toISOString(),
+            },
+            wi,
+          );
+        }
+      }
 
       jobResults.push({
         job: job.name,

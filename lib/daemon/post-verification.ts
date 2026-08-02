@@ -163,26 +163,11 @@ export class PostVerifier {
    * Check 3: Abhängigkeiten sind in Ordnung (package.json, imports)
    */
   private async checkDependencies(repository: string): Promise<VerificationCheck> {
-    try {
-      // Check: package.json existiert und ist gültig JSON
-      // Check: Keine zirkulären Abhängigkeiten
-      // Check: Alle imports sind resolvebar
-
-      // Für jetzt: Simuliere OK (würde in Production echte Checks sein)
-
-      return {
-        name: "dependencies",
-        status: "pass",
-        detail: "Dependencies are healthy",
-        evidence: { checked: true },
-      };
-    } catch (err) {
-      return {
-        name: "dependencies",
-        status: "fail",
-        detail: String(err),
-      };
-    }
+    return {
+      name: "dependencies",
+      status: "warning",
+      detail: "Dependency-Check noch nicht implementiert — keine Sandbox-Infrastruktur in Phase 2.",
+    };
   }
 
   /**
@@ -192,32 +177,11 @@ export class PostVerifier {
    * - Audit log ist noch intakt
    */
   private async checkBasicFunctionality(repository: string): Promise<VerificationCheck> {
-    try {
-      // Check: Kann man noch Kern-Module importieren?
-      // Check: Sind Security Invariants noch vorhanden?
-      // Check: Ist das Audit Log noch append-only?
-
-      const checks = {
-        coreImports: true, // würde echte Checks sein
-        securityInvariants: true,
-        auditLogIntegrity: true,
-      };
-
-      const allOK = Object.values(checks).every(Boolean);
-
-      return {
-        name: "basic-functionality",
-        status: allOK ? "pass" : "fail",
-        detail: allOK ? "All basic checks pass" : "Some functionality degraded",
-        evidence: checks,
-      };
-    } catch (err) {
-      return {
-        name: "basic-functionality",
-        status: "fail",
-        detail: String(err),
-      };
-    }
+    return {
+      name: "basic-functionality",
+      status: "warning",
+      detail: "Funktionstest noch nicht implementiert — keine Sandbox-Infrastruktur in Phase 2.",
+    };
   }
 
   /**

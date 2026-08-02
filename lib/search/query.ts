@@ -40,3 +40,31 @@ export function matchesQuery(result: SearchResult, query: SearchQuery): boolean 
   }
   return true;
 }
+
+export function applyFilters<T extends { repository?: string; title?: string; severity?: string; path?: string }>(
+  results: T[],
+  filters: Record<string, string>,
+): T[] {
+  return results.filter((r) => {
+    for (const [key, value] of Object.entries(filters)) {
+      switch (key) {
+        case "repo":
+        case "repository":
+          if (!r.repository?.toLowerCase().includes(value.toLowerCase())) return false;
+          break;
+        case "kind":
+          if (r.title?.toLowerCase() !== value.toLowerCase()) return false;
+          break;
+        case "severity":
+          if (r.severity?.toLowerCase() !== value.toLowerCase()) return false;
+          break;
+        case "path":
+          if (!r.path?.toLowerCase().includes(value.toLowerCase())) return false;
+          break;
+        default:
+          break;
+      }
+    }
+    return true;
+  });
+}

@@ -9,6 +9,8 @@ export class SqliteStore implements AlfretStore {
 
   constructor(path: string) {
     this.db = new Database(path, { create: true });
+    // WAL: Daemon schreibt, Next.js liest gleichzeitig — kein SQLITE_BUSY.
+    this.db.exec("PRAGMA journal_mode=WAL");
     this.db.exec(`
       CREATE TABLE IF NOT EXISTS entities (
         kind TEXT NOT NULL,
