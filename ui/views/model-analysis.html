@@ -1,0 +1,360 @@
+<div class="flex flex-col w-full pb-24">
+
+  <!-- ═══════════════════════════════════════════════
+       PAGE HEADER
+       ═══════════════════════════════════════════════ -->
+  <section class="px-16 pt-12 pb-8 border-b border-outline-variant/10 flex items-end justify-between">
+    <div>
+      <div class="flex items-center gap-2 mb-2">
+        <span class="text-primary font-ui-label text-[10px] tracking-[0.4em] uppercase font-bold">Diagnostics</span>
+        <div class="h-px w-8 bg-primary/30"></div>
+      </div>
+      <h1 class="font-room-heading text-4xl uppercase tracking-tight text-on-surface mb-2">Model Analysis</h1>
+      <p class="font-body-md text-on-surface-variant italic text-base">
+        Live performance telemetry across active model sessions.
+      </p>
+    </div>
+    <div class="flex items-center gap-3">
+      <span class="w-2 h-2 rounded-full bg-tertiary animate-pulse shadow-[0_0_8px_rgba(233,193,118,0.5)]"></span>
+      <span class="font-technical-data text-[10px] text-tertiary uppercase tracking-widest">Live Feed</span>
+    </div>
+  </section>
+
+  <!-- ═══════════════════════════════════════════════
+       KPI ROW — 4 stat cards
+       ═══════════════════════════════════════════════ -->
+  <section class="px-16 py-10 grid grid-cols-2 lg:grid-cols-4 gap-6">
+
+    <div class="p-6 bg-surface-container-low border border-outline-variant/20 rounded-xl group hover:border-primary-container/40 transition-all">
+      <div class="flex items-center justify-between mb-4">
+        <span class="font-technical-data text-[10px] uppercase text-on-surface-variant/50 tracking-widest">Total Requests</span>
+        <span class="material-symbols-outlined text-primary-container text-xl">send</span>
+      </div>
+      <p class="font-document-heading text-4xl text-on-surface mb-1" id="kpi-requests">—</p>
+      <p class="font-technical-data text-[10px] text-secondary uppercase">↑ 12% vs last session</p>
+    </div>
+
+    <div class="p-6 bg-surface-container-low border border-outline-variant/20 rounded-xl group hover:border-primary-container/40 transition-all">
+      <div class="flex items-center justify-between mb-4">
+        <span class="font-technical-data text-[10px] uppercase text-on-surface-variant/50 tracking-widest">Avg Latency</span>
+        <span class="material-symbols-outlined text-primary-container text-xl">timer</span>
+      </div>
+      <p class="font-document-heading text-4xl text-on-surface mb-1" id="kpi-latency">—</p>
+      <p class="font-technical-data text-[10px] text-tertiary uppercase">↓ 8% improved</p>
+    </div>
+
+    <div class="p-6 bg-surface-container-low border border-outline-variant/20 rounded-xl group hover:border-primary-container/40 transition-all">
+      <div class="flex items-center justify-between mb-4">
+        <span class="font-technical-data text-[10px] uppercase text-on-surface-variant/50 tracking-widest">Tokens Used</span>
+        <span class="material-symbols-outlined text-primary-container text-xl">data_usage</span>
+      </div>
+      <p class="font-document-heading text-4xl text-on-surface mb-1" id="kpi-tokens">—</p>
+      <p class="font-technical-data text-[10px] text-on-surface-variant/40 uppercase">of 32,768 budget</p>
+    </div>
+
+    <div class="p-6 bg-surface-container-low border border-outline-variant/20 rounded-xl group hover:border-primary-container/40 transition-all">
+      <div class="flex items-center justify-between mb-4">
+        <span class="font-technical-data text-[10px] uppercase text-on-surface-variant/50 tracking-widest">Success Rate</span>
+        <span class="material-symbols-outlined text-primary-container text-xl">verified</span>
+      </div>
+      <p class="font-document-heading text-4xl text-on-surface mb-1" id="kpi-success">—</p>
+      <p class="font-technical-data text-[10px] text-tertiary uppercase">↑ 0.3% stable</p>
+    </div>
+
+  </section>
+
+  <!-- ═══════════════════════════════════════════════
+       MAIN GRID — charts + comparison + log
+       ═══════════════════════════════════════════════ -->
+  <section class="px-16 pb-12 grid grid-cols-12 gap-10">
+
+    <!-- Token budget bar chart -->
+    <div class="col-span-12 lg:col-span-8 space-y-8">
+
+      <div class="p-8 bg-surface-container-low border border-outline-variant/20 rounded-xl">
+        <div class="flex items-center justify-between mb-8">
+          <div>
+            <h2 class="font-technical-data text-[11px] uppercase tracking-[0.3em] text-secondary mb-1">Token Distribution</h2>
+            <p class="font-body-md text-xs text-on-surface-variant/50 italic">Breakdown per request type this session</p>
+          </div>
+          <span class="font-technical-data text-[10px] text-on-surface-variant/30 uppercase">Current Session</span>
+        </div>
+
+        <!-- Horizontal bars -->
+        <div class="space-y-5" id="token-bars">
+
+          <div>
+            <div class="flex justify-between mb-1.5">
+              <span class="font-ui-label text-xs text-on-surface uppercase tracking-wide">Document Generation</span>
+              <span class="font-technical-data text-xs text-primary" id="bar-doc-val">8,420</span>
+            </div>
+            <div class="h-2 bg-surface-container-highest rounded-full overflow-hidden">
+              <div class="h-full bg-primary-container rounded-full transition-all duration-700" style="width: 0%" data-target="65"></div>
+            </div>
+          </div>
+
+          <div>
+            <div class="flex justify-between mb-1.5">
+              <span class="font-ui-label text-xs text-on-surface uppercase tracking-wide">Refinery Analysis</span>
+              <span class="font-technical-data text-xs text-secondary" id="bar-ref-val">4,210</span>
+            </div>
+            <div class="h-2 bg-surface-container-highest rounded-full overflow-hidden">
+              <div class="h-full bg-secondary rounded-full transition-all duration-700" style="width: 0%" data-target="32"></div>
+            </div>
+          </div>
+
+          <div>
+            <div class="flex justify-between mb-1.5">
+              <span class="font-ui-label text-xs text-on-surface uppercase tracking-wide">Model Calls (Other)</span>
+              <span class="font-technical-data text-xs text-tertiary" id="bar-other-val">380</span>
+            </div>
+            <div class="h-2 bg-surface-container-highest rounded-full overflow-hidden">
+              <div class="h-full bg-tertiary rounded-full transition-all duration-700" style="width: 0%" data-target="3"></div>
+            </div>
+          </div>
+
+        </div>
+
+        <!-- Total usage meter -->
+        <div class="mt-8 pt-6 border-t border-outline-variant/10">
+          <div class="flex justify-between mb-2">
+            <span class="font-technical-data text-[10px] uppercase text-on-surface-variant/40 tracking-widest">Total Budget Used</span>
+            <span class="font-technical-data text-[10px] uppercase text-primary" id="budget-pct">0%</span>
+          </div>
+          <div class="h-3 bg-surface-container-highest rounded-full overflow-hidden">
+            <div id="budget-bar" class="h-full rounded-full transition-all duration-1000"
+                 style="width:0%; background: linear-gradient(90deg, #a31616, #ffb4ab)"></div>
+          </div>
+          <div class="flex justify-between mt-2">
+            <span class="font-technical-data text-[10px] text-on-surface-variant/30">0</span>
+            <span class="font-technical-data text-[10px] text-on-surface-variant/30">32,768 tokens</span>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- Model comparison table -->
+      <div class="p-8 bg-surface-container-low border border-outline-variant/20 rounded-xl">
+        <h2 class="font-technical-data text-[11px] uppercase tracking-[0.3em] text-secondary mb-6">Model Benchmark</h2>
+        <table class="w-full text-sm">
+          <thead>
+            <tr class="border-b border-outline-variant/20">
+              <th class="text-left pb-4 font-ui-label text-[10px] uppercase tracking-widest text-on-surface-variant/40">Model</th>
+              <th class="text-right pb-4 font-ui-label text-[10px] uppercase tracking-widest text-on-surface-variant/40">Latency</th>
+              <th class="text-right pb-4 font-ui-label text-[10px] uppercase tracking-widest text-on-surface-variant/40">Quality</th>
+              <th class="text-right pb-4 font-ui-label text-[10px] uppercase tracking-widest text-on-surface-variant/40">Tokens/s</th>
+              <th class="text-right pb-4 font-ui-label text-[10px] uppercase tracking-widest text-on-surface-variant/40">Status</th>
+            </tr>
+          </thead>
+          <tbody class="divide-y divide-outline-variant/10" id="benchmark-tbody">
+
+            <tr class="group hover:bg-surface-container transition-colors">
+              <td class="py-4">
+                <p class="font-ui-label text-xs text-on-surface uppercase tracking-wide">Claude Sonnet 4.5</p>
+                <p class="font-technical-data text-[10px] text-on-surface-variant/40">Anthropic</p>
+              </td>
+              <td class="py-4 text-right font-technical-data text-xs text-on-surface">1.2s</td>
+              <td class="py-4 text-right">
+                <div class="flex items-center justify-end gap-1">
+                  <div class="flex gap-0.5">
+                    <span class="w-2 h-2 rounded-full bg-primary-container"></span>
+                    <span class="w-2 h-2 rounded-full bg-primary-container"></span>
+                    <span class="w-2 h-2 rounded-full bg-primary-container"></span>
+                    <span class="w-2 h-2 rounded-full bg-primary-container"></span>
+                    <span class="w-2 h-2 rounded-full bg-outline-variant/30"></span>
+                  </div>
+                </div>
+              </td>
+              <td class="py-4 text-right font-technical-data text-xs text-tertiary">84</td>
+              <td class="py-4 text-right">
+                <span class="inline-flex items-center gap-1.5 px-2 py-0.5 bg-primary-container/10 border border-primary-container/20 text-primary-container rounded-full font-technical-data text-[9px] uppercase">
+                  <span class="w-1.5 h-1.5 rounded-full bg-primary-container animate-pulse"></span>Active
+                </span>
+              </td>
+            </tr>
+
+            <tr class="group hover:bg-surface-container transition-colors">
+              <td class="py-4">
+                <p class="font-ui-label text-xs text-on-surface uppercase tracking-wide">Claude Opus 4</p>
+                <p class="font-technical-data text-[10px] text-on-surface-variant/40">Anthropic</p>
+              </td>
+              <td class="py-4 text-right font-technical-data text-xs text-on-surface">3.8s</td>
+              <td class="py-4 text-right">
+                <div class="flex items-center justify-end gap-1">
+                  <div class="flex gap-0.5">
+                    <span class="w-2 h-2 rounded-full bg-primary-container"></span>
+                    <span class="w-2 h-2 rounded-full bg-primary-container"></span>
+                    <span class="w-2 h-2 rounded-full bg-primary-container"></span>
+                    <span class="w-2 h-2 rounded-full bg-primary-container"></span>
+                    <span class="w-2 h-2 rounded-full bg-primary-container"></span>
+                  </div>
+                </div>
+              </td>
+              <td class="py-4 text-right font-technical-data text-xs text-tertiary">28</td>
+              <td class="py-4 text-right">
+                <span class="inline-flex items-center gap-1.5 px-2 py-0.5 bg-surface-container-highest border border-outline-variant/20 text-on-surface-variant/50 rounded-full font-technical-data text-[9px] uppercase">
+                  Standby
+                </span>
+              </td>
+            </tr>
+
+            <tr class="group hover:bg-surface-container transition-colors">
+              <td class="py-4">
+                <p class="font-ui-label text-xs text-on-surface uppercase tracking-wide">Gemini 2.5 Pro</p>
+                <p class="font-technical-data text-[10px] text-on-surface-variant/40">Google</p>
+              </td>
+              <td class="py-4 text-right font-technical-data text-xs text-on-surface">1.8s</td>
+              <td class="py-4 text-right">
+                <div class="flex items-center justify-end gap-1">
+                  <div class="flex gap-0.5">
+                    <span class="w-2 h-2 rounded-full bg-primary-container"></span>
+                    <span class="w-2 h-2 rounded-full bg-primary-container"></span>
+                    <span class="w-2 h-2 rounded-full bg-primary-container"></span>
+                    <span class="w-2 h-2 rounded-full bg-primary-container"></span>
+                    <span class="w-2 h-2 rounded-full bg-outline-variant/30"></span>
+                  </div>
+                </div>
+              </td>
+              <td class="py-4 text-right font-technical-data text-xs text-tertiary">62</td>
+              <td class="py-4 text-right">
+                <span class="inline-flex items-center gap-1.5 px-2 py-0.5 bg-surface-container-highest border border-outline-variant/20 text-on-surface-variant/50 rounded-full font-technical-data text-[9px] uppercase">
+                  Standby
+                </span>
+              </td>
+            </tr>
+
+          </tbody>
+        </table>
+      </div>
+
+    </div><!-- /left 8 -->
+
+    <!-- Right: live log -->
+    <div class="col-span-12 lg:col-span-4 space-y-6">
+
+      <div class="p-6 bg-surface-container-low border border-outline-variant/20 rounded-xl flex flex-col h-full">
+        <div class="flex items-center justify-between mb-6 shrink-0">
+          <h2 class="font-technical-data text-[11px] uppercase tracking-[0.3em] text-secondary">Live Event Log</h2>
+          <button id="btn-clear-log"
+            class="font-technical-data text-[9px] uppercase text-on-surface-variant/30 hover:text-primary transition-colors tracking-widest">
+            Clear
+          </button>
+        </div>
+        <div id="live-log" class="flex-1 overflow-y-auto space-y-3 no-scrollbar min-h-[400px]">
+          <!-- Log entries injected by JS -->
+        </div>
+      </div>
+
+    </div>
+
+  </section>
+
+</div>
+
+<template id="footer-actions-model-analysis">
+  <button class="px-6 h-11 flex items-center gap-3 border border-outline-variant/30 text-on-surface-variant hover:bg-surface-container-high hover:text-on-surface transition-all uppercase font-ui-label text-[10px] tracking-widest rounded-lg">
+    <span class="material-symbols-outlined text-lg">picture_as_pdf</span>
+    <span>Export Report</span>
+  </button>
+  <button class="px-8 h-11 flex items-center gap-4 bg-primary-container text-on-primary-container hover:brightness-110 transition-all uppercase font-ui-label text-xs font-bold tracking-[0.3em] rounded-lg shadow-lg shadow-primary-container/20">
+    <span class="material-symbols-outlined text-lg">refresh</span>
+    <span>Refresh Telemetry</span>
+  </button>
+</template>
+
+<script>
+(function () {
+
+  /* Footer inject */
+  const tmpl = document.getElementById('footer-actions-model-analysis');
+  const fa   = document.getElementById('footer-actions');
+  if (tmpl && fa) fa.innerHTML = tmpl.innerHTML;
+
+  const fs = document.getElementById('footer-status');
+  if (fs) fs.textContent = 'TELEMETRY ACTIVE';
+
+  /* KPI animate */
+  function animCount(id, target, suffix = '') {
+    const el = document.getElementById(id);
+    if (!el) return;
+    let n = 0, step = Math.ceil(target / 40);
+    const iv = setInterval(() => {
+      n = Math.min(n + step, target);
+      el.textContent = n.toLocaleString() + suffix;
+      if (n >= target) clearInterval(iv);
+    }, 30);
+  }
+  animCount('kpi-requests', 1247);
+  animCount('kpi-tokens',   13010);
+
+  setTimeout(() => {
+    document.getElementById('kpi-latency').textContent  = '1.2s';
+    document.getElementById('kpi-success').textContent  = '98.7%';
+  }, 400);
+
+  /* Token bars animate */
+  setTimeout(() => {
+    document.querySelectorAll('#token-bars [data-target]').forEach(bar => {
+      bar.style.width = bar.dataset.target + '%';
+    });
+    const bp = document.getElementById('budget-pct');
+    const bb = document.getElementById('budget-bar');
+    if (bp) bp.textContent = '39.7%';
+    if (bb) bb.style.width = '39.7%';
+  }, 300);
+
+  /* Live log */
+  const logEl   = document.getElementById('live-log');
+  const TYPES   = [
+    { label: 'REQUEST',  color: 'text-primary',   icon: 'send' },
+    { label: 'RESPONSE', color: 'text-tertiary',  icon: 'reply' },
+    { label: 'ERROR',    color: 'text-primary',   icon: 'error_outline' },
+    { label: 'CACHE',    color: 'text-secondary', icon: 'cached' },
+  ];
+  const MSGS = [
+    'Manifest ingestion complete',
+    'Diff analysis started',
+    'Evidence rail updated',
+    'Token budget checked',
+    'Response streamed',
+    'Cache hit — skipping re-inference',
+    'Latency spike detected: 3.2s',
+    'Retry 1/3 for request RX-09',
+    'Context window at 62%',
+    'Autosave triggered',
+  ];
+  let logCount = 0;
+
+  function addLogEntry() {
+    const type = TYPES[Math.floor(Math.random() * TYPES.length)];
+    const msg  = MSGS[Math.floor(Math.random() * MSGS.length)];
+    const time = new Date().toLocaleTimeString('de-DE', { hour12: false });
+    const entry = document.createElement('div');
+    entry.className = 'flex gap-3 items-start opacity-0 transition-opacity duration-300';
+    entry.innerHTML = `
+      <span class="material-symbols-outlined text-sm ${type.color} shrink-0 mt-0.5">${type.icon}</span>
+      <div class="min-w-0">
+        <div class="flex items-center gap-2 mb-0.5">
+          <span class="font-technical-data text-[9px] uppercase ${type.color} font-bold tracking-widest">${type.label}</span>
+          <span class="font-technical-data text-[9px] text-on-surface-variant/30">${time}</span>
+        </div>
+        <p class="font-body-md text-xs text-on-surface-variant leading-relaxed">${msg}</p>
+      </div>`;
+    logEl.prepend(entry);
+    requestAnimationFrame(() => entry.style.opacity = '1');
+    logCount++;
+    while (logEl.children.length > 30) logEl.lastChild.remove();
+  }
+
+  for (let i = 0; i < 8; i++) setTimeout(addLogEntry, i * 120);
+  const logInterval = setInterval(addLogEntry, 2800);
+
+  /* Clear log */
+  document.getElementById('btn-clear-log')?.addEventListener('click', () => {
+    logEl.innerHTML = '';
+    clearInterval(logInterval);
+    setInterval(addLogEntry, 2800);
+  });
+
+})();
+</script>

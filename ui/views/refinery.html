@@ -1,0 +1,72 @@
+<div class="flex flex-col w-full pb-24">
+
+  <section class="px-16 pt-12 pb-8 border-b border-outline-variant/10">
+    <div class="flex items-center gap-2 mb-2">
+      <span class="text-primary font-ui-label text-[10px] tracking-[0.4em] uppercase font-bold">Manufacturing</span>
+      <div class="h-px w-8 bg-primary/30"></div>
+    </div>
+    <h1 class="font-room-heading text-4xl uppercase tracking-tight text-on-surface mb-2">Refinery</h1>
+    <p class="font-body-md text-on-surface-variant italic text-base">
+      Precision processing and refinement of draft documents and analysis.
+    </p>
+  </section>
+
+  <section class="px-16 py-12">
+    <div class="grid grid-cols-1 gap-8">
+
+      <div class="p-8 bg-surface-container-low border border-outline-variant/20 rounded-xl">
+        <h2 class="font-technical-data text-[11px] uppercase tracking-[0.3em] text-secondary mb-6">Processing Queue</h2>
+        <div class="space-y-4">
+          <div class="p-5 bg-surface-container border border-outline-variant/10 rounded-lg flex items-center justify-between">
+            <div>
+              <p class="font-ui-label text-sm text-on-surface uppercase tracking-wide mb-1">Document Refinement: Baustein-5</p>
+              <div class="flex gap-2">
+                <span class="font-technical-data text-[9px] text-on-surface-variant/50">In Progress</span>
+                <span class="font-technical-data text-[9px] text-primary">45%</span>
+              </div>
+            </div>
+            <div class="h-2 w-48 bg-surface-container-highest rounded-full overflow-hidden">
+              <div class="h-full bg-primary-container rounded-full" style="width: 45%"></div>
+            </div>
+          </div>
+
+          <div class="p-5 bg-surface-container border border-outline-variant/10 rounded-lg flex items-center justify-between">
+            <div>
+              <p class="font-ui-label text-sm text-on-surface uppercase tracking-wide mb-1">Analysis: Token Distribution</p>
+              <div class="flex gap-2">
+                <span class="font-technical-data text-[9px] text-on-surface-variant/50">Queued</span>
+              </div>
+            </div>
+            <button class="px-4 py-2 bg-primary-container text-on-primary-container text-xs font-ui-label uppercase tracking-widest rounded hover:brightness-110 transition-all">
+              Start
+            </button>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+</div>
+
+<template id="footer-actions-refinery">
+  <button class="px-6 h-11 flex items-center gap-3 border border-outline-variant/30 text-on-surface-variant hover:bg-surface-container-high hover:text-on-surface transition-all uppercase font-ui-label text-[10px] tracking-widest rounded-lg">
+    <span class="material-symbols-outlined text-lg">save</span>
+    <span>Save Draft</span>
+  </button>
+  <button class="px-8 h-11 flex items-center gap-4 bg-primary-container text-on-primary-container hover:brightness-110 transition-all uppercase font-ui-label text-xs font-bold tracking-[0.3em] rounded-lg shadow-lg shadow-primary-container/20">
+    <span class="material-symbols-outlined text-lg">verified</span>
+    <span>Seal Refinement</span>
+  </button>
+</template>
+
+<script>
+(function () {
+  const tmpl = document.getElementById('footer-actions-refinery');
+  const fa   = document.getElementById('footer-actions');
+  if (tmpl && fa) fa.innerHTML = tmpl.innerHTML;
+
+  const fs = document.getElementById('footer-status');
+  if (fs) fs.textContent = 'REFINING DOCUMENTS';
+})();
+</script>

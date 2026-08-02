@@ -1,0 +1,405 @@
+<div class="flex flex-col w-full pb-24">
+
+  <!-- ═══════════════════════════════════════════════
+       PAGE HEADER
+       ═══════════════════════════════════════════════ -->
+  <section class="px-16 pt-12 pb-8 border-b border-outline-variant/10">
+    <div class="flex items-center gap-2 mb-2">
+      <span class="text-primary font-ui-label text-[10px] tracking-[0.4em] uppercase font-bold">Phase 0</span>
+      <div class="h-px w-8 bg-primary/30"></div>
+    </div>
+    <h1 class="font-room-heading text-4xl uppercase tracking-tight text-on-surface mb-2">Session Setup</h1>
+    <p class="font-body-md text-on-surface-variant italic text-base">
+      Configure the operative parameters before initiating an archival session.
+    </p>
+  </section>
+
+  <!-- ═══════════════════════════════════════════════
+       MAIN GRID — two columns
+       Left: project + context config
+       Right: model selection + capability matrix
+       ═══════════════════════════════════════════════ -->
+  <section class="px-16 py-12 grid grid-cols-12 gap-12">
+
+    <!-- ─── LEFT COLUMN ─── -->
+    <div class="col-span-12 lg:col-span-7 space-y-10">
+
+      <!-- Project Identity -->
+      <div class="space-y-6">
+        <h2 class="font-technical-data text-[11px] uppercase tracking-[0.3em] text-secondary flex items-center gap-3">
+          <span class="w-1.5 h-1.5 rounded-full bg-secondary shadow-[0_0_5px_rgba(255,180,172,0.5)]"></span>
+          Project Identity
+        </h2>
+
+        <div class="grid grid-cols-2 gap-6">
+          <div class="space-y-2">
+            <label class="font-ui-label text-[11px] text-outline uppercase tracking-widest block">Project Name</label>
+            <input
+              type="text"
+              id="project-name"
+              value="ALFRET"
+              class="w-full bg-background border border-outline-variant/30 px-5 py-3 font-technical-data text-sm text-on-surface focus:outline-none focus:border-primary/50 focus:ring-1 ring-primary/20 transition-all rounded placeholder:text-on-surface-variant/20"
+              placeholder="Project codename…"
+            />
+          </div>
+          <div class="space-y-2">
+            <label class="font-ui-label text-[11px] text-outline uppercase tracking-widest block">Session Tag</label>
+            <input
+              type="text"
+              id="session-tag"
+              class="w-full bg-background border border-outline-variant/30 px-5 py-3 font-technical-data text-sm text-on-surface focus:outline-none focus:border-primary/50 focus:ring-1 ring-primary/20 transition-all rounded placeholder:text-on-surface-variant/20"
+              placeholder="e.g. RX-09 · sprint-4 …"
+            />
+          </div>
+        </div>
+
+        <div class="space-y-2">
+          <label class="font-ui-label text-[11px] text-outline uppercase tracking-widest block">Session Objective</label>
+          <textarea
+            id="session-objective"
+            rows="3"
+            class="w-full bg-background border border-outline-variant/30 px-5 py-3 font-body-md text-sm text-on-surface focus:outline-none focus:border-primary/50 focus:ring-1 ring-primary/20 transition-all rounded resize-none placeholder:text-on-surface-variant/20"
+            placeholder="Describe what this session should produce…"
+          ></textarea>
+        </div>
+      </div>
+
+      <!-- Divider -->
+      <div class="h-px bg-outline-variant/15"></div>
+
+      <!-- Repository Source -->
+      <div class="space-y-6">
+        <h2 class="font-technical-data text-[11px] uppercase tracking-[0.3em] text-secondary flex items-center gap-3">
+          <span class="w-1.5 h-1.5 rounded-full bg-secondary/50"></span>
+          Repository Source
+        </h2>
+
+        <div class="space-y-2">
+          <label class="font-ui-label text-[11px] text-outline uppercase tracking-widest block">GitHub Repository URL</label>
+          <div class="flex gap-3">
+            <input
+              type="text"
+              id="repo-url"
+              class="flex-1 bg-background border border-outline-variant/30 px-5 py-3 font-technical-data text-sm text-on-surface focus:outline-none focus:border-primary/50 focus:ring-1 ring-primary/20 transition-all rounded placeholder:text-on-surface-variant/20"
+              placeholder="https://github.com/owner/repo"
+            />
+            <button id="btn-fetch-repo"
+              class="px-6 py-3 bg-surface-container-high border border-outline-variant/30 text-on-surface-variant hover:bg-primary-container hover:text-on-primary-container transition-all font-ui-label text-xs uppercase tracking-widest rounded flex items-center gap-2">
+              <span class="material-symbols-outlined text-sm">cloud_download</span>
+              Fetch
+            </button>
+          </div>
+        </div>
+
+        <!-- Repo meta (populated on fetch) -->
+        <div id="repo-meta-card" class="hidden p-6 bg-surface-container-low border border-outline-variant/20 rounded-lg">
+          <div class="flex items-center gap-4">
+            <div class="w-12 h-12 rounded-lg bg-surface-container-highest flex items-center justify-center text-primary-container border border-outline-variant/30 shrink-0">
+              <span class="material-symbols-outlined text-2xl">source</span>
+            </div>
+            <div class="flex-1 min-w-0">
+              <p id="repo-name"    class="font-document-heading text-lg text-on-surface truncate">—</p>
+              <p id="repo-desc"    class="font-body-md text-xs text-on-surface-variant truncate italic">—</p>
+            </div>
+            <div class="flex flex-col items-end shrink-0 gap-1">
+              <span id="repo-lang"   class="font-technical-data text-[10px] text-secondary uppercase">—</span>
+              <span id="repo-branch" class="font-technical-data text-[10px] text-on-surface-variant/50 uppercase">branch: —</span>
+            </div>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- Divider -->
+      <div class="h-px bg-outline-variant/15"></div>
+
+      <!-- Context Window Config -->
+      <div class="space-y-6">
+        <h2 class="font-technical-data text-[11px] uppercase tracking-[0.3em] text-secondary flex items-center gap-3">
+          <span class="w-1.5 h-1.5 rounded-full bg-secondary/30"></span>
+          Context Window
+        </h2>
+
+        <div class="grid grid-cols-3 gap-6">
+          <div class="space-y-2">
+            <label class="font-ui-label text-[11px] text-outline uppercase tracking-widest block">Max Tokens</label>
+            <select id="max-tokens"
+              class="w-full bg-background border border-outline-variant/30 px-4 py-3 font-technical-data text-sm text-on-surface focus:outline-none focus:border-primary/50 rounded outline-none cursor-pointer">
+              <option>8,192</option>
+              <option selected>32,768</option>
+              <option>65,536</option>
+              <option>128,000</option>
+              <option>200,000</option>
+            </select>
+          </div>
+
+          <div class="space-y-2">
+            <label class="font-ui-label text-[11px] text-outline uppercase tracking-widest block">Temperature</label>
+            <div class="flex items-center gap-3">
+              <input type="range" id="temp-slider" min="0" max="100" value="70"
+                class="flex-1 accent-[#a31616] cursor-pointer"/>
+              <span id="temp-value" class="font-technical-data text-sm text-primary w-8 text-right">0.7</span>
+            </div>
+          </div>
+
+          <div class="space-y-2">
+            <label class="font-ui-label text-[11px] text-outline uppercase tracking-widest block">Output Format</label>
+            <select id="output-format"
+              class="w-full bg-background border border-outline-variant/30 px-4 py-3 font-technical-data text-sm text-on-surface focus:outline-none focus:border-primary/50 rounded outline-none cursor-pointer">
+              <option>Markdown</option>
+              <option>Structured JSON</option>
+              <option>Plain Text</option>
+              <option>Diff Patch</option>
+            </select>
+          </div>
+        </div>
+
+        <!-- Context inclusions -->
+        <div class="space-y-3">
+          <label class="font-ui-label text-[11px] text-outline uppercase tracking-widest block">Include in Context</label>
+          <div class="grid grid-cols-2 gap-3" id="context-toggles">
+
+            <label class="flex items-center gap-4 p-4 bg-surface-container-low border border-outline-variant/20 rounded-lg cursor-pointer hover:border-primary-container/40 transition-all group">
+              <input type="checkbox" checked class="accent-[#a31616] w-4 h-4 cursor-pointer"/>
+              <div>
+                <p class="font-ui-label text-xs text-on-surface uppercase tracking-wide">Commit History</p>
+                <p class="font-technical-data text-[10px] text-on-surface-variant/50 mt-0.5">Last 50 commits</p>
+              </div>
+            </label>
+
+            <label class="flex items-center gap-4 p-4 bg-surface-container-low border border-outline-variant/20 rounded-lg cursor-pointer hover:border-primary-container/40 transition-all group">
+              <input type="checkbox" checked class="accent-[#a31616] w-4 h-4 cursor-pointer"/>
+              <div>
+                <p class="font-ui-label text-xs text-on-surface uppercase tracking-wide">Open Issues</p>
+                <p class="font-technical-data text-[10px] text-on-surface-variant/50 mt-0.5">Labels + body</p>
+              </div>
+            </label>
+
+            <label class="flex items-center gap-4 p-4 bg-surface-container-low border border-outline-variant/20 rounded-lg cursor-pointer hover:border-primary-container/40 transition-all group">
+              <input type="checkbox" class="accent-[#a31616] w-4 h-4 cursor-pointer"/>
+              <div>
+                <p class="font-ui-label text-xs text-on-surface uppercase tracking-wide">README</p>
+                <p class="font-technical-data text-[10px] text-on-surface-variant/50 mt-0.5">Root + /docs</p>
+              </div>
+            </label>
+
+            <label class="flex items-center gap-4 p-4 bg-surface-container-low border border-outline-variant/20 rounded-lg cursor-pointer hover:border-primary-container/40 transition-all group">
+              <input type="checkbox" class="accent-[#a31616] w-4 h-4 cursor-pointer"/>
+              <div>
+                <p class="font-ui-label text-xs text-on-surface uppercase tracking-wide">PR Diffs</p>
+                <p class="font-technical-data text-[10px] text-on-surface-variant/50 mt-0.5">Open + last closed</p>
+              </div>
+            </label>
+
+          </div>
+        </div>
+
+      </div>
+
+    </div><!-- /left column -->
+
+    <!-- ─── RIGHT COLUMN ─── -->
+    <div class="col-span-12 lg:col-span-5 space-y-10">
+
+      <!-- Model Selection -->
+      <div class="space-y-4">
+        <h2 class="font-technical-data text-[11px] uppercase tracking-[0.3em] text-secondary flex items-center gap-3">
+          <span class="w-1.5 h-1.5 rounded-full bg-secondary shadow-[0_0_5px_rgba(255,180,172,0.5)]"></span>
+          Model Selection
+        </h2>
+
+        <div class="space-y-3" id="model-cards">
+
+          <!-- Model card — selected -->
+          <div data-model="claude-sonnet-4-5"
+            class="model-card model-card--selected p-5 bg-primary-container/10 border-2 border-primary-container rounded-xl cursor-pointer transition-all group">
+            <div class="flex items-start justify-between">
+              <div>
+                <div class="flex items-center gap-2 mb-1">
+                  <span class="font-technical-data text-[9px] text-primary uppercase tracking-widest">Anthropic</span>
+                  <span class="w-1 h-1 rounded-full bg-outline-variant/40"></span>
+                  <span class="font-technical-data text-[9px] text-on-surface-variant/50 uppercase">API</span>
+                </div>
+                <p class="font-ui-label text-sm text-on-surface uppercase tracking-wide">Claude Sonnet 4.5</p>
+                <p class="font-body-md text-xs text-on-surface-variant italic mt-0.5">Balanced reasoning + speed</p>
+              </div>
+              <span class="material-symbols-outlined text-primary text-xl" style="font-variation-settings:'FILL' 1">radio_button_checked</span>
+            </div>
+            <div class="flex gap-2 mt-4">
+              <span class="bg-primary-container/20 border border-primary-container/30 px-2 py-0.5 text-[9px] font-technical-data text-primary uppercase rounded">200K ctx</span>
+              <span class="bg-primary-container/20 border border-primary-container/30 px-2 py-0.5 text-[9px] font-technical-data text-primary uppercase rounded">Vision</span>
+              <span class="bg-primary-container/20 border border-primary-container/30 px-2 py-0.5 text-[9px] font-technical-data text-primary uppercase rounded">Tools</span>
+            </div>
+          </div>
+
+          <!-- Model card — unselected -->
+          <div data-model="claude-opus-4"
+            class="model-card p-5 bg-surface-container-low border border-outline-variant/20 rounded-xl cursor-pointer hover:border-primary-container/40 transition-all group">
+            <div class="flex items-start justify-between">
+              <div>
+                <div class="flex items-center gap-2 mb-1">
+                  <span class="font-technical-data text-[9px] text-on-surface-variant/50 uppercase tracking-widest">Anthropic</span>
+                  <span class="w-1 h-1 rounded-full bg-outline-variant/40"></span>
+                  <span class="font-technical-data text-[9px] text-on-surface-variant/50 uppercase">API</span>
+                </div>
+                <p class="font-ui-label text-sm text-on-surface uppercase tracking-wide group-hover:text-primary transition-colors">Claude Opus 4</p>
+                <p class="font-body-md text-xs text-on-surface-variant italic mt-0.5">Maximum intelligence, complex reasoning</p>
+              </div>
+              <span class="material-symbols-outlined text-outline text-xl">radio_button_unchecked</span>
+            </div>
+            <div class="flex gap-2 mt-4">
+              <span class="bg-surface-container-highest/30 px-2 py-0.5 text-[9px] font-technical-data text-on-surface-variant/40 uppercase rounded">200K ctx</span>
+              <span class="bg-surface-container-highest/30 px-2 py-0.5 text-[9px] font-technical-data text-on-surface-variant/40 uppercase rounded">Vision</span>
+              <span class="bg-surface-container-highest/30 px-2 py-0.5 text-[9px] font-technical-data text-on-surface-variant/40 uppercase rounded">Extended Thinking</span>
+            </div>
+          </div>
+
+        </div><!-- /model-cards -->
+      </div>
+
+      <!-- Session Summary -->
+      <div class="p-6 bg-surface-container-low border border-outline-variant/20 rounded-xl space-y-4 sticky top-20">
+        <h3 class="font-technical-data text-[11px] uppercase tracking-[0.3em] text-on-surface-variant/60">Session Summary</h3>
+        <div class="space-y-3">
+          <div class="flex justify-between items-center text-xs">
+            <span class="font-technical-data text-on-surface-variant/40 uppercase tracking-wide">Project</span>
+            <span id="sum-project"  class="font-technical-data text-secondary uppercase">ALFRET</span>
+          </div>
+          <div class="flex justify-between items-center text-xs">
+            <span class="font-technical-data text-on-surface-variant/40 uppercase tracking-wide">Model</span>
+            <span id="sum-model"    class="font-technical-data text-secondary uppercase">Claude Sonnet 4.5</span>
+          </div>
+          <div class="flex justify-between items-center text-xs">
+            <span class="font-technical-data text-on-surface-variant/40 uppercase tracking-wide">Max Tokens</span>
+            <span id="sum-tokens"   class="font-technical-data text-secondary uppercase">32,768</span>
+          </div>
+          <div class="flex justify-between items-center text-xs">
+            <span class="font-technical-data text-on-surface-variant/40 uppercase tracking-wide">Temperature</span>
+            <span id="sum-temp"     class="font-technical-data text-secondary uppercase">0.7</span>
+          </div>
+          <div class="flex justify-between items-center text-xs">
+            <span class="font-technical-data text-on-surface-variant/40 uppercase tracking-wide">Format</span>
+            <span id="sum-format"   class="font-technical-data text-secondary uppercase">Markdown</span>
+          </div>
+        </div>
+        <div class="h-px bg-outline-variant/15 my-2"></div>
+        <div class="flex justify-between items-center">
+          <span class="font-technical-data text-[10px] text-on-surface-variant/40 uppercase">Est. Usage</span>
+          <div class="h-2 w-24 bg-surface-container-highest rounded-full overflow-hidden">
+            <div id="token-bar" class="h-full bg-primary-container transition-all duration-500 rounded-full" style="width: 25%"></div>
+          </div>
+        </div>
+      </div>
+
+    </div><!-- /right column -->
+
+  </section>
+
+</div>
+
+<template id="footer-actions-session-setup">
+  <button class="px-6 h-11 flex items-center gap-3 border border-outline-variant/30 text-on-surface-variant hover:bg-surface-container-high hover:text-on-surface transition-all uppercase font-ui-label text-[10px] tracking-widest rounded-lg">
+    <span class="material-symbols-outlined text-lg">settings_backup_restore</span>
+    <span>Reset Defaults</span>
+  </button>
+  <button id="btn-launch-session"
+    class="px-8 h-11 flex items-center gap-4 bg-primary-container text-on-primary-container hover:brightness-110 transition-all uppercase font-ui-label text-xs font-bold tracking-[0.3em] rounded-lg shadow-lg shadow-primary-container/20">
+    <span class="material-symbols-outlined text-lg">rocket_launch</span>
+    <span>Launch Session</span>
+  </button>
+</template>
+
+<script>
+(function () {
+
+  /* Footer inject */
+  const tmpl = document.getElementById('footer-actions-session-setup');
+  const fa   = document.getElementById('footer-actions');
+  if (tmpl && fa) fa.innerHTML = tmpl.innerHTML;
+
+  const fs = document.getElementById('footer-status');
+  if (fs) fs.textContent = 'CONFIGURE TO LAUNCH';
+
+  /* Temperature slider */
+  const slider   = document.getElementById('temp-slider');
+  const tempVal  = document.getElementById('temp-value');
+  const sumTemp  = document.getElementById('sum-temp');
+  slider?.addEventListener('input', () => {
+    const v = (slider.value / 100).toFixed(2);
+    if (tempVal) tempVal.textContent = v;
+    if (sumTemp) sumTemp.textContent = v;
+  });
+
+  /* Sync project name to summary */
+  document.getElementById('project-name')?.addEventListener('input', e => {
+    const sp = document.getElementById('sum-project');
+    if (sp) sp.textContent = e.target.value.toUpperCase() || '—';
+  });
+
+  /* Sync tokens select */
+  document.getElementById('max-tokens')?.addEventListener('change', e => {
+    const st = document.getElementById('sum-tokens');
+    if (st) st.textContent = e.target.value;
+    const bar = document.getElementById('token-bar');
+    const map = { '8,192': 10, '32,768': 25, '65,536': 45, '128,000': 65, '200,000': 90 };
+    if (bar) bar.style.width = (map[e.target.value] || 25) + '%';
+  });
+
+  /* Sync format select */
+  document.getElementById('output-format')?.addEventListener('change', e => {
+    const sf = document.getElementById('sum-format');
+    if (sf) sf.textContent = e.target.value.toUpperCase();
+  });
+
+  /* Model card selection */
+  document.querySelectorAll('.model-card').forEach(card => {
+    card.addEventListener('click', () => {
+      document.querySelectorAll('.model-card').forEach(c => {
+        c.classList.remove('model-card--selected','bg-primary-container/10','border-2','border-primary-container');
+        c.classList.add('bg-surface-container-low','border','border-outline-variant/20');
+        c.querySelector('.material-symbols-outlined:last-child').textContent = 'radio_button_unchecked';
+        c.querySelector('.material-symbols-outlined:last-child').style.color = '';
+      });
+      card.classList.add('model-card--selected','bg-primary-container/10','border-2','border-primary-container');
+      card.classList.remove('bg-surface-container-low','border-outline-variant/20');
+      const radio = card.querySelector('.material-symbols-outlined:last-child');
+      radio.textContent = 'radio_button_checked';
+      radio.style.cssText = 'font-variation-settings:"FILL" 1; color: #ffb4ab';
+      const label = card.querySelector('.font-ui-label').textContent;
+      const sm = document.getElementById('sum-model');
+      if (sm) sm.textContent = label.toUpperCase();
+    });
+  });
+
+  /* Repo fetch stub */
+  document.getElementById('btn-fetch-repo')?.addEventListener('click', () => {
+    const url = document.getElementById('repo-url')?.value?.trim();
+    if (!url) return;
+    const parts = url.replace('https://github.com/','').split('/');
+    const card  = document.getElementById('repo-meta-card');
+    const rn    = document.getElementById('repo-name');
+    const rb    = document.getElementById('repo-branch');
+    if (card) { card.classList.remove('hidden'); }
+    if (rn)   rn.textContent = parts.slice(0,2).join(' / ') || '—';
+    if (rb)   document.getElementById('repo-branch').textContent = 'branch: main';
+    document.getElementById('repo-lang').textContent = 'TypeScript';
+    document.getElementById('repo-desc').textContent = 'Loaded from URL — connect API for full metadata';
+    if (fs)   fs.textContent = 'REPO LINKED · READY TO LAUNCH';
+  });
+
+  /* Launch button */
+  document.addEventListener('click', e => {
+    if (e.target.closest('#btn-launch-session')) {
+      if (fs) fs.textContent = 'SESSION ACTIVE';
+      const btn = document.getElementById('btn-launch-session');
+      if (btn) {
+        btn.innerHTML = '<span class="material-symbols-outlined text-lg animate-spin">autorenew</span><span>Initializing…</span>';
+        setTimeout(() => {
+          btn.innerHTML = '<span class="material-symbols-outlined text-lg">check_circle</span><span>Session Live</span>';
+        }, 2000);
+      }
+    }
+  });
+
+})();
+</script>
