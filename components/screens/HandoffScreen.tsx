@@ -2,7 +2,17 @@
 
 import { useState } from "react";
 import { useSession } from "../session/SessionContext";
-import { CARD_CLASS, DOCUMENT_TEXTAREA_CLASS, GHOST_BUTTON_CLASS, LABEL_CLASS, PRIMARY_BUTTON_CLASS, SECTION_KICKER_CLASS } from "./styles";
+import {
+  CARD_CLASS,
+  DOCUMENT_TEXTAREA_CLASS,
+  PAPER_CLASS,
+  PAPER_GHOST_BUTTON_CLASS,
+  PAPER_HEADING_CLASS,
+  PAPER_LABEL_CLASS,
+  PAPER_SUBTEXT_CLASS,
+  PRIMARY_BUTTON_CLASS,
+  SECTION_KICKER_CLASS,
+} from "./styles";
 
 function linesToArray(v: string): string[] {
   return v
@@ -34,15 +44,13 @@ export function HandoffScreen() {
   };
 
   return (
-    <section className={CARD_CLASS}>
+    <section className={PAPER_CLASS}>
       <div className="flex items-center gap-2 mb-2">
         <span className={SECTION_KICKER_CLASS}>§ 4</span>
         <div className="h-px w-8 bg-primary/30" />
       </div>
-      <h2 className="font-document-heading text-2xl text-on-surface mb-1">Refinery — Agent Handoff</h2>
-      <p className="font-body-md text-on-surface-variant text-sm italic mt-0 mb-6">
-        Editable before export. Nothing here writes to the repository.
-      </p>
+      <h2 className={PAPER_HEADING_CLASS}>Refinery — Agent Handoff</h2>
+      <p className={PAPER_SUBTEXT_CLASS}>Editable before export. Nothing here writes to the repository.</p>
 
       <div className="grid gap-5">
         <TextField label="Objective" value={handoff.objective} onChange={(v) => updateHandoff({ objective: v })} rows={2} />
@@ -53,7 +61,7 @@ export function HandoffScreen() {
         <ListField label="Deliverables" values={handoff.deliverables} onChange={(v) => updateHandoff({ deliverables: v })} />
 
         <div>
-          <span className={LABEL_CLASS}>Acceptance criteria</span>
+          <span className={PAPER_LABEL_CLASS}>Acceptance criteria</span>
           <div className="grid gap-3">
             {handoff.acceptanceCriteria.map((c, i) => (
               <div key={c.id}>
@@ -79,8 +87,8 @@ export function HandoffScreen() {
         <TextField label="Required final response format" value={handoff.responseFormat} onChange={(v) => updateHandoff({ responseFormat: v })} rows={2} />
       </div>
 
-      <div className="flex gap-3 mt-6 flex-wrap">
-        <button type="button" onClick={copyHandoff} className={GHOST_BUTTON_CLASS}>
+      <div className="flex gap-3 mt-8 flex-wrap border-t border-black/10 pt-6">
+        <button type="button" onClick={copyHandoff} className={PAPER_GHOST_BUTTON_CLASS}>
           {copied ? "Copied ✓" : "Copy handoff JSON"}
         </button>
         <button type="button" onClick={() => setStep("audit")} className={PRIMARY_BUTTON_CLASS}>
@@ -94,7 +102,7 @@ export function HandoffScreen() {
 function TextField({ label, value, onChange, rows = 2, mono = false }: { label: string; value: string; onChange: (v: string) => void; rows?: number; mono?: boolean }) {
   return (
     <label className="block">
-      <span className={LABEL_CLASS}>{label}</span>
+      <span className={PAPER_LABEL_CLASS}>{label}</span>
       <textarea
         rows={rows}
         value={value}
@@ -108,8 +116,8 @@ function TextField({ label, value, onChange, rows = 2, mono = false }: { label: 
 function ListField({ label, values, onChange, mono = false }: { label: string; values: string[]; onChange: (v: string[]) => void; mono?: boolean }) {
   return (
     <label className="block">
-      <span className={LABEL_CLASS}>
-        {label} <span className="text-on-surface-variant/40 normal-case tracking-normal">(one per line)</span>
+      <span className={PAPER_LABEL_CLASS}>
+        {label} <span className="text-black/30 normal-case tracking-normal">(one per line)</span>
       </span>
       <textarea
         rows={Math.max(2, values.length)}
