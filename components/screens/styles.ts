@@ -1,8 +1,5 @@
 /** Shared Tailwind class strings for the Scriptorium-styled session screens. */
 
-/* bg-surface-container-low/-container resolve to --live-panel (see
-   globals.css @theme block), which AppShell.tsx drives across the scroll
-   keyframes — panels shift color automatically, no per-component wiring. */
 export const CARD_CLASS = "bg-surface-container-low border border-outline-variant/20 rounded-xl p-6 lg:p-8";
 
 export const CARD_INSET_CLASS = "bg-surface-container border border-outline-variant/10 rounded-lg p-5";
@@ -14,9 +11,8 @@ export const TEXTAREA_CLASS = `${INPUT_CLASS} resize-none`;
 
 /* The Refinery/Handoff screen is the "document" page — its text fields are
    the literal sheet of paper from the reference mockup and stay pure white
-   with dark ink, unlike every other input on the fixed six-keyframe scroll
-   palette (see AppShell.tsx). Deliberately hardcoded #fff/#0a0a0a rather
-   than theme tokens, since this is the one surface that must NOT move. */
+   with dark ink, unlike every other dark-panel input in the app.
+   Deliberately hardcoded #fff/#0a0a0a rather than theme tokens. */
 export const DOCUMENT_TEXTAREA_CLASS =
   "w-full bg-white text-[#0a0a0a] border border-black/15 px-4 py-3 font-technical-data text-sm focus:outline-none focus:border-primary/60 focus:ring-1 focus:ring-primary/20 transition-all rounded resize-none placeholder:text-black/30";
 

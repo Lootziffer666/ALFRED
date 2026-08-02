@@ -6,76 +6,44 @@
    replace the --ink/--brass/--zinnober tokens above, which /archive,
    /homelab, /report and /workshop keep using untouched.
 
-   Panels, background and the accent color are aliased to --live-panel /
-   --live-bg / --live-accent instead of fixed hexes. AppShell.tsx drives
-   those three across a six-keyframe progression as the user scrolls
-   (exact hex stops from the reference screenshots), so every screen that
-   uses bg-surface-container-low, bg-background, text-primary etc. shifts
-   automatically — no component file needs to know the palette moves.
+   Fixed palette, taken verbatim from the "Alfret Component Library"
+   reference (colorTokens) — no scroll-driven or otherwise animated color
+   shifting anywhere in this app.
    ===================================================================== */
 @theme {
-  --color-primary: var(--live-accent);
-  --color-on-primary: #12080a;
-  --color-primary-container: var(--live-accent);
-  --color-on-primary-container: #12080a;
+  --color-primary: #ff000c;
+  --color-on-primary: #ffffff;
+  --color-primary-container: #9d0007;
+  --color-on-primary-container: #ffffff;
 
-  --color-secondary: #7a0d10;
-  --color-on-secondary: #f2f2f2;
-  --color-secondary-container: #7a0d10;
-  --color-on-secondary-container: #f2f2f2;
+  --color-secondary: #ffe001;
+  --color-on-secondary: #000000;
+  --color-secondary-container: #ffe001;
+  --color-on-secondary-container: #000000;
 
-  /* No separate hue for "tertiary" (status/positive signal) — stays
-     neutral white/gray so it never competes with the live accent. */
   --color-tertiary: #f2f2f2;
   --color-on-tertiary: #050505;
-  --color-tertiary-container: var(--live-panel);
+  --color-tertiary-container: #2b2330;
   --color-on-tertiary-container: #f2f2f2;
 
-  --color-background: var(--live-bg);
-  --color-surface: var(--live-bg);
-  --color-surface-container-lowest: var(--live-bg);
-  --color-surface-container-low: var(--live-panel);
-  --color-surface-container: var(--live-panel);
-  --color-surface-container-high: var(--live-panel);
-  --color-surface-container-highest: var(--live-panel);
+  --color-background: #000000;
+  --color-surface: #000000;
+  --color-surface-container-lowest: #000000;
+  --color-surface-container-low: #120f15;
+  --color-surface-container: #1c171f;
+  --color-surface-container-high: #2b2330;
+  --color-surface-container-highest: #3a2f3d;
 
   --color-on-surface: #f2f2f2;
-  --color-on-surface-variant: #9a8c84;
-  --color-outline: #9a8c84;
-  --color-outline-variant: #4d4642;
+  --color-on-surface-variant: #c9b8bd;
+  --color-outline: #55404a;
+  --color-outline-variant: #392f38;
 
   --font-room-heading: var(--font-cormorant-sc), serif;
   --font-document-heading: var(--font-cormorant-garamond), serif;
   --font-body-md: var(--font-source-serif), serif;
   --font-ui-label: var(--font-inter), ui-sans-serif, sans-serif;
   --font-technical-data: var(--font-ibm-plex-mono), ui-monospace, monospace;
-}
-
-/* Scroll-driven color progression (main app only). Registering these as
-   typed custom properties is what makes them able to smoothly interpolate
-   at all — AppShell.tsx still does the actual keyframe math (piecewise
-   across the six reference stops) and writes the result here every
-   animation frame; @property + a CSS transition just smooths over the
-   gaps between frames instead of visibly stepping. */
-@property --live-panel {
-  syntax: "<color>";
-  inherits: true;
-  initial-value: #000000;
-}
-@property --live-bg {
-  syntax: "<color>";
-  inherits: true;
-  initial-value: #000000;
-}
-@property --live-accent {
-  syntax: "<color>";
-  inherits: true;
-  initial-value: #8c1f1f;
-}
-@property --live-glow {
-  syntax: "<color>";
-  inherits: true;
-  initial-value: #b03020;
 }
 
 /* Self-hosted (public/fonts/), synced from @material-symbols/font-400 —

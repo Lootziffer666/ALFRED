@@ -32,7 +32,7 @@ function AppBody() {
         <div className="flex items-center gap-2 mb-3 flex-wrap">
           <span
             className="w-1.5 h-1.5 rounded-full bg-primary"
-            style={{ boxShadow: "0 0 6px color-mix(in srgb, var(--live-accent) 70%, transparent)" }}
+            style={{ boxShadow: "0 0 6px rgba(255, 0, 12, 0.7)" }}
           />
           <span className="font-technical-data text-[10px] text-on-surface-variant uppercase tracking-widest">
             Uplink Active

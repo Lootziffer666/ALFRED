@@ -2,15 +2,15 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { useEffect } from "react";
 import { STEPS, useSession, type Step } from "../session/SessionContext";
 
 /**
  * Chrome for the Repository-Butler workflow (Baustein 5). Visual language
- * from the Stitch mockup ("Nice.md") → Scriptorium design tokens in
- * globals.css. Scoped to `/` only — /archive, /workshop, /homelab and
- * /report keep their own established look, per the "plain mobile usability"
- * constraint already documented for the main tool in globals.css.
+ * from the "Alfret Component Library" reference → Scriptorium design tokens
+ * in globals.css, a fixed palette with no animated color shifting. Scoped
+ * to `/` only — /archive, /workshop, /homelab and /report keep their own
+ * established look, per the "plain mobile usability" constraint already
+ * documented for the main tool in globals.css.
  */
 
 const STEP_ICONS: Record<Step, string> = {
@@ -43,99 +43,6 @@ const MODULES: ModuleLink[] = [
   { href: "/workshop", label: "Workshop", sublabel: "Orders, Sessions, Findings", icon: "monitoring" },
 ];
 
-/**
- * Scroll position drives the whole palette across six keyframes (exact hex
- * stops from the reference screenshots), from near-black/deep-red at the
- * top toward warmer violet-tinted panels and a red-to-orange accent the
- * further down the page you go — and reverses the same way scrolling back
- * up, since it's a direct function of scroll position, not a one-shot
- * animation. --live-panel/--live-bg/--live-accent are aliased into the
- * Tailwind theme tokens in globals.css (--color-surface-container-low,
- * --color-background, --color-primary…), so every screen using those
- * utility classes updates automatically. --live-glow only feeds the
- * ambient background layer below.
- */
-type RGB = readonly [number, number, number];
-
-function lerpStops(stops: readonly RGB[], t: number): string {
-  const n = stops.length - 1;
-  const scaled = Math.min(Math.max(t, 0), 1) * n;
-  const i = Math.min(Math.floor(scaled), n - 1);
-  const localT = scaled - i;
-  const [r0, g0, b0] = stops[i];
-  const [r1, g1, b1] = stops[i + 1];
-  const r = Math.round(r0 + (r1 - r0) * localT);
-  const g = Math.round(g0 + (g1 - g0) * localT);
-  const b = Math.round(b0 + (b1 - b0) * localT);
-  return `rgb(${r}, ${g}, ${b})`;
-}
-
-// Six keyframes, top of page → deepest scroll. Exact stops from the
-// reference screenshots — do not round or simplify these.
-const PANEL_STOPS: readonly RGB[] = [
-  [0, 0, 0],
-  [14, 11, 13],
-  [28, 22, 27],
-  [36, 30, 37],
-  [43, 35, 42],
-  [46, 36, 46],
-];
-const BG_STOPS: readonly RGB[] = [
-  [0, 0, 0],
-  [14, 11, 13],
-  [24, 21, 26],
-  [39, 34, 43],
-  [51, 43, 54],
-  [57, 44, 61],
-];
-const ACCENT_STOPS: readonly RGB[] = [
-  [140, 31, 31],
-  [167, 46, 30],
-  [194, 62, 30],
-  [163, 82, 52],
-  [211, 104, 75],
-  [240, 127, 86],
-];
-const GLOW_STOPS: readonly RGB[] = [
-  [176, 48, 32],
-  [123, 71, 47],
-  [246, 143, 94],
-  [98, 60, 42],
-  [156, 91, 68],
-  [185, 116, 92],
-];
-
-function useMysticScroll() {
-  useEffect(() => {
-    const root = document.documentElement;
-    let ticking = false;
-
-    function apply() {
-      ticking = false;
-      const max = document.documentElement.scrollHeight - window.innerHeight;
-      const progress = max > 0 ? Math.min(1, Math.max(0, window.scrollY / max)) : 0;
-      root.style.setProperty("--live-panel", lerpStops(PANEL_STOPS, progress));
-      root.style.setProperty("--live-bg", lerpStops(BG_STOPS, progress));
-      root.style.setProperty("--live-accent", lerpStops(ACCENT_STOPS, progress));
-      root.style.setProperty("--live-glow", lerpStops(GLOW_STOPS, progress));
-    }
-
-    function onScroll() {
-      if (ticking) return;
-      ticking = true;
-      requestAnimationFrame(apply);
-    }
-
-    apply();
-    window.addEventListener("scroll", onScroll, { passive: true });
-    window.addEventListener("resize", onScroll, { passive: true });
-    return () => {
-      window.removeEventListener("scroll", onScroll);
-      window.removeEventListener("resize", onScroll);
-    };
-  }, []);
-}
-
 function useReachability() {
   const { inventory, contractMap, handoff } = useSession();
   return (id: Step) => {
@@ -151,7 +58,6 @@ function useReachability() {
 export function AppShell({ children }: { children: React.ReactNode }) {
   const { step, setStep, demoMode, repoInput } = useSession();
   const isReachable = useReachability();
-  useMysticScroll();
 
   return (
     <div className="relative isolate lg:pl-72 min-h-screen flex flex-col text-on-surface">
@@ -165,7 +71,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
             height={716}
             priority
             className="w-40 h-auto mb-3"
-            style={{ filter: "drop-shadow(0 0 12px color-mix(in srgb, var(--live-accent) 45%, transparent))" }}
+            style={{ filter: "drop-shadow(0 0 12px rgba(255, 0, 12, 0.45))" }}
           />
           <span className="font-technical-data text-[10px] uppercase tracking-[0.2em] text-on-surface-variant/60">
             Repository-Butler
@@ -185,7 +91,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
                 aria-current={active ? "step" : undefined}
                 className={`group w-full flex items-center px-4 py-4 rounded-lg font-ui-label text-xs tracking-widest uppercase transition-all text-left ${
                   active
-                    ? "bg-primary-container text-on-primary-container shadow-lg border-l-4 border-secondary"
+                    ? "bg-primary-container text-on-primary-container shadow-lg border-l-4 border-white"
                     : reachable
                       ? "text-on-surface-variant hover:bg-surface-container-high hover:text-white"
                       : "text-on-surface-variant/30 cursor-not-allowed"
@@ -228,7 +134,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
             </span>
             <div
               className="w-2 h-2 rounded-full bg-primary animate-pulse"
-              style={{ boxShadow: "0 0 8px color-mix(in srgb, var(--live-accent) 60%, transparent)" }}
+              style={{ boxShadow: "0 0 8px rgba(255, 0, 12, 0.6)" }}
             />
           </div>
           <div className="space-y-1">
@@ -296,15 +202,11 @@ export function AppShell({ children }: { children: React.ReactNode }) {
 
       {/* Ambient glow — fixed to the viewport, not the (tall, scrolling) content,
           so the highlight stays visible no matter how far down the page the
-          user has scrolled. The flat base color is --color-background itself
-          (aliased to --live-bg, so <body>/<main> already carry it); this
-          layer only adds the warm --live-glow halo on top of that. */}
+          user has scrolled. Static, matching the reference header treatment. */}
       <div
         className="fixed inset-0 z-0 pointer-events-none"
         style={{
-          backgroundImage:
-            "radial-gradient(ellipse at 50% 15%, color-mix(in srgb, var(--live-glow) 26%, transparent) 0%, transparent 65%)",
-          transition: "--live-glow 400ms ease-out",
+          backgroundImage: "radial-gradient(ellipse at 50% 15%, rgba(255, 0, 12, 0.14) 0%, transparent 65%)",
         }}
       />
 
