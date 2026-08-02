@@ -44,33 +44,66 @@ const MODULES: ModuleLink[] = [
 ];
 
 /**
- * Scroll position drives an ambient glow from crimson/gold (top of page)
- * toward violet/indigo "mystical" tones (deeper in) — and reverses the same
- * way on the way back up, since it's a direct function of scroll position
- * rather than a one-shot animation. The colors themselves live in CSS
- * custom properties registered via @property in globals.css, which is what
- * lets the browser interpolate them smoothly instead of jumping between
- * values on every scroll-driven update.
+ * Scroll position drives the whole palette across six keyframes (exact hex
+ * stops from the reference screenshots), from near-black/deep-red at the
+ * top toward warmer violet-tinted panels and a red-to-orange accent the
+ * further down the page you go — and reverses the same way scrolling back
+ * up, since it's a direct function of scroll position, not a one-shot
+ * animation. --live-panel/--live-bg/--live-accent are aliased into the
+ * Tailwind theme tokens in globals.css (--color-surface-container-low,
+ * --color-background, --color-primary…), so every screen using those
+ * utility classes updates automatically. --live-glow only feeds the
+ * ambient background layer below.
  */
-function lerp(a: number, b: number, t: number): number {
-  return Math.round(a + (b - a) * t);
+type RGB = readonly [number, number, number];
+
+function lerpStops(stops: readonly RGB[], t: number): string {
+  const n = stops.length - 1;
+  const scaled = Math.min(Math.max(t, 0), 1) * n;
+  const i = Math.min(Math.floor(scaled), n - 1);
+  const localT = scaled - i;
+  const [r0, g0, b0] = stops[i];
+  const [r1, g1, b1] = stops[i + 1];
+  const r = Math.round(r0 + (r1 - r0) * localT);
+  const g = Math.round(g0 + (g1 - g0) * localT);
+  const b = Math.round(b0 + (b1 - b0) * localT);
+  return `rgb(${r}, ${g}, ${b})`;
 }
 
-function lerpRgba(from: [number, number, number, number], to: [number, number, number, number], t: number): string {
-  const r = lerp(from[0], to[0], t);
-  const g = lerp(from[1], to[1], t);
-  const b = lerp(from[2], to[2], t);
-  const a = from[3] + (to[3] - from[3]) * t;
-  return `rgba(${r}, ${g}, ${b}, ${a.toFixed(3)})`;
-}
-
-// Palette is strictly two reds, two grays, black and white — the scroll
-// effect stays inside that set too: bright red dims into dark red, which
-// itself deepens toward black the further you scroll.
-const MYSTIC_A_FROM: [number, number, number, number] = [200, 30, 30, 0.3]; // bright red (primary)
-const MYSTIC_A_TO: [number, number, number, number] = [122, 13, 16, 0.42]; // dark red (secondary)
-const MYSTIC_B_FROM: [number, number, number, number] = [122, 13, 16, 0.18]; // dark red (secondary)
-const MYSTIC_B_TO: [number, number, number, number] = [5, 5, 5, 0.5]; // near-black
+// Six keyframes, top of page → deepest scroll. Exact stops from the
+// reference screenshots — do not round or simplify these.
+const PANEL_STOPS: readonly RGB[] = [
+  [0, 0, 0],
+  [14, 11, 13],
+  [28, 22, 27],
+  [36, 30, 37],
+  [43, 35, 42],
+  [46, 36, 46],
+];
+const BG_STOPS: readonly RGB[] = [
+  [0, 0, 0],
+  [14, 11, 13],
+  [24, 21, 26],
+  [39, 34, 43],
+  [51, 43, 54],
+  [57, 44, 61],
+];
+const ACCENT_STOPS: readonly RGB[] = [
+  [140, 31, 31],
+  [167, 46, 30],
+  [194, 62, 30],
+  [163, 82, 52],
+  [211, 104, 75],
+  [240, 127, 86],
+];
+const GLOW_STOPS: readonly RGB[] = [
+  [176, 48, 32],
+  [123, 71, 47],
+  [246, 143, 94],
+  [98, 60, 42],
+  [156, 91, 68],
+  [185, 116, 92],
+];
 
 function useMysticScroll() {
   useEffect(() => {
@@ -81,8 +114,10 @@ function useMysticScroll() {
       ticking = false;
       const max = document.documentElement.scrollHeight - window.innerHeight;
       const progress = max > 0 ? Math.min(1, Math.max(0, window.scrollY / max)) : 0;
-      root.style.setProperty("--mystic-a", lerpRgba(MYSTIC_A_FROM, MYSTIC_A_TO, progress));
-      root.style.setProperty("--mystic-b", lerpRgba(MYSTIC_B_FROM, MYSTIC_B_TO, progress));
+      root.style.setProperty("--live-panel", lerpStops(PANEL_STOPS, progress));
+      root.style.setProperty("--live-bg", lerpStops(BG_STOPS, progress));
+      root.style.setProperty("--live-accent", lerpStops(ACCENT_STOPS, progress));
+      root.style.setProperty("--live-glow", lerpStops(GLOW_STOPS, progress));
     }
 
     function onScroll() {
@@ -121,13 +156,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
   return (
     <div className="relative isolate lg:pl-72 min-h-screen flex flex-col text-on-surface">
       {/* ═══ Desktop sidebar ═══ */}
-      <aside
-        className="hidden lg:flex fixed left-0 top-0 h-full w-72 border-r border-outline-variant/30 flex-col z-50"
-        style={{
-          backgroundColor: "color-mix(in srgb, var(--mystic-a) 14%, #1a1a1a 86%)",
-          transition: "--mystic-a 400ms ease-out",
-        }}
-      >
+      <aside className="hidden lg:flex fixed left-0 top-0 h-full w-72 bg-surface-container-low border-r border-outline-variant/30 flex-col z-50">
         <div className="p-8 flex flex-col items-center border-b border-outline-variant/20 mb-4">
           <Image
             src="/brand/alfret-wordmark.png"
@@ -135,7 +164,8 @@ export function AppShell({ children }: { children: React.ReactNode }) {
             width={1536}
             height={716}
             priority
-            className="w-40 h-auto mb-3 drop-shadow-[0_0_12px_rgba(200,30,30,0.35)]"
+            className="w-40 h-auto mb-3"
+            style={{ filter: "drop-shadow(0 0 12px color-mix(in srgb, var(--live-accent) 45%, transparent))" }}
           />
           <span className="font-technical-data text-[10px] uppercase tracking-[0.2em] text-on-surface-variant/60">
             Repository-Butler
@@ -196,7 +226,10 @@ export function AppShell({ children }: { children: React.ReactNode }) {
             <span className="text-[10px] font-technical-data uppercase text-on-surface-variant/40 tracking-widest">
               System Core
             </span>
-            <div className="w-2 h-2 rounded-full bg-primary shadow-[0_0_8px_rgba(200,30,30,0.5)] animate-pulse" />
+            <div
+              className="w-2 h-2 rounded-full bg-primary animate-pulse"
+              style={{ boxShadow: "0 0 8px color-mix(in srgb, var(--live-accent) 60%, transparent)" }}
+            />
           </div>
           <div className="space-y-1">
             <div className="flex justify-between items-center text-[11px] font-technical-data uppercase">
@@ -262,15 +295,16 @@ export function AppShell({ children }: { children: React.ReactNode }) {
       </div>
 
       {/* Ambient glow — fixed to the viewport, not the (tall, scrolling) content,
-          so the mystical shift stays visible no matter how far down the page
-          the user has scrolled. */}
+          so the highlight stays visible no matter how far down the page the
+          user has scrolled. The flat base color is --color-background itself
+          (aliased to --live-bg, so <body>/<main> already carry it); this
+          layer only adds the warm --live-glow halo on top of that. */}
       <div
         className="fixed inset-0 z-0 pointer-events-none"
         style={{
           backgroundImage:
-            "radial-gradient(ellipse at 50% 15%, var(--mystic-a) 0%, var(--mystic-b) 60%, var(--mystic-b) 100%)",
-          backgroundColor: "#050505",
-          transition: "--mystic-a 400ms ease-out, --mystic-b 400ms ease-out",
+            "radial-gradient(ellipse at 50% 15%, color-mix(in srgb, var(--live-glow) 26%, transparent) 0%, transparent 65%)",
+          transition: "--live-glow 400ms ease-out",
         }}
       />
 

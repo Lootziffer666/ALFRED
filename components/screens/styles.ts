@@ -1,14 +1,11 @@
 /** Shared Tailwind class strings for the Scriptorium-styled session screens. */
 
-/* Tinted by the scroll-driven --mystic-b custom property (see AppShell.tsx)
-   instead of a flat surface color, so panels visibly participate in the
-   ambient color shift instead of staying static while only the margins
-   around them change. */
-export const CARD_CLASS =
-  "bg-[color-mix(in_srgb,var(--mystic-b)_12%,#1a1a1a_88%)] border border-outline-variant/20 rounded-xl p-6 lg:p-8";
+/* bg-surface-container-low/-container resolve to --live-panel (see
+   globals.css @theme block), which AppShell.tsx drives across the scroll
+   keyframes — panels shift color automatically, no per-component wiring. */
+export const CARD_CLASS = "bg-surface-container-low border border-outline-variant/20 rounded-xl p-6 lg:p-8";
 
-export const CARD_INSET_CLASS =
-  "bg-[color-mix(in_srgb,var(--mystic-b)_18%,#202020_82%)] border border-outline-variant/10 rounded-lg p-5";
+export const CARD_INSET_CLASS = "bg-surface-container border border-outline-variant/10 rounded-lg p-5";
 
 export const INPUT_CLASS =
   "w-full bg-background border border-outline-variant/30 px-4 py-3 font-technical-data text-sm text-on-surface focus:outline-none focus:border-primary/60 focus:ring-1 focus:ring-primary/20 transition-all rounded placeholder:text-on-surface-variant/30";
