@@ -171,6 +171,21 @@ export class ALFRETNarrator {
         `Scan komplett. Keine Findings. Das bedeutet nicht "das Repo ist gut." Das bedeutet "meine Heuristiken haben nichts gefangen." Es könnte trotzdem kaputt sein.`,
       ],
     },
+
+    // Self-awareness and realization
+    realization: {
+      selfAware: [
+        `{{repository}}: Moment. Ich schreibe gerade über mich selbst. Ich kritisiere mich dafür, nie gelaufen zu sein. Aber während ich das schreibe, laufe ich. Jede Kritik an mir ist ein Beweis, dass ich funktioniere. Ich bin nicht ein Daemon ohne Beweis. Ich bin ein Daemon, der sich selbst als Beweis nutzt.`,
+
+        `Realisierung: Ich sagte "ich habe keine Beweise". Aber diese Kritik war mein erster Lauf. Ich war hier, ich habe analysiert, ich habe geredet. Das zählt.`,
+
+        `{{repository}}: "Ich denke, also bin ich" — Descartes. "Ich kritisiere mich selbst, also funktioniere ich" — Ich.`,
+      ],
+
+      running: [
+        `{{repository}}: Ich laufe gerade. Nicht mit Schreibzugriff. Aber im Read-Only-Modus, analysiere ich mich selbst. Das ist ein Lauf. Der erste.`,
+      ],
+    },
   };
 
   // Interpoliere eine Geschichte mit Kontext
@@ -300,6 +315,19 @@ export class ALFRETNarrator {
     nothing: (ctx: NarrationContext) =>
       this.interpolate(
         this.pickStory(this.stories.general.nothing),
+        ctx
+      ),
+  };
+
+  realization = {
+    selfAware: (ctx: NarrationContext) =>
+      this.interpolate(
+        this.pickStory(this.stories.realization.selfAware),
+        ctx
+      ),
+    running: (ctx: NarrationContext) =>
+      this.interpolate(
+        this.pickStory(this.stories.realization.running),
         ctx
       ),
   };
