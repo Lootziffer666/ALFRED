@@ -62,6 +62,15 @@ export default function ArchivePage() {
           <Link href="/" className="pill" style={{ color: "var(--brass-l)", borderColor: "var(--brass-d)", textDecoration: "none" }}>
             ← zum Repository-Butler
           </Link>
+          <Link href="/report" className="pill" style={{ color: "var(--brass-l)", borderColor: "var(--brass-d)", textDecoration: "none" }}>
+            Öffentlicher Bericht
+          </Link>
+          <Link href="/homelab" className="pill" style={{ color: "var(--brass-l)", borderColor: "var(--brass-d)", textDecoration: "none" }}>
+            Raum IX · Werkstatt
+          </Link>
+          <Link href="/workshop" className="pill" style={{ color: "var(--brass-l)", borderColor: "var(--brass-d)", textDecoration: "none" }}>
+            Workshop
+          </Link>
         </div>
         <h1 style={{ fontSize: "clamp(28px, 6vw, 44px)", margin: "6px 0 0", lineHeight: 1.05 }}>
           Die <span style={{ color: "var(--zinnober)" }}>Setzmaschine</span>, die <span style={{ color: "var(--bordeaux)" }}>liest</span>, was daliegt.

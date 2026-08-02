@@ -33,6 +33,7 @@ export function HomelabClient() {
           <Link className="pill" href="/">Repository-Butler</Link>
           <Link className="pill" href="/report">Öffentlicher Bericht</Link>
           <Link className="pill" href="/archive">Raum VIII</Link>
+          <Link className="pill" href="/workshop">Workshop</Link>
         </div>
 
         <h1 className="serif" style={{ fontSize: 28, margin: "12px 0 8px", color: "var(--paper)" }}>

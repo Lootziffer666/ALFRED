@@ -80,6 +80,7 @@ interface BuildContext {
   signals: Signals;
   assessment: ReportAssessment;
   biography: BiographyFinding[];
+  repo: ReportRepoRef;
 }
 
 /**
@@ -96,7 +97,7 @@ export function composeReport(mode: ReportMode, input: ComposeReportInput): Repo
   const assessment = buildAssessment(atoms);
   const biography = deriveBiography({ signals, atoms, repoName: repo.name });
 
-  const ctx: BuildContext = { mode, atoms, level, scope, signals, assessment, biography };
+  const ctx: BuildContext = { mode, atoms, level, scope, signals, assessment, biography, repo };
   const owned = new Set<ReportSectionKey>(spec.sections);
 
   const sections: ReportSection[] = REPORT_SECTIONS.map((sectionSpec) => {
@@ -124,14 +125,37 @@ export function composeReport(mode: ReportMode, input: ComposeReportInput): Repo
 }
 
 function buildBlocks(key: ReportSectionKey, ctx: BuildContext): ReportBlock[] {
-  const { mode, atoms, level, scope, signals, assessment, biography } = ctx;
+  const { mode, atoms, level, scope, signals, assessment, biography, repo } = ctx;
   const L = LEVELS[level];
 
   if (key === "opening") {
-    return [{ paragraphs: [levelParagraph(L.open), levelParagraph(L.turn)] }];
+    const base = [levelParagraph(L.open), levelParagraph(L.turn)];
+    if (mode === "cv") {
+      const project = `${repo.owner}/${repo.name}`;
+      base.push(
+        levelParagraph(
+          atoms.length === 0
+            ? `${project} liefert nichts, was sich in einen Lebenslauf schmuggeln ließe — auch Selbstüberschätzung braucht einen Beleg.`
+            : `Hiermit wird ${project} zum Lebenslaufeintrag erklärt. Nicht weil es das verdient, sondern weil ein Repository schlechter lügt als ein Anschreiben — jede Zeile unten bleibt an einen Beleg gebunden, auch wenn man dafür um die Ecke denken muss.`,
+        ),
+      );
+    }
+    return [{ paragraphs: base }];
   }
 
   if (key === "contradictions") {
+    if (mode === "cv") {
+      return [
+        {
+          paragraphs: [
+            levelParagraph(
+              "Was dieser Lebenslaufeintrag nicht behauptet, aus Prinzip und Aktenlage — jeder Personaler, der nachfragt, bekommt dieselbe Liste:",
+            ),
+            ...assessment.unknowns.map((u) => levelParagraph(u)),
+          ],
+        },
+      ];
+    }
     const paragraphs = [levelParagraph(L.close)];
     if (mode === "roast") {
       const sting = roastSting(atoms, signals);

@@ -117,6 +117,8 @@ export function ReportClient() {
           ALFRET · Öffentlicher Bericht
           <Link className="pill" href="/">Repository-Butler</Link>
           <Link className="pill" href="/archive">Raum VIII · Skriptorium</Link>
+          <Link className="pill" href="/homelab">Raum IX · Werkstatt</Link>
+          <Link className="pill" href="/workshop">Workshop</Link>
         </div>
 
         <h1 className="serif" style={{ fontSize: 30, margin: "12px 0 8px", color: "var(--paper)" }}>
@@ -156,17 +158,19 @@ export function ReportClient() {
           </label>
         </div>
 
-        <fieldset style={{ border: "1px solid var(--line)", borderRadius: 8, padding: "10px 12px", margin: 0 }}>
-          <legend className="mono" style={{ fontSize: 11, color: "var(--paper-dim)", padding: "0 6px" }}>Tonstufe</legend>
-          <div style={{ display: "flex", gap: 12, flexWrap: "wrap" }}>
-            {LEVEL_IDS.map((id) => (
-              <label key={id} style={{ display: "flex", gap: 6, alignItems: "center", fontSize: 13, color: "var(--paper)" }}>
-                <input type="radio" name="level" checked={level === id} onChange={() => setLevel(id)} />
-                {LEVEL_NUMERALS[id]} · {LEVELS[id].name}
-              </label>
-            ))}
-          </div>
-        </fieldset>
+        {REPORT_MODES[mode].usesLevel !== false ? (
+          <fieldset style={{ border: "1px solid var(--line)", borderRadius: 8, padding: "10px 12px", margin: 0 }}>
+            <legend className="mono" style={{ fontSize: 11, color: "var(--paper-dim)", padding: "0 6px" }}>Tonstufe</legend>
+            <div style={{ display: "flex", gap: 12, flexWrap: "wrap" }}>
+              {LEVEL_IDS.map((id) => (
+                <label key={id} style={{ display: "flex", gap: 6, alignItems: "center", fontSize: 13, color: "var(--paper)" }}>
+                  <input type="radio" name="level" checked={level === id} onChange={() => setLevel(id)} />
+                  {LEVEL_NUMERALS[id]} · {LEVELS[id].name}
+                </label>
+              ))}
+            </div>
+          </fieldset>
+        ) : null}
 
         <div style={{ display: "flex", gap: 10, alignItems: "center", flexWrap: "wrap" }}>
           <button type="submit" disabled={state.kind === "loading"}>

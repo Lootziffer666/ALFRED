@@ -6,7 +6,7 @@ import type { ReportSection, ReportSectionKey } from "./structure";
  * The three report modes (plan §8.3). All three read the same atoms and the
  * same evidence; only tone, selection and emphasis differ.
  */
-export type ReportMode = "pruefbericht" | "biografie" | "roast";
+export type ReportMode = "pruefbericht" | "biografie" | "roast" | "cv";
 
 export type ReportModeStatus = "implemented" | "planned";
 
@@ -19,6 +19,14 @@ export interface ReportModeSpec {
   defaultLevel: 1 | 2 | 3 | 4;
   /** Sections this mode is responsible for filling. */
   sections: readonly ReportSectionKey[];
+  /**
+   * Whether the Tonstufe (I–IV) selector affects this mode's output. The
+   * escalating bureaucratic-satire ladder in lib/atoms/data.ts is what
+   * pruefbericht/biografie/roast climb; a mode that never reads `level`
+   * (like cv) sets this false so the UI does not offer a control with no
+   * visible effect.
+   */
+  usesLevel?: boolean;
   /**
    * Whether the mode actually renders yet. A `planned` mode is never composed
    * as if it worked — the registry states the intended shape without claiming
@@ -63,6 +71,14 @@ export const REPORT_MODES: Record<ReportMode, ReportModeSpec> = {
     summary: "Direkt und hart, aber konkret, fair und an Evidence gebunden.",
     defaultLevel: 4,
     sections: [...SERIOUS_SECTIONS, "technical-quirks", "institutional-oddities"],
+    status: "implemented",
+  },
+  cv: {
+    id: "cv",
+    label: "CV & Anschreiben",
+    summary: "Derselbe Ton wie überall bei ALFRET — absurd, überheblich, manchmal albern — aber als Lebenslaufeintrag gerahmt. Jede Zeile bleibt an einen Beleg gebunden.",
+    defaultLevel: 2,
+    sections: [...SERIOUS_SECTIONS],
     status: "implemented",
   },
 };

@@ -22,6 +22,7 @@
     "daemon": "node --loader=bun ./bin/alfret-daemon.ts"
   },
   "dependencies": {
+    "@material-symbols/font-400": "^0.45.10",
     "next": "16.2.12",
     "react": "19.2.4",
     "react-dom": "19.2.4",
