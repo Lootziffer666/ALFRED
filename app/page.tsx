@@ -29,7 +29,7 @@ function AppBody() {
   return (
     <AppShell>
       <header className="mb-8">
-        <div className="flex items-center gap-2 mb-3 flex-wrap">
+        <div className="flex items-center gap-2 mb-3 flex-wrap lg:hidden">
           <span
             className="w-1.5 h-1.5 rounded-full bg-primary"
             style={{ boxShadow: "0 0 6px rgba(255, 0, 12, 0.7)" }}

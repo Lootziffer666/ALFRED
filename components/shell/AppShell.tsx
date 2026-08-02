@@ -60,7 +60,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
   const isReachable = useReachability();
 
   return (
-    <div className="relative isolate lg:pl-72 min-h-screen flex flex-col text-on-surface">
+    <div className="relative isolate lg:pl-[352px] min-h-screen flex flex-col text-on-surface">
       {/* ═══ Desktop sidebar ═══ */}
       <aside className="hidden lg:flex fixed left-0 top-0 h-full w-72 bg-surface-container-low border-r border-outline-variant/30 flex-col z-50">
         <div className="p-8 flex flex-col items-center border-b border-outline-variant/20 mb-4">
@@ -150,6 +150,19 @@ export function AppShell({ children }: { children: React.ReactNode }) {
         </div>
       </aside>
 
+      {/* ═══ Desktop icon rail — structural column between the sidebar and
+          the workspace, matching the measured reference geometry. Decorative
+          slots, no reference-defined function, so left inert rather than
+          wired to fake actions. ═══ */}
+      <div
+        className="hidden lg:flex fixed left-72 top-0 h-full w-16 bg-background border-r border-outline-variant/30 flex-col items-center gap-4 pt-8 z-40"
+        aria-hidden="true"
+      >
+        <div className="w-10 h-10 rounded-md border border-outline-variant/40 bg-surface-container-low" />
+        <div className="w-10 h-10 rounded-md border border-outline-variant/40 bg-surface-container-low" />
+        <div className="w-10 h-10 rounded-md border border-outline-variant/40 bg-surface-container-low" />
+      </div>
+
       {/* ═══ Mobile nav (below lg) ═══ */}
       <div className="lg:hidden sticky top-0 z-40 bg-surface-container-low/95 backdrop-blur-md border-b border-outline-variant/20">
         <div className="flex items-center gap-2 px-4 pt-3">
@@ -197,6 +210,30 @@ export function AppShell({ children }: { children: React.ReactNode }) {
               </Link>
             ))}
           </div>
+        </div>
+      </div>
+
+      {/* ═══ Desktop top bar — persistent, stays put while the workspace
+          below scrolls, matching the reference's fixed header strip. ═══ */}
+      <div className="hidden lg:flex sticky top-0 z-30 h-14 items-center justify-between px-8 bg-background border-b border-outline-variant/30">
+        <div className="flex items-center gap-2">
+          <span
+            className="w-1.5 h-1.5 rounded-full bg-primary"
+            style={{ boxShadow: "0 0 6px rgba(255, 0, 12, 0.7)" }}
+          />
+          <span className="font-technical-data text-[10px] text-on-surface-variant uppercase tracking-widest">
+            Uplink Active
+          </span>
+          {demoMode && (
+            <span className="font-technical-data text-[10px] text-tertiary uppercase tracking-widest border border-tertiary/30 rounded-full px-2 py-0.5 ml-1">
+              Demo Mode
+            </span>
+          )}
+        </div>
+        <div className="flex items-center gap-5" aria-hidden="true">
+          <span className="material-symbols-outlined text-lg text-on-surface-variant/60">search</span>
+          <span className="material-symbols-outlined text-lg text-on-surface-variant/60">notifications</span>
+          <span className="material-symbols-outlined text-lg text-on-surface-variant/60">history</span>
         </div>
       </div>
 
