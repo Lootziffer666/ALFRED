@@ -121,7 +121,13 @@ export function AppShell({ children }: { children: React.ReactNode }) {
   return (
     <div className="relative isolate lg:pl-72 min-h-screen flex flex-col text-on-surface">
       {/* ═══ Desktop sidebar ═══ */}
-      <aside className="hidden lg:flex fixed left-0 top-0 h-full w-72 bg-surface-container-low border-r border-outline-variant/30 flex-col z-50">
+      <aside
+        className="hidden lg:flex fixed left-0 top-0 h-full w-72 border-r border-outline-variant/30 flex-col z-50"
+        style={{
+          backgroundColor: "color-mix(in srgb, var(--mystic-a) 14%, #1a1a1a 86%)",
+          transition: "--mystic-a 400ms ease-out",
+        }}
+      >
         <div className="p-8 flex flex-col items-center border-b border-outline-variant/20 mb-4">
           <Image
             src="/brand/alfret-wordmark.png"
