@@ -1,0 +1,577 @@
+/* ═══════════════════════════════════════════════════════════════
+   ALFRET · Haus — Sechs-Zonen-Rahmen (Phase 1)
+
+   Sechs feste Zonen, benannt statt gezählt, damit ein Blick ins CSS
+   zeigt, was gemeint ist:
+     topbar   — Zone 6, immer da: Suche, eigenes Profil.
+     sidebar  — linke Navigation, dreigeteilt (Logo+Update / Räume / Health).
+     iconcol  — Zone 2: vertikale Icon-Spalte, direkte Einzelfunktionen.
+     content  — Workbench: Raum-Kopf, optionale Werkzeugzeile, Rauminhalt.
+     rightbar — Mitteilungszentrale, je Raum ein-/ausklappbar.
+
+   Alle Maße sind Variablen, keine Zahlen im Markup — Phase 2 (Edit-Modus,
+   gespeicherte Profile pro Bildschirm) verändert nur diese Variablen,
+   nicht die Struktur.
+   ═══════════════════════════════════════════════════════════════ */
+
+.haus {
+  --haus-topbar-h: 48px;
+  --haus-sidebar-w: 220px;
+  --haus-iconcol-w: 56px;
+  --haus-rightbar-w: 300px;
+  --haus-rightbar-w-collapsed: 32px;
+
+  --haus-bg: var(--ink, #0b0d12);
+  --haus-surface: var(--ink2, #12151c);
+  --haus-surface-raised: var(--ink3, #171b24);
+  --haus-border: var(--line, #2a2620);
+  --haus-text: var(--paper, #e9e2d0);
+  --haus-text-dim: var(--paper-dim, #a39c8a);
+  --haus-text-mut: var(--mut, #7a7566);
+  --haus-accent: var(--zinnober, #d6402c);
+  --haus-accent-soft: color-mix(in srgb, var(--haus-accent) 16%, transparent);
+  --haus-ok: var(--ok, #7fae6a);
+  --haus-warn: var(--brass, #b78a3e);
+
+  height: 100dvh;
+  width: 100%;
+  display: grid;
+  grid-template-columns: var(--haus-sidebar-w) var(--haus-iconcol-w) 1fr var(--haus-rightbar-w);
+  grid-template-rows: var(--haus-topbar-h) 1fr;
+  grid-template-areas:
+    "topbar  topbar  topbar  topbar"
+    "sidebar iconcol content rightbar";
+  background: var(--haus-bg);
+  color: var(--haus-text);
+  font-family: var(--font-body, ui-sans-serif, system-ui, sans-serif);
+  overflow: hidden;
+  transition: grid-template-columns 0.18s ease;
+}
+
+.haus[data-rightbar="collapsed"] {
+  grid-template-columns: var(--haus-sidebar-w) var(--haus-iconcol-w) 1fr var(--haus-rightbar-w-collapsed);
+}
+
+/* ── Zone 6 · Topbar — immer da, bewegt sich nie ─────────────────────── */
+
+.haus-topbar {
+  grid-area: topbar;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 0 14px;
+  border-bottom: 1px solid var(--haus-border);
+  background: var(--haus-surface);
+}
+
+.haus-topbar .logo {
+  font-weight: 700;
+  font-size: 13px;
+  letter-spacing: 0.1em;
+  color: var(--haus-accent);
+}
+
+.haus-search {
+  flex: 1;
+  max-width: 420px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 12px;
+  border-radius: 8px;
+  border: 1px solid var(--haus-border);
+  background: var(--haus-surface-raised);
+  color: var(--haus-text-dim);
+  font-size: 12.5px;
+}
+
+.haus-search input {
+  flex: 1;
+  background: transparent;
+  border: none;
+  outline: none;
+  color: var(--haus-text);
+  font: inherit;
+}
+
+.haus-topbar-spacer {
+  flex: 1;
+}
+
+.haus-profile {
+  width: 30px;
+  height: 30px;
+  border-radius: 8px;
+  border: 1px solid var(--haus-border);
+  background: var(--haus-surface-raised);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  font-size: 13px;
+  color: var(--haus-text-dim);
+}
+
+.haus-profile:hover {
+  border-color: var(--haus-accent);
+  color: var(--haus-text);
+}
+
+/* ── Zone 1 · Linke Sidebar — dreigeteilt ────────────────────────────── */
+
+.haus-sidebar {
+  grid-area: sidebar;
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  border-right: 1px solid var(--haus-border);
+  background: var(--haus-surface);
+  overflow: hidden;
+}
+
+.haus-sidebar-top {
+  padding: 12px 14px;
+  border-bottom: 1px solid var(--haus-border);
+}
+
+.haus-sidebar-version {
+  font-size: 10.5px;
+  color: var(--haus-text-mut);
+  font-family: var(--font-mono, monospace);
+}
+
+.haus-update-note {
+  margin-top: 6px;
+  font-size: 11px;
+  color: var(--haus-warn);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.haus-sidebar-nav {
+  flex: 1;
+  overflow-y: auto;
+  padding: 10px 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.haus-nav-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 9px 10px;
+  border-radius: 8px;
+  font-size: 13px;
+  color: var(--haus-text-dim);
+  cursor: pointer;
+  border: 1px solid transparent;
+  text-align: left;
+  background: transparent;
+  width: 100%;
+}
+
+.haus-nav-item:hover {
+  background: var(--haus-surface-raised);
+  color: var(--haus-text);
+}
+
+.haus-nav-item[aria-current="page"] {
+  background: var(--haus-accent-soft);
+  color: var(--haus-text);
+  border-color: color-mix(in srgb, var(--haus-accent) 40%, transparent);
+}
+
+.haus-nav-item .n {
+  font-family: var(--font-mono, monospace);
+  font-size: 10px;
+  color: var(--haus-text-mut);
+  width: 16px;
+  flex-shrink: 0;
+}
+
+.haus-sidebar-health {
+  border-top: 1px solid var(--haus-border);
+  padding: 10px 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.haus-health-title {
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--haus-text-mut);
+}
+
+.haus-health-lamps {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px;
+}
+
+.haus-lamp {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--haus-ok);
+}
+
+.haus-lamp[data-state="warn"] {
+  background: var(--haus-warn);
+}
+
+.haus-lamp[data-state="down"] {
+  background: var(--haus-accent);
+}
+
+/* ── Zone 2 · Icon-Spalte — direkte Funktionen, kein Kontext ─────────── */
+
+.haus-iconcol {
+  grid-area: iconcol;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  border-right: 1px solid var(--haus-border);
+  background: var(--haus-surface);
+  padding: 10px 0;
+  overflow-y: auto;
+}
+
+.haus-iconcol-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.haus-icon-btn {
+  width: 38px;
+  height: 38px;
+  border-radius: 9px;
+  border: 1px solid transparent;
+  background: transparent;
+  color: var(--haus-text-dim);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 17px;
+  cursor: pointer;
+  position: relative;
+}
+
+.haus-icon-btn:hover {
+  background: var(--haus-surface-raised);
+  border-color: var(--haus-border);
+  color: var(--haus-text);
+}
+
+.haus-iconcol-divider {
+  width: 24px;
+  height: 1px;
+  background: var(--haus-border);
+  margin: 10px 0;
+  flex-shrink: 0;
+}
+
+.haus-iconcol-macros {
+  flex: 1;
+  width: 100%;
+  min-height: 40px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+}
+
+.haus-macro-slot {
+  width: 38px;
+  height: 38px;
+  border-radius: 9px;
+  border: 1px dashed var(--haus-border);
+  color: var(--haus-text-mut);
+  font-size: 15px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* ── Zone 3 · Content / Workbench ─────────────────────────────────────── */
+
+.haus-content {
+  grid-area: content;
+  position: relative; /* Anker für das Dock — siehe .haus-dock */
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  overflow: hidden;
+}
+
+.haus-room-header {
+  padding: 14px 20px 0;
+  flex-shrink: 0;
+}
+
+.haus-room-title {
+  font-size: 20px;
+  font-weight: 600;
+  margin: 0;
+}
+
+.haus-room-subtitle {
+  margin: 4px 0 0;
+  font-size: 13px;
+  color: var(--haus-text-dim);
+}
+
+.haus-context-toolbar {
+  margin-top: 12px;
+  padding: 8px 12px;
+  border-radius: 8px;
+  background: var(--haus-surface);
+  border: 1px solid var(--haus-border);
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 12px;
+  color: var(--haus-text-dim);
+}
+
+.haus-room-body {
+  flex: 1;
+  position: relative; /* das Dock schwebt über genau diesem Bereich, nicht über dem Raum-Kopf */
+  overflow: auto;
+  padding: 16px 20px 20px;
+}
+
+/* ── Zone 5 · Rechte Sidebar — Mitteilungszentrale ───────────────────── */
+
+.haus-rightbar {
+  grid-area: rightbar;
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  border-left: 1px solid var(--haus-border);
+  background: var(--haus-surface);
+  overflow: hidden;
+}
+
+.haus-rightbar-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 12px;
+  border-bottom: 1px solid var(--haus-border);
+  flex-shrink: 0;
+}
+
+.haus-rightbar-title {
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.07em;
+  color: var(--haus-text-mut);
+  flex: 1;
+}
+
+.haus-rightbar-toggle {
+  width: 24px;
+  height: 24px;
+  border-radius: 6px;
+  border: 1px solid var(--haus-border);
+  background: var(--haus-surface-raised);
+  color: var(--haus-text-dim);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 11px;
+  flex-shrink: 0;
+}
+
+.haus-rightbar-toggle:hover {
+  color: var(--haus-text);
+  border-color: var(--haus-accent);
+}
+
+.haus-rightbar-body {
+  flex: 1;
+  overflow-y: auto;
+  padding: 12px;
+}
+
+.haus[data-rightbar="collapsed"] .haus-rightbar-body,
+.haus[data-rightbar="collapsed"] .haus-rightbar-title {
+  display: none;
+}
+
+.haus-notif-card {
+  border: 1px solid var(--haus-border);
+  border-radius: 10px;
+  padding: 12px;
+  margin-bottom: 10px;
+  background: var(--haus-surface-raised);
+}
+
+.haus-notif-card .k {
+  font-size: 10.5px;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--haus-accent);
+  margin-bottom: 4px;
+}
+
+.haus-notif-card .t {
+  font-size: 12.5px;
+  color: var(--haus-text);
+  line-height: 1.4;
+}
+
+.haus-notif-card a {
+  color: var(--haus-text-dim);
+  font-size: 11px;
+  text-decoration: underline;
+}
+
+/* ── Rechtsklick-Kontextmenü (Zone 2, "Icon wählen" / "Funktion zuweisen") ── */
+
+.haus-ctxmenu {
+  position: fixed;
+  z-index: 300;
+  min-width: 200px;
+  background: var(--haus-surface-raised);
+  border: 1px solid var(--haus-border);
+  border-radius: 10px;
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.5);
+  padding: 6px;
+  font-size: 12.5px;
+}
+
+.haus-ctxmenu-label {
+  padding: 6px 10px 4px;
+  font-size: 10.5px;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--haus-text-mut);
+}
+
+.haus-ctxmenu-current {
+  padding: 4px 10px 8px;
+  color: var(--haus-text-dim);
+  border-bottom: 1px solid var(--haus-border);
+  margin-bottom: 6px;
+}
+
+.haus-ctxmenu-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  padding: 7px 10px;
+  border-radius: 6px;
+  background: transparent;
+  border: none;
+  color: var(--haus-text);
+  text-align: left;
+  cursor: pointer;
+}
+
+.haus-ctxmenu-item:hover {
+  background: var(--haus-accent-soft);
+}
+
+.haus-ctxmenu-sub {
+  display: grid;
+  grid-template-columns: repeat(6, 1fr);
+  gap: 4px;
+  padding: 4px 6px;
+}
+
+.haus-ctxmenu-sub button {
+  aspect-ratio: 1;
+  border-radius: 6px;
+  border: 1px solid var(--haus-border);
+  background: transparent;
+  color: var(--haus-text-dim);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 15px;
+  cursor: pointer;
+}
+
+.haus-ctxmenu-sub button:hover,
+.haus-ctxmenu-sub button[data-active="true"] {
+  border-color: var(--haus-accent);
+  color: var(--haus-text);
+  background: var(--haus-accent-soft);
+}
+
+/* ── Das Dock ─────────────────────────────────────────────────────────
+   Liegt als Kind von .haus-room-body im DOM — dadurch kann es strukturell
+   nie die linke Sidebar, die Icon-Spalte, die Topbar oder den Raum-Kopf
+   verdecken, und rückt automatisch mit, wenn die rechte Sidebar auf- oder
+   zuklappt, weil sich dann nur die Breite der content-Spalte ändert.
+   ─────────────────────────────────────────────────────────────────── */
+
+.haus-dock {
+  position: absolute;
+  z-index: 200;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 6px;
+  border-radius: 12px;
+  background: color-mix(in srgb, var(--haus-surface-raised) 92%, transparent);
+  border: 1px solid var(--haus-border);
+  box-shadow: 0 10px 28px rgba(0, 0, 0, 0.45);
+  backdrop-filter: blur(6px);
+  cursor: grab;
+  touch-action: none;
+}
+
+.haus-dock:active {
+  cursor: grabbing;
+}
+
+.haus-dock[data-corner="br"] { right: 16px; bottom: 16px; flex-direction: row; }
+.haus-dock[data-corner="bl"] { left: 16px; bottom: 16px; flex-direction: row; }
+.haus-dock[data-corner="tr"] { right: 16px; top: 16px; flex-direction: row; }
+.haus-dock[data-corner="tl"] { left: 16px; top: 16px; flex-direction: row; }
+
+.haus-dock-item {
+  height: 34px;
+  padding: 0 10px;
+  border-radius: 8px;
+  border: 1px solid transparent;
+  background: transparent;
+  color: var(--haus-text-dim);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  white-space: nowrap;
+  cursor: pointer;
+}
+
+.haus-dock-item:hover {
+  background: var(--haus-surface);
+  border-color: var(--haus-border);
+  color: var(--haus-text);
+}
+
+.haus-dock-item.primary {
+  background: var(--haus-accent);
+  color: var(--haus-text);
+}
+
+.haus-dock-handle {
+  width: 14px;
+  align-self: stretch;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--haus-text-mut);
+  cursor: grab;
+}
