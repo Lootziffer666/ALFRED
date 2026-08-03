@@ -1,15 +1,41 @@
 "use client";
 
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useSyncExternalStore } from "react";
 import { useDaemonBridge } from "@/lib/client/useDaemonBridge";
 
 interface DaemonTrayProps {
   bridgeUrl?: string;
 }
 
+/**
+ * "Vor wie vielen Minuten" braucht die aktuelle Uhrzeit — aber Date.now() im
+ * Render ist unrein: der Wert fröre beim ersten Render ein, und Server- und
+ * Client-Markup widersprächen sich. Die Uhr ist deshalb ein externer Store.
+ *
+ * Der Snapshot wird auf 30-Sekunden-Stufen gerundet: useSyncExternalStore
+ * vergleicht ihn per Identität und liefe bei einem frischen Date.now() pro
+ * Aufruf endlos. Auf dem Server gibt es keine Uhr — dort ist der Wert null,
+ * und die Komponente zeigt "…" bis der Client übernimmt.
+ */
+const CLOCK_BUCKET_MS = 30_000;
+
+function subscribeToClock(onChange: () => void): () => void {
+  const interval = setInterval(onChange, CLOCK_BUCKET_MS);
+  return () => clearInterval(interval);
+}
+
+function clockSnapshot(): number {
+  return Math.floor(Date.now() / CLOCK_BUCKET_MS) * CLOCK_BUCKET_MS;
+}
+
+function serverClockSnapshot(): null {
+  return null;
+}
+
 export function DaemonTray({ bridgeUrl }: DaemonTrayProps) {
   const { status, connected, error, ping } = useDaemonBridge(bridgeUrl);
   const [expandedRepos, setExpandedRepos] = useState(false);
+  const now = useSyncExternalStore(subscribeToClock, clockSnapshot, serverClockSnapshot);
 
   useEffect(() => {
     // Ping every 5s to keep status fresh
@@ -35,9 +61,10 @@ export function DaemonTray({ bridgeUrl }: DaemonTrayProps) {
     );
   }
 
-  const lastTickMinutesAgo = status.lastTick
-    ? Math.floor((Date.now() - new Date(status.lastTick.tickedAt).getTime()) / 60000)
-    : null;
+  const lastTickMinutesAgo =
+    status.lastTick && now !== null
+      ? Math.floor((now - new Date(status.lastTick.tickedAt).getTime()) / 60000)
+      : null;
 
   return (
     <div className="space-y-2">
@@ -56,7 +83,11 @@ export function DaemonTray({ bridgeUrl }: DaemonTrayProps) {
         <div className="px-3 py-2 rounded bg-blue-50 border border-blue-200 text-xs space-y-1">
           <div className="font-medium text-blue-900">Last tick</div>
           <div className="text-blue-800">
-            {lastTickMinutesAgo === 0 ? "Just now" : `${lastTickMinutesAgo}m ago`}
+            {lastTickMinutesAgo === null
+              ? "…"
+              : lastTickMinutesAgo === 0
+                ? "Just now"
+                : `${lastTickMinutesAgo}m ago`}
           </div>
           <div className="text-blue-700">
             {status.lastTick.repos} repos • {status.lastTick.totalDurationMs}ms

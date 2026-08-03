@@ -7,9 +7,9 @@
 //
 // Solange der Executor nicht existiert, werden writes still gelogged und verworfen.
 
-import type { DaemonContext } from "../context.js";
-import type { ResolvedRepoConfig } from "../config.js";
-import type { MaidFinding } from "../../maid/types.js";
+import type { DaemonContext } from "../context";
+import type { ResolvedRepoConfig } from "../config";
+import type { MaidFinding } from "../../maid/types";
 
 // ---------------------------------------------------------------------------
 // PlannedWrite

@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { assessHealth, recommendFallback, runHealthCheck, detectWorktreeConflict } from "@/lib/health";
+import { assessHealth, recommendFallback, detectWorktreeConflict } from "@/lib/health";
 import type { Heartbeat } from "@/lib/health";
 
 function hb(overrides: Partial<Heartbeat> = {}): Heartbeat {

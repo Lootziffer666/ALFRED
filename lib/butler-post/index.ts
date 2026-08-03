@@ -1,9 +1,8 @@
 // Stage 7 — Butler-Post: Aggregation aller offenen Aufmerksamkeitspunkte.
 // Keine neue Erkennungslogik — nur Zusammenführung aus bereits vorhandenen Daten.
 
-import type { AlfretStore } from "../store/types.js";
-import { listPendingWrites } from "../daemon/writes-log.js";
-import { loadDecisions } from "../corpus/persistence.js";
+import type { AlfretStore } from "../store/types";
+import { listPendingWrites } from "../daemon/writes-log";
 
 export type AttentionKind =
   | "pending-write"

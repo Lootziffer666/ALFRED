@@ -1,6 +1,6 @@
 // plan §32 — Branch-Pflege Job: Stale branches erkennen, Merge-Queue managen.
 
-import type { Job, JobContext, JobResult } from "./types.js";
+import type { Job, JobContext, JobResult } from "./types";
 
 export const branchCareJob: Job = {
   name: "branch-care",

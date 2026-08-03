@@ -5,7 +5,7 @@
 //   3. redact() never exposes more than the last 4 characters.
 //   4. secretsOf() feeds the log scrubber — every secret string the process knows about.
 
-import { readJson, writeJson, credentialsPath, ensureAlfretDirs, fileMode } from "./paths.js";
+import { readJson, writeJson, credentialsPath, ensureAlfretDirs } from "./paths";
 import { stat } from "node:fs/promises";
 
 export interface StoredCredentials {

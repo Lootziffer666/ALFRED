@@ -91,12 +91,21 @@ export const VERIFICATION_PROMPT_LLAMACPP = "Respond with exactly one word: OK";
 
 /**
  * Package managers this adapter will call, by platform. Absent means the
- * platform is not supported.
+ * platform is not supported — the step then yields no command at all, and the
+ * operator installs by hand.
+ *
+ * Only vetted, first-party package managers appear here:
+ *
+ * - linux is deliberately absent. Ollama's own Linux path is a piped download
+ *   (`curl … | sh`), which this runner will not execute, and there is no
+ *   `ollama` package in the Debian/Ubuntu archives — `apt-get install ollama`
+ *   would either fail or install whatever else claims that name.
+ * - win32 uses winget (ships with Windows) rather than Chocolatey, which is
+ *   third-party and not present on a stock machine.
  */
 export const INSTALLERS: Partial<Record<NodeJS.Platform, string[]>> = {
   darwin: ["brew", "install", "ollama"],
-  linux: ["apt-get", "install", "-y", "ollama"],
-  win32: ["choco", "install", "-y", "ollama"],
+  win32: ["winget", "install", "--exact", "--id", "Ollama.Ollama", "--silent"],
 };
 
 const OLLAMA_TIMEOUTS: Partial<Record<RunnerStepKind, number>> = {

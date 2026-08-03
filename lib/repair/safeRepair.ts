@@ -2,11 +2,11 @@
 // Nur für Finding-Kinds mit autoFixable: true (aktuell: doc-update-needed).
 // Baut PlannedWrite über repairReadme.ts — kein doppelter Pfad.
 
-import type { AlfretStore } from "../store/types.js";
-import type { FindingCapsule } from "../findings/capsule.js";
-import type { PlannedWrite } from "../daemon/jobs/types.js";
-import { buildReadmeRepair } from "../readme/repairReadme.js";
-import { ghFetch } from "../github.js";
+import type { AlfretStore } from "../store/types";
+import type { FindingCapsule } from "../findings/capsule";
+import type { PlannedWrite } from "../daemon/jobs/types";
+import { buildReadmeRepair } from "../readme/repairReadme";
+import { ghFetch } from "../github";
 
 const DAEMON_AUTHOR = "alfret-daemon[bot]";
 const FIXABLE_KINDS = new Set(["doc-update-needed"]);
@@ -69,7 +69,7 @@ export async function executeRepair(
     return { ok: false, writes: [], reason: "README konnte nicht geladen werden." };
   }
 
-  const readmeContent = (globalThis as any).Buffer.from(readmeResult.data.content, "base64").toString("utf-8");
+  const readmeContent = Buffer.from(readmeResult.data.content, "base64").toString("utf-8");
   const branchName = `alfret/repair-readme-${Date.now()}`;
 
   const repair = buildReadmeRepair({

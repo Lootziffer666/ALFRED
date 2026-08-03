@@ -10,8 +10,8 @@
 //   obwohl die eigene .gitignore sie ausschließt, ist interessant
 //   ("temporary" + das vorhandene "temporary-output"-Finding).
 
-import type { FileClass } from "./types.js";
-import { isIgnored, globToRegExp, type GitignoreRule } from "./gitignore.js";
+import type { FileClass } from "./types";
+import { isIgnored, globToRegExp, type GitignoreRule } from "./gitignore";
 
 export interface ClassifyRule {
   name: string;
@@ -84,7 +84,7 @@ export function rulesFromSettings(settings: MaidSettings): ClassifyRule[] {
   const ignoreRule: ClassifyRule = {
     name: "operator-ignore",
     test: (p) => ignoreRegexes.some((re) => re.test(p)),
-    result: "ignored" as FileClass,
+    result: "ignored",
   };
 
   return [ignoreRule, ...DEFAULT_CLASSIFY_RULES];

@@ -15,6 +15,23 @@ const eslintConfig = defineConfig([
     // Vendored, unmodified third-party asset (see public/sql-js/README.md) — not our source.
     "public/sql-js/**",
   ]),
+  {
+    rules: {
+      // Ein führender Unterstrich ist im Repo die Ansage "absichtlich ungenutzt"
+      // (Signatur-Platzhalter, dokumentierende Parameternamen, ignorierte
+      // Destrukturierungsfelder). Ohne diese Regel meldet der Linter genau die
+      // Stellen, an denen die Absicht bereits im Namen steht.
+      "@typescript-eslint/no-unused-vars": [
+        "warn",
+        {
+          argsIgnorePattern: "^_",
+          varsIgnorePattern: "^_",
+          caughtErrorsIgnorePattern: "^_",
+          destructuredArrayIgnorePattern: "^_",
+        },
+      ],
+    },
+  },
 ]);
 
 export default eslintConfig;

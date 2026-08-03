@@ -1,6 +1,6 @@
 // plan §17 — In-memory AlfretStore for tests. Implements close() for interface parity.
 
-import type { AlfretStore, Entity } from "./types.js";
+import type { AlfretStore, Entity } from "./types";
 
 export class MemoryStore implements AlfretStore {
   private map = new Map<string, Entity>();

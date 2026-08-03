@@ -5,10 +5,7 @@
  * Server Component — liest Store direkt.
  */
 
-import { MemoryAlfretStore } from "@/lib/store";
 import { MobileWorkshopClient } from "./MobileWorkshopClient";
-
-const store = new MemoryAlfretStore();
 
 export const metadata = {
   title: "Mobile — ALFRET",

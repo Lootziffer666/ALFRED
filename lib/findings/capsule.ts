@@ -2,7 +2,7 @@
 // Capsule = finding + metadata + signature, verifiable without daemon.
 
 import { createHash, createHmac } from "node:crypto";
-import type { MaidFinding } from "../maid/types.js";
+import type { MaidFinding } from "../maid/types";
 
 export interface FindingCapsule {
   /** Unique ID per repository observation */

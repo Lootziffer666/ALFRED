@@ -1,18 +1,21 @@
 /**
- * Edge-Middleware (Etappe 12a).
+ * Edge-Proxy (Etappe 12a) — bis Next.js 16 „middleware.ts" genannt.
  *
  * Zuständigkeiten:
  * 1. Rate-Limiting für /api/demo/run und /api/report/enhance
  *    (die einzigen Routen die potenziell teuer oder missbrauchbar sind)
  * 2. Ablehnung von Requests mit privaten IP-Adressen an Demo-Routen
  *    (Public Demo darf keine lokalen Runner ansprechen — §7.1)
- * 3. Operating-Profile-Header setzen damit Route-Handler wissen
- *    in welchem Profil sie laufen
+ * 3. Operating-Profile-Header setzen, damit der Client sieht, in welchem
+ *    Profil die Instanz läuft
  *
  * Bewusst NICHT hier:
  * - Authentifizierung (keine in der Public Demo)
- * - Secrets (Middleware läuft im Edge, keine Env-Zugriffe für Secrets)
+ * - Secrets (der Proxy läuft im Edge, keine Env-Zugriffe für Secrets)
  * - Geschäftslogik
+ * - Policy-Entscheidungen für Route-Handler. Der gesetzte Header ist Anzeige,
+ *   keine Autorität: Handler lesen das Profil selbst aus der Serverumgebung
+ *   (lib/profile/operating.ts).
  *
  * Rate-Limit-Implementierung: gleitendes Fenster per IP, in-memory
  * im Edge-Runtime (Vercel / Cloudflare Workers kompatibel).
@@ -22,6 +25,13 @@
 
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
+import type { OperatingProfile } from "@/lib/schema/homelab";
+import {
+  checkRateLimit,
+  isPrivateOrigin,
+  RATE_LIMIT_MAX,
+  type RateLimitEntry,
+} from "@/lib/proxy/limits";
 
 // ── Konfiguration ────────────────────────────────────────────────────────────
 
@@ -31,21 +41,10 @@ const RATE_LIMITED_ROUTES = [
   "/api/report/enhance",   // optionale Modellveredelung (Etappe 1C)
 ] as const;
 
-/** Maximale Requests pro Fenster pro IP. */
-const RATE_LIMIT_MAX = 10;
-
-/** Fenstergröße in Millisekunden. */
-const RATE_LIMIT_WINDOW_MS = 60_000; // 1 Minute
-
 /** Demo-Routen die niemals private IPs ansprechen dürfen. */
 const DEMO_ONLY_ROUTES = ["/api/demo/"] as const;
 
 // ── In-Memory Rate-Limit Store ───────────────────────────────────────────────
-
-interface RateLimitEntry {
-  count: number;
-  windowStart: number;
-}
 
 // Edge-Runtime: globaler State lebt nur in dieser Instanz.
 // Über mehrere Instanzen hinweg kein geteiltes Limit — bewusste Entscheidung.
@@ -59,82 +58,47 @@ function getRateLimitKey(req: NextRequest, route: string): string {
   return `${ip}::${route}`;
 }
 
-function checkRateLimit(key: string): { allowed: boolean; remaining: number; resetAt: number } {
-  const now = Date.now();
-  const entry = rateLimitStore.get(key);
-
-  if (!entry || now - entry.windowStart > RATE_LIMIT_WINDOW_MS) {
-    // Neues Fenster
-    rateLimitStore.set(key, { count: 1, windowStart: now });
-    return { allowed: true, remaining: RATE_LIMIT_MAX - 1, resetAt: now + RATE_LIMIT_WINDOW_MS };
-  }
-
-  if (entry.count >= RATE_LIMIT_MAX) {
-    const resetAt = entry.windowStart + RATE_LIMIT_WINDOW_MS;
-    return { allowed: false, remaining: 0, resetAt };
-  }
-
-  entry.count += 1;
-  return {
-    allowed: true,
-    remaining: RATE_LIMIT_MAX - entry.count,
-    resetAt: entry.windowStart + RATE_LIMIT_WINDOW_MS,
-  };
-}
-
-// ── Private-IP-Erkennung ─────────────────────────────────────────────────────
-
-/**
- * Prüft ob eine URL-Origin auf eine private oder lokale IP zeigt.
- * Verhindert dass die Public-Demo-Ausführung lokale Runner anspricht.
- *
- * Betrifft nur Demo-Routen — nicht die gesamte App.
- */
-function isPrivateOrigin(url: string): boolean {
-  try {
-    const { hostname } = new URL(url);
-    return (
-      hostname === "localhost" ||
-      hostname === "127.0.0.1" ||
-      hostname === "::1" ||
-      /^10\./.test(hostname) ||
-      /^192\.168\./.test(hostname) ||
-      /^172\.(1[6-9]|2\d|3[01])\./.test(hostname) ||
-      /^fd[0-9a-f]{2}:/i.test(hostname) // IPv6 ULA
-    );
-  } catch {
-    return false;
-  }
-}
-
 // ── Operating Profile ────────────────────────────────────────────────────────
 
 /**
  * Bestimmt das Operating Profile anhand der Umgebung.
  *
- * - ALFRET_PROFILE=local-installation → local-installation
- * - ALFRET_PROFILE=public-demo oder nicht gesetzt → public-demo
+ * Das Vokabular ist dasselbe wie in lib/schema/homelab.ts
+ * ("homelab" | "ci" | "local-dev" | "production"). Vorher setzte diese Datei
+ * "public-demo"/"local-installation" — Werte, die kein Route-Handler kannte,
+ * weshalb jeder Handler still auf "production" zurückfiel.
  *
- * Route-Handler lesen diesen Header um zu wissen ob sie
- * lokale Runner ansprechen dürfen.
+ * Der Proxy kann process.env nicht mit lib/profile/operating.ts teilen: die
+ * Edge-Runtime lädt keine Node-Module. Beide Stellen lesen dieselbe Variable.
  */
-function resolveOperatingProfile(): "public-demo" | "local-installation" {
+function resolveOperatingProfile(): OperatingProfile {
   // Edge-Runtime: process.env ist verfügbar in Next.js Edge
   const envProfile = process.env.ALFRET_PROFILE;
-  if (envProfile === "local-installation") return "local-installation";
-  return "public-demo";
+  if (
+    envProfile === "homelab" ||
+    envProfile === "ci" ||
+    envProfile === "local-dev" ||
+    envProfile === "production"
+  ) {
+    return envProfile;
+  }
+  return "production";
 }
 
-// ── Middleware ────────────────────────────────────────────────────────────────
+/** Profile, in denen die Demo-Beschränkungen nicht gelten. */
+function isLocalProfile(profile: OperatingProfile): boolean {
+  return profile === "local-dev" || profile === "homelab";
+}
 
-export function middleware(req: NextRequest) {
+// ── Proxy ─────────────────────────────────────────────────────────────────────
+
+export function proxy(req: NextRequest) {
   const { pathname } = req.nextUrl;
   const profile = resolveOperatingProfile();
 
   // ── Demo-Routen: Private-IP-Check ────────────────────────────────────────
   // Verhindert dass /api/demo/* intern auf lokale Dienste weitergeleitet wird.
-  // Betrifft den Referer und den Origin-Header.
-  if (profile === "public-demo" && DEMO_ONLY_ROUTES.some((p) => pathname.startsWith(p))) {
+  if (!isLocalProfile(profile) && DEMO_ONLY_ROUTES.some((p) => pathname.startsWith(p))) {
     const origin = req.headers.get("origin") ?? "";
     if (origin && isPrivateOrigin(origin)) {
       return NextResponse.json(
@@ -148,7 +112,7 @@ export function middleware(req: NextRequest) {
   const isRateLimited = RATE_LIMITED_ROUTES.some((r) => pathname.startsWith(r));
   if (isRateLimited) {
     const key = getRateLimitKey(req, pathname);
-    const { allowed, remaining, resetAt } = checkRateLimit(key);
+    const { allowed, remaining, resetAt } = checkRateLimit(rateLimitStore, key);
 
     if (!allowed) {
       return NextResponse.json(

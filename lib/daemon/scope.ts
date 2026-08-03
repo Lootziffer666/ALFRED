@@ -2,9 +2,9 @@
 // Wraps the existing parseScopeRegistry from lib/scope/.
 // Missing scope.json → EMPTY_SCOPE_REGISTRY (no repo is armed, nothing happens).
 
-import { readJson, scopePath, writeJson, ensureAlfretDirs } from "./paths.js";
-import { parseScopeRegistry, EMPTY_SCOPE_REGISTRY } from "../scope/index.js";
-import type { ScopeRegistry } from "../scope/types.js";
+import { readJson, scopePath, writeJson, ensureAlfretDirs } from "./paths";
+import { parseScopeRegistry, EMPTY_SCOPE_REGISTRY } from "../scope/index";
+import type { ScopeRegistry } from "../scope/types";
 
 export type { ScopeRegistry };
 export { EMPTY_SCOPE_REGISTRY };
@@ -62,6 +62,10 @@ export async function addRepository(
   repository: string,
   file = scopePath(),
 ): Promise<void> {
+  // Ohne das ist `alfret-daemon add-repo` auf einer frischen Maschine ein
+  // ENOENT: writeJson legt die Datei an, aber nicht das Verzeichnis darüber.
+  await ensureAlfretDirs();
+
   const { registry } = await loadScopeRegistry(file);
 
   const updated: ScopeRegistry = {

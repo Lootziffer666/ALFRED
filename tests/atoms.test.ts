@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { extract, buildMetaAtoms } from "@/lib/atoms/extract";
-import { RULES, SHADED_SIGNALS, EMPTY_SIGNALS } from "@/lib/atoms/data";
+import { RULES, PHASES, SHADED_SIGNALS, EMPTY_SIGNALS } from "@/lib/atoms/data";
 import { parseKI, mapSectionsToPhases, composeFallback, buildPrompts, metaOrTrope } from "@/lib/atoms/compose";
 import type { Atom } from "@/lib/atoms/types";
 
@@ -44,13 +44,13 @@ describe("buildMetaAtoms", () => {
 describe("composeFallback", () => {
   it("places every rule's atom assigned to a mid phase into the fallback text (nothing silently dropped)", () => {
     // The "schein" (open) and "quint" (close) phases always show the fixed
-    // level narration, not atom tropes — only the three middle phases
-    // (verfass/behörd/para) render their picked atoms' tropes. That covers
+    // level narration, not atom tropes — only the middle phases
+    // (verfass/behörd/para/prov) render their picked atoms' tropes. That covers
     // every rule id except "single_file", which the original prototype's
     // phase layout assigns only to "schein".
     const atoms = extract(SHADED_SIGNALS).filter((a) => a.id !== "single_file");
     const phases = composeFallback({ atoms, level: 2, mode: "single", metaTotal: 0, dbFileNames: [], assess: null });
-    expect(phases).toHaveLength(5);
+    expect(phases).toHaveLength(PHASES.length);
     const shownIds = new Set(phases.flatMap((p) => p.paragraphs.map((par) => par.text)));
     for (const a of atoms) {
       const trope = metaOrTrope(a, 2, "single");

@@ -8,8 +8,7 @@
 import type {
   ProfileSource, ProfileRepo, DeveloperProfile, ProfileSkill,
   ProfileProject, ProfileTimeline, ProfileDomain,
-  LanguageEpoch, CareerPhase, EvidenceStatement,
-  SkillCategory, SkillConfidence,
+  SkillCategory,
 } from "./types";
 import type { DetailedEvidenceRef } from "@/lib/schema/common";
 

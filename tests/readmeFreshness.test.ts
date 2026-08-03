@@ -6,8 +6,8 @@ import { describe, it, expect } from "vitest";
 import {
   replaceMarkedBlock,
   findStaleEtappenClaim,
-} from "../lib/readme/markers.js";
-import { hasOpenProposal, jobStateId } from "../lib/daemon/jobs/job-state.js";
+} from "../lib/readme/markers";
+import { hasOpenProposal, jobStateId } from "../lib/daemon/jobs/job-state";
 
 describe("replaceMarkedBlock", () => {
   const README = `# Projekt\n\n<!-- alfret:begin status -->\nAlte Info\n<!-- alfret:end status -->\n\nWeiterer Text.`;

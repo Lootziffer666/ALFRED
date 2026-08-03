@@ -4,7 +4,7 @@
 "use client";
 
 import { useEffect, useReducer, useRef } from "react";
-import type { BridgeMessage, DaemonStatus } from "../daemon/bridge.js";
+import type { BridgeMessage, DaemonStatus } from "../daemon/bridge";
 
 export interface DaemonBridgeState {
   status: DaemonStatus | null;
@@ -73,12 +73,18 @@ export function useDaemonBridge(
           try {
             const msg = JSON.parse(event.data) as BridgeMessage;
             if (msg.kind === "status" || msg.kind === "pong" || msg.kind === "tick") {
-              const status = (msg.payload as any).status;
+              // payload is Record<string, unknown> on the wire — the bridge is
+              // the only writer, so a present `status` is trusted, but it is
+              // never assumed to be there.
+              const status = msg.payload?.status as DaemonStatus | undefined;
               if (status) {
                 dispatch({ type: "status", payload: status });
               }
             } else if (msg.kind === "error") {
-              dispatch({ type: "error", payload: (msg.payload as any).error });
+              dispatch({
+                type: "error",
+                payload: String(msg.payload?.error ?? "Unbekannter Bridge-Fehler"),
+              });
             }
           } catch (err) {
             dispatch({ type: "error", payload: String(err) });

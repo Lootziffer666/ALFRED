@@ -3,7 +3,7 @@
 // openPrNumber. Nie zweimal für dieselbe PR-Nummer vorschlagen —
 // offener Vorschlag → skipped.
 
-import type { AlfretStore } from "../../store/types.js";
+import type { AlfretStore } from "../../store/types";
 
 export interface DaemonJobState {
   kind: "daemon-job-state";

@@ -18,20 +18,20 @@
 // Ziel ist ein PR, NIE main — auch wenn direkte Commits gewünscht wären.
 // Ein Config-Flip später kann das ändern, ist aber nicht Teil dieser Etappe.
 
-import type { Job, JobContext, JobResult } from "./types.js";
-import { ghFetch } from "../../github.js";
+import type { Job, JobContext, JobResult } from "./types";
+import { ghFetch } from "../../github";
 import {
   replaceMarkedBlock,
   findStaleEtappenClaim,
-} from "../../readme/markers.js";
+} from "../../readme/markers";
 import {
   getJobState,
   saveJobState,
   hasOpenProposal,
   jobStateId,
-} from "./job-state.js";
-import { globToRegExp } from "../../maid/gitignore.js";
-import { narrator } from "../narration.js";
+} from "./job-state";
+import { globToRegExp } from "../../maid/gitignore";
+import { narrator } from "../narration";
 
 const DOC_RELEVANT_GLOBS = ["lib/**", "app/api/**", "bin/**", "PLAN.md"];
 const DAEMON_AUTHOR_MARKER = "alfret-daemon[bot]";

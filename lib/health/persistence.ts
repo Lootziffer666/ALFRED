@@ -2,8 +2,8 @@
 // Entity-Wrapper um Heartbeat.
 // id = `${agentId}::${taskId}::${timestamp}` — zeitlich sortierbar.
 
-import type { AlfretStore } from "../store/types.js";
-import type { Heartbeat } from "./types.js";
+import type { AlfretStore } from "../store/types";
+import type { Heartbeat } from "./types";
 
 export interface StoredHeartbeat extends Heartbeat {
   kind: "heartbeat";

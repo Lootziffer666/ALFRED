@@ -1,8 +1,8 @@
 // CUE-Persistenz — Stage 0, Phase 2.
 // Entity-Wrapper um CueReport.
 
-import type { AlfretStore } from "../store/types.js";
-import type { CueReport } from "./types.js";
+import type { AlfretStore } from "../store/types";
+import type { CueReport } from "./types";
 
 export interface StoredCueReport extends CueReport {
   kind: "cue-report";

@@ -5,17 +5,21 @@
 
 import { parseArgs } from "node:util";
 import { createInterface } from "node:readline";
-import { createContext, disposeContext } from "../lib/daemon/context.js";
-import { createLogger } from "../lib/daemon/log.js";
-import { acquireLock, releaseLock, LockError } from "../lib/daemon/lock.js";
-import { loadConfig } from "../lib/daemon/config.js";
-import { loadCredentials, storeCredentials } from "../lib/daemon/credentials.js";
-import { loadScopeRegistry, saveScopeRegistry, addRepository } from "../lib/daemon/scope.js";
-import { openStore } from "../lib/store/factory.js";
-import { startScheduler } from "../lib/daemon/scheduler.js";
-import { maidScanJob } from "../lib/daemon/jobs/maid-scan.js";
-import { readmeFreshnessJob } from "../lib/daemon/jobs/readme-freshness.js";
-import { branchCareJob } from "../lib/daemon/jobs/branch-care.js";
+import { createContext, disposeContext } from "../lib/daemon/context";
+import { createLogger } from "../lib/daemon/log";
+import { acquireLock, releaseLock, LockError } from "../lib/daemon/lock";
+import { loadConfig } from "../lib/daemon/config";
+import {
+  loadCredentials,
+  storeCredentials,
+  type LoadCredentialsResult,
+} from "../lib/daemon/credentials";
+import { loadScopeRegistry, addRepository } from "../lib/daemon/scope";
+import { openStore } from "../lib/store/factory";
+import { startScheduler } from "../lib/daemon/scheduler";
+import { maidScanJob } from "../lib/daemon/jobs/maid-scan";
+import { readmeFreshnessJob } from "../lib/daemon/jobs/readme-freshness";
+import { branchCareJob } from "../lib/daemon/jobs/branch-care";
 
 const COMMANDS = [
   "run",
@@ -186,7 +190,7 @@ async function runOnce(): Promise<void> {
     const store = await openStore({ kind: "sqlite" });
     const ctx = await createContext({ config, creds: credsResult, store, log });
 
-    const { runOnce } = await import("../lib/daemon/scheduler.js");
+    const { runOnce } = await import("../lib/daemon/scheduler");
     const result = await runOnce(ctx, [maidScanJob, readmeFreshnessJob, branchCareJob]);
 
     log.info("tick complete", {
@@ -201,8 +205,6 @@ async function runOnce(): Promise<void> {
 }
 
 async function showStatus(): Promise<void> {
-  const log = createLogger({ minLevel: "info" });
-
   try {
     await acquireLock();
     console.log("Daemon not running.");
@@ -231,14 +233,32 @@ async function runDoctor(): Promise<void> {
   const config = configResult.config;
   console.log("✓ Config loaded");
 
-  const credsResult = await loadCredentials();
-  console.log(credsResult.token ? "✓ GitHub token found" : "⚠ No GitHub token");
+  // doctor ist genau das Werkzeug für eine Maschine, auf der noch nichts
+  // eingerichtet ist — es darf am fehlenden Token nicht abbrechen, sondern muss
+  // ihn als Befund melden. loadCredentials() wirft in diesem Fall.
+  let credsResult: LoadCredentialsResult = {
+    token: "",
+    source: "env",
+    fingerprint: "",
+  };
+  try {
+    credsResult = await loadCredentials();
+    console.log("✓ GitHub token found");
+  } catch (err) {
+    console.log(`⚠ ${err instanceof Error ? err.message : String(err)}`);
+  }
 
   const scopeResult = await loadScopeRegistry();
   console.log(`✓ Scope: ${Object.keys(scopeResult.registry.repositories).length} repositories`);
 
   const store = await openStore({ kind: "sqlite" });
-  const ctx = await createContext({ config, creds: credsResult, store, log });
+  const ctx = await createContext({
+    config,
+    creds: credsResult,
+    store,
+    log,
+    scope: scopeResult.registry,
+  });
 
   if (ctx.git) {
     console.log(`✓ Git: ${ctx.git.version} at ${ctx.git.path}`);
@@ -265,7 +285,7 @@ async function runDoctor(): Promise<void> {
 }
 
 async function addRepo(repo: string): Promise<void> {
-  const { scopePath } = await import("../lib/daemon/paths.js");
+  const { scopePath } = await import("../lib/daemon/paths");
   await addRepository(repo, scopePath());
   console.log(`Added repository: ${repo}`);
 }
@@ -274,7 +294,7 @@ async function setArmed(armed: boolean): Promise<void> {
   const configResult = await loadConfig({});
   const updated = { ...configResult.config, armed };
 
-  const { configPath, writeJson } = await import("../lib/daemon/paths.js");
+  const { configPath, writeJson } = await import("../lib/daemon/paths");
   await writeJson(configPath(), updated);
 
   console.log(`Daemon ${armed ? "armed" : "disarmed"}`);
@@ -323,7 +343,7 @@ async function resumeDaemon(): Promise<void> {
   const store = await openStore({ kind: "sqlite" });
   const ctx = await createContext({ config, creds: credsResult, store, log });
 
-  const { runOnce } = await import("../lib/daemon/scheduler.js");
+  const { runOnce } = await import("../lib/daemon/scheduler");
   await runOnce(ctx, [maidScanJob, readmeFreshnessJob, branchCareJob]);
 
   disposeContext(ctx);
@@ -351,7 +371,7 @@ async function uninstallDaemon(): Promise<void> {
 
     const { promises: fs } = await import("node:fs");
     const { lockPath, configPath, credentialsPath, scopePath } = await import(
-      "../lib/daemon/paths.js"
+      "../lib/daemon/paths"
     );
 
     for (const path of [lockPath(), configPath(), credentialsPath(), scopePath()]) {

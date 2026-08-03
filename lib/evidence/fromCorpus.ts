@@ -1,7 +1,7 @@
 // Stage 3 — Übersetzungsfunktion PersistedEvidence → EvidenceRef (UI-Vertrag).
 // Löst die Zwei-Typen-Frage ohne den UI-Prop-Vertrag anzufassen.
 
-import type { PersistedEvidence } from "../corpus/persistence.js";
+import type { PersistedEvidence } from "../corpus/persistence";
 
 // EvidenceRef ist der flache UI-Vertrag aus lib/evidence/ref.ts
 export interface EvidenceRef {

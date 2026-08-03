@@ -4,12 +4,12 @@
 // Rate-Limit pausiert alle Repos, bis Reset abläuft (Limit ist pro Token, nicht pro Repo).
 // nextDelayMs ist eine reine Funktion mit injizierbarem rand — testbar ohne Fake-Timer.
 
-import type { DaemonContext } from "./context.js";
-import type { Job, JobResult, TickResult, RepoTickSummary } from "./jobs/types.js";
-import { resolveRepoConfig } from "./config.js";
-import { sealCapsule } from "../findings/capsule.js";
-import { logPlannedWrite, resolveWrite, plannedWriteId } from "./writes-log.js";
-import { recordAudit, type AuditOutcome } from "./audit.js";
+import type { DaemonContext } from "./context";
+import type { Job, JobResult, TickResult, RepoTickSummary } from "./jobs/types";
+import { resolveRepoConfig } from "./config";
+import { sealCapsule } from "../findings/capsule";
+import { logPlannedWrite, resolveWrite, plannedWriteId } from "./writes-log";
+import { recordAudit, type AuditOutcome } from "./audit";
 
 // ---------------------------------------------------------------------------
 // Konstanten
@@ -181,7 +181,6 @@ async function runOnceInternal(
 
         await ctx.store.put({
           kind: "finding-capsule" as const,
-          id: capsule.id,
           ...capsule,
         });
       }
@@ -197,11 +196,14 @@ async function runOnceInternal(
 
         // Armed-Gate — kein echter GitHub-API-Call, solange nicht explizit armed
         if (ctx.config.armed && !ctx.config.dryRun) {
-          const { executeWrite } = await import("../github/write.js");
+          const { executeWrite } = await import("../github/write");
           const writeResult = await executeWrite(result.writes[wi], {
             token: ctx.creds.token,
             dryRun: false,
             armed: true,
+            // Der globale armed-Schalter allein reicht nicht: die Registry
+            // entscheidet, welches Repository welche Aktion freigegeben hat.
+            scope: ctx.scope,
           });
 
           const outcome: AuditOutcome = writeResult.applied ? "executed" : "denied";
@@ -254,6 +256,15 @@ async function runOnceInternal(
 
       if (result.meta?.rateLimited) {
         onRateLimit(RATE_LIMIT_PAUSE_MS);
+        // Der Abbruch sprang bisher an dem push unten vorbei: der Tick meldete
+        // dann null bearbeitete Repositories, obwohl Jobs gelaufen waren,
+        // Findings versiegelt und Writes protokolliert wurden. Der Tick-Eintrag
+        // widersprach damit dem Audit-Log. Was getan wurde, wird auch berichtet.
+        repoSummaries.push({
+          repository,
+          jobResults,
+          durationMs: Date.now() - repoStart,
+        });
         break repoLoop;
       }
     }

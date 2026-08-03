@@ -1,8 +1,8 @@
 // plan §36 — POST-Verification: Nach jedem Commit echte Systeme-Checks
 // "Grün leuchten" reicht nicht. Wir müssen wissen, dass es funktioniert.
 
-import type { DaemonLogger } from "./log.js";
-import { narrator } from "./narration.js";
+import type { DaemonLogger } from "./log";
+import { narrator } from "./narration";
 
 export interface VerificationResult {
   status: "pass" | "fail" | "partial";
@@ -44,7 +44,7 @@ export class PostVerifier {
   async verifyCommit(
     repository: string,
     files: string[],
-    message: string,
+    _message: string,
   ): Promise<VerificationResult> {
     const start = Date.now();
     const checks: VerificationCheck[] = [];
@@ -162,7 +162,7 @@ export class PostVerifier {
   /**
    * Check 3: Abhängigkeiten sind in Ordnung (package.json, imports)
    */
-  private async checkDependencies(repository: string): Promise<VerificationCheck> {
+  private async checkDependencies(_repository: string): Promise<VerificationCheck> {
     return {
       name: "dependencies",
       status: "warning",
@@ -176,7 +176,7 @@ export class PostVerifier {
    * - Security invariants sind noch in place
    * - Audit log ist noch intakt
    */
-  private async checkBasicFunctionality(repository: string): Promise<VerificationCheck> {
+  private async checkBasicFunctionality(_repository: string): Promise<VerificationCheck> {
     return {
       name: "basic-functionality",
       status: "warning",

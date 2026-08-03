@@ -18,8 +18,9 @@
     "start": "next start",
     "lint": "eslint",
     "typecheck": "tsc --noEmit",
-    "test": "bun test",
-    "daemon": "node --loader=bun ./bin/alfret-daemon.ts"
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "daemon": "bun ./bin/alfret-daemon.ts"
   },
   "dependencies": {
     "next": "16.2.12",

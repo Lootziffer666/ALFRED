@@ -2,7 +2,7 @@
 // aheadBy/behindBy/status heute wegwirft. Genau die Felder, die Etappe 32
 // (Branch-Pflege) später braucht.
 
-import { ghFetch, type GhFetchOptions } from "../github.js";
+import { ghFetch, type GhFetchOptions } from "../github";
 
 export interface CompareRefsResult {
   status: "ahead" | "behind" | "diverged" | "identical";

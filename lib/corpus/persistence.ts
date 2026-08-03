@@ -2,7 +2,7 @@
 // Die In-Memory-Logik in lib/corpus/ bleibt unverändert — dieser Layer
 // speichert/lädt Entities und rehydriert die In-Memory-Strukturen.
 
-import type { AlfretStore } from "../store/types.js";
+import type { AlfretStore } from "../store/types";
 
 // ── Decision ──────────────────────────────────────────────────────────────
 

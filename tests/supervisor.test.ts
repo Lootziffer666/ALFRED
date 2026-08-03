@@ -1,9 +1,7 @@
 import { describe, it, expect } from "vitest";
 import {
   assessContext,
-  initialLoopState,
   nextPhase,
-  advanceLoop,
   LoopSupervisor,
 } from "@/lib/supervisor";
 import { InMemoryHermesDispatcher } from "@/lib/hermes";

@@ -1,4 +1,4 @@
-import { describe, it, expect, beforeEach, afterEach } from "vitest";
+import { describe, it, expect, afterEach } from "vitest";
 import { readFlag, isFlagEnabled, resolveCtaVariant, getCtaContent } from "@/lib/flags";
 
 describe("Feature-Flags", () => {

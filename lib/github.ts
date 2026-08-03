@@ -59,75 +59,6 @@ export function normalizeRepoInput(raw: string): NormalizedRepoInput {
   return { owner, name };
 }
 
-interface GhRequestOptions {
-  token?: string;
-  accept?: string;
-}
-
-type GhResult<T> =
-  | { ok: true; data: T }
-  | { ok: false; kind: "permissions" | "rate_limited" | "failed"; reason: string };
-
-function ghFetchResultToGhResult<T>(result: GhFetchResult<T>): GhResult<T> {
-  if (result.ok && result.data !== undefined) {
-    return { ok: true, data: result.data };
-  }
-  return { ok: false, kind: "failed", reason: result.error || "Unknown error" };
-}
-
-async function ghFetchLegacy<T>(path: string, opts: GhRequestOptions = {}): Promise<GhResult<T>> {
-  const headers: Record<string, string> = {
-    Accept: opts.accept ?? "application/vnd.github+json",
-    "X-GitHub-Api-Version": "2022-11-28",
-  };
-  if (opts.token) headers.Authorization = `Bearer ${opts.token}`;
-
-  let res: Response;
-  try {
-    res = await fetch(`${API_ROOT}${path}`, { headers });
-  } catch (err) {
-    return { ok: false, kind: "failed", reason: `Network error contacting GitHub: ${(err as Error).message}` };
-  }
-
-  if (res.status === 401) {
-    return { ok: false, kind: "permissions", reason: "GitHub rejected the provided token (401 Unauthorized)." };
-  }
-  if (res.status === 403 || res.status === 429) {
-    const remaining = res.headers.get("x-ratelimit-remaining");
-    if (remaining === "0") {
-      const reset = res.headers.get("x-ratelimit-reset");
-      const resetDate = reset ? new Date(Number(reset) * 1000).toISOString() : "unknown";
-      return { ok: false, kind: "rate_limited", reason: `GitHub API rate limit exhausted. Resets at ${resetDate}.` };
-    }
-    return { ok: false, kind: "permissions", reason: "GitHub denied access (403). The resource may be private." };
-  }
-  if (res.status === 404) {
-    return { ok: false, kind: "permissions", reason: "Not found or not accessible with the current credentials (404)." };
-  }
-  if (!res.ok) {
-    return { ok: false, kind: "failed", reason: `GitHub responded with HTTP ${res.status}.` };
-  }
-
-  try {
-    const data = (await res.json()) as T;
-    return { ok: true, data };
-  } catch {
-    return { ok: false, kind: "failed", reason: "GitHub response could not be parsed as JSON." };
-  }
-}
-
-function toAvailability<T>(result: GhResult<T>): Availability<T> {
-  if (result.ok) return loaded(result.data);
-  return unavailable(
-    result.kind === "permissions"
-      ? "unavailable_permissions"
-      : result.kind === "rate_limited"
-        ? "unavailable_rate_limited"
-        : "failed",
-    result.reason,
-  );
-}
-
 interface GhRepoMeta {
   default_branch: string;
   description: string | null;
@@ -357,7 +288,6 @@ async function fetchFileText(
     token ?? "",
   );
   if (!result.ok || !result.data?.content) return null;
-  const data = result.data;
   try {
     return Buffer.from(result.data.content, "base64").toString("utf-8");
   } catch {

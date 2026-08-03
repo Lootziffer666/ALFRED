@@ -1,7 +1,7 @@
 // GitHub write layer: commit files, create/update PRs, manage branches.
 // Operates on PlannedWrites after executor policy decision.
 
-import type { PlannedWrite } from "../daemon/jobs/types.js";
+import type { PlannedWrite } from "../daemon/jobs/types";
 
 export type GitHubWriteKind = "commit-files" | "create-pr" | "update-pr-branch" | "delete-branch";
 
@@ -211,7 +211,7 @@ export function auditInfoOf(write: PlannedWrite): {
       target = (write.payload as unknown as CommitPayload).branch;
       break;
     case "create-pr":
-      target = `new PR from ${(write.payload as unknown as PRPayload).branch}`;
+      target = `new PR from ${(write.payload as unknown as PRPayload).head}`;
       break;
     case "update-pr-branch":
       target = `PR#${(write.payload as unknown as UpdatePRPayload).prNumber}`;

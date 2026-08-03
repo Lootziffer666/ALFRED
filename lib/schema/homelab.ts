@@ -453,9 +453,10 @@ export const signedExecutionPlanSchema = z.object({
 });
 export type SignedExecutionPlan = z.infer<typeof signedExecutionPlanSchema>;
 
-// plan §17 — OperatingProfile was referenced in lib/demo/policy.ts:21 and
-// app/api/demo/run/route.ts:15 but never defined. The Union lives inline in
-// middleware.ts:121; here we export the canonical Zod schema.
+// plan §17 — OperatingProfile. Canonical definition: everything that decides
+// on a profile parses it against this schema. lib/profile/operating.ts reads it
+// from the server environment; proxy.ts repeats the same four literals inline
+// because the Edge runtime cannot import Node modules.
 
 export const operatingProfileSchema = z.union([
   z.literal("homelab"),

@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
-import { openStore } from "../../../lib/store/factory.js";
-import { loadDecisions } from "../../../lib/corpus/persistence.js";
+import { openStore } from "@/lib/store/factory";
+import { loadDecisions } from "@/lib/corpus/persistence";
 
 export async function GET(req: NextRequest): Promise<NextResponse> {
   const repo = req.nextUrl.searchParams.get("repo") ?? undefined;

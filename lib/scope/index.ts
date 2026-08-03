@@ -2,7 +2,7 @@
 // If already defined under a different name, re-export here for a stable interface.
 
 import { z } from "zod";
-import type { ScopeRegistry } from "./types.js";
+import type { ScopeRegistry } from "./types";
 
 export const EMPTY_SCOPE_REGISTRY: ScopeRegistry = {
   repositories: {},

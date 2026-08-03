@@ -8,6 +8,7 @@
 
 export type FileClass =
   | "active"
+  | "ignored"                  // Betreiber-Filter (maid.ignoreGlobs) hat den Pfad ausgeblendet
   | "canonical-reference"
   | "generated"
   | "temporary"

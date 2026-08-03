@@ -1,8 +1,8 @@
 // Stage 1 — Persistenz für PlannedWrites, die aus Job-Runs stammen.
 // Status-Lifecycle: pending-approval → executed | denied | dry-run
 
-import type { AlfretStore, Entity } from "../store/types.js";
-import type { PlannedWrite } from "./jobs/types.js";
+import type { AlfretStore, Entity } from "../store/types";
+import type { PlannedWrite } from "./jobs/types";
 
 export type StoredWriteStatus =
   | "pending-approval"

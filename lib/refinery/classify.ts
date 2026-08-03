@@ -13,7 +13,9 @@ const GENERATED_PATHS = /\.d\.ts$|__generated__|codegen/;
 const LOCKFILE_PATHS = /bun\.lockb$|package-lock\.json$|yarn\.lock$|pnpm-lock\.yaml$/;
 const CONTRACT_PATHS = /lib\/schema\//;
 const SCOPE_PATHS = /lib\/scope\//;
-const TEST_DELETE_RE = /^[-].*\.(test|spec)\.(ts|tsx)$/m;
+const TEST_PATHS = /\.(test|spec)\.(ts|tsx|js|jsx)$|(^|\/)(tests?|__tests__)\//;
+/** Eine entfernte Zeile im Diff-Hunk: "-" am Zeilenanfang, aber kein "---"-Header. */
+const REMOVED_LINE_RE = /^-(?!--)/m;
 const TEST_WEAKEN_RE = /\bskip\b|\bxdescribe\b|\bxit\b|\btest\.skip\b/;
 
 export function classifyConflict(
@@ -24,8 +26,17 @@ export function classifyConflict(
   if (GENERATED_PATHS.test(path)) return "generated-file";
   if (CONTRACT_PATHS.test(path)) return "contract-change";
   if (SCOPE_PATHS.test(path)) return "scope-expansion";
-  if (TEST_DELETE_RE.test(diffHunk)) return "removed-test";
-  if (TEST_WEAKEN_RE.test(diffHunk)) return "weakened-test";
+  // Tests sind der einzige Beweis, dass ein Merge nichts kaputt macht — wer
+  // sie im selben PR entfernt oder stilllegt, wird nicht durchgelassen.
+  //
+  // Die frühere Fassung suchte im HUNK nach einer entfernten Zeile, die auf
+  // ".test.ts" endet. Das trifft nur auf Diffs von Datei-Listen zu; die
+  // Löschung im Test selbst ("-import { describe }") blieb unerkannt und fiel
+  // stillschweigend auf "semantic-unknown" zurück.
+  if (TEST_PATHS.test(path)) {
+    if (REMOVED_LINE_RE.test(diffHunk)) return "removed-test";
+    if (TEST_WEAKEN_RE.test(diffHunk)) return "weakened-test";
+  }
 
   if (FORMATTER_PATHS.test(path)) {
     // Wenn der Hunk nur Whitespace-Änderungen enthält, ist es Formatter.

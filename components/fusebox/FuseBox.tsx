@@ -1,6 +1,6 @@
 // plan §34b — React Component: Fusebox Visualisierung.
 
-import type { FuseState } from "../../lib/health/fuseControl.js";
+import type { FuseState } from "../../lib/health/fuseControl";
 
 interface FuseBoxProps {
   fuses: FuseState[];

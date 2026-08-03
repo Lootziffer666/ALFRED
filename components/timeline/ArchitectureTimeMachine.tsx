@@ -1,7 +1,7 @@
 // plan §35 — React Component: Architecture Time Machine (Raum IX).
 
-import type { Timeline } from "../../lib/timeline/snapshot.js";
-import type { TurningPoint } from "../../lib/timeline/turningPoints.js";
+import type { Timeline } from "../../lib/timeline/snapshot";
+import type { TurningPoint } from "../../lib/timeline/turningPoints";
 
 interface ArchitectureTimeMachineProps {
   timeline: Timeline;

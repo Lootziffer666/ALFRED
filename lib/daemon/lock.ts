@@ -1,8 +1,9 @@
 // PID-Lockfile. process.kill(pid, 0) unterscheidet lebende von verwaisten Prozessen.
 // Verwaiste Locks (Crash) werden still überschrieben.
 
-import { readFile, writeFile, unlink } from "node:fs/promises";
-import { lockPath } from "./paths.js";
+import { readFile, writeFile, unlink, mkdir } from "node:fs/promises";
+import { dirname } from "node:path";
+import { lockPath } from "./paths";
 
 export class LockError extends Error {
   constructor(message: string) {
@@ -31,6 +32,9 @@ export async function acquireLock(file = lockPath()): Promise<void> {
     // Verwaister Lock — sicher überschreiben.
   }
 
+  // Auf einer frischen Maschine gibt es ~/.alfret noch nicht, und der erste
+  // Befehl, der einen Lock nimmt (run, once, doctor), scheiterte an ENOENT.
+  await mkdir(dirname(file), { recursive: true, mode: 0o700 });
   await writeFile(file, String(process.pid), "utf8");
 }
 

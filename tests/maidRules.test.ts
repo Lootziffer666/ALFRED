@@ -4,7 +4,7 @@ import {
   classifyWith,
   DEFAULT_CLASSIFY_RULES,
   rulesFromSettings,
-} from "../lib/maid/rules.js";
+} from "../lib/maid/rules";
 
 describe("classifyPath — Verhaltensgleichheit (Kompatibilitätsbeweis)", () => {
   it("bun.lock wird als generated klassifiziert", () => {
@@ -15,8 +15,11 @@ describe("classifyPath — Verhaltensgleichheit (Kompatibilitätsbeweis)", () =>
     expect(classifyPath("node_modules/foo/index.js", 500)).toBe("generated");
   });
 
-  it("normale Quelldatei ist source", () => {
-    expect(classifyPath("lib/daemon/log.ts", 800)).toBe("source");
+  // "source" war nie eine FileClass — die Klasse für gewöhnlichen Quellcode
+  // heißt "active" (lib/maid/types.ts), und die source-default-Regel liefert
+  // genau sie.
+  it("normale Quelldatei ist active", () => {
+    expect(classifyPath("lib/daemon/log.ts", 800)).toBe("active");
   });
 
   it("große Binärdatei ist delete-candidate", () => {

@@ -6,21 +6,17 @@
 
 import { NextRequest, NextResponse } from "next/server";
 import { InMemoryHermesDispatcher } from "@/lib/hermes";
-import { MemoryAlfretStore } from "@/lib/store";
 import { makeStaticCueCheck, buildCueReport } from "@/lib/cue";
 import { classifyPath } from "@/lib/maid/classify";
 import type { FileClass } from "@/lib/maid/types";
 import { broadcaster } from "@/lib/sse/broadcaster";
 import { generateKeyPair, signPlan } from "@/lib/homelab/signing";
 import type { SignedExecutionPlan } from "@/lib/schema/homelab";
-import type { OperatingProfile } from "@/lib/schema/homelab";
+import { resolveOperatingProfile } from "@/lib/profile/operating";
 import { checkDemoPolicy, withDemoTimeout, DemoPolicyError } from "@/lib/demo/policy";
 
-function resolveProfile(req: NextRequest): OperatingProfile {
-  const header = req.headers.get("x-alfret-profile");
-  if (header === "local-dev" || header === "homelab") return header;
-  return "production";
-}
+// Das Profil kommt aus der Serverumgebung, nicht aus dem Request — siehe
+// lib/profile/operating.ts.
 
 async function createDemoPlan(repoUrl: string, privateKey: string, keyId: string): Promise<SignedExecutionPlan> {
   const unsignedPlan = {
@@ -53,7 +49,7 @@ export async function POST(req: NextRequest) {
         ? body.repoUrl
         : "https://github.com/Lootziffer666/ALFRED";
 
-    const profile = resolveProfile(req);
+    const profile = resolveOperatingProfile();
 
     // ── Policy-Check ────────────────────────────────────────────────────────
     const violations = checkDemoPolicy(
@@ -75,7 +71,6 @@ export async function POST(req: NextRequest) {
     }
 
     // ── Ausführung mit Timeout ───────────────────────────────────────────────
-    const store = new MemoryAlfretStore();
     const keyPair = await generateKeyPair();
     const dispatcher = new InMemoryHermesDispatcher(keyPair.publicKey);
 
