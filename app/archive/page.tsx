@@ -68,10 +68,11 @@ export default function ArchivePage() {
         </h1>
         <p className="serif" style={{ color: "var(--paper-dim)", fontSize: 14, maxWidth: "68ch", marginTop: 8 }}>
           Zieh eine SQLite-Datenbank deiner gestarrten Repos herein — deinen eigenen Export, aus deinem
-          eigenen Sternhaufen. Die Datei wird im Browser gelesen und nirgendwo hochgeladen; nur wenn du
-          unten die Modell-Veredelung einschaltest, gehen die daraus gewonnenen Signale an den Endpoint,
-          den du dort einträgst. Alfret inspiziert das Schema, baut ein Register, und setzt aus belegten
-          Signalen einen CUE-geprüften Prüfbericht — Einzelstern oder ganzes Archiv.
+          eigenen Sternhaufen. Die Datei wird im Browser gelesen und nirgendwo hochgeladen. Nur die daraus
+          gewonnenen Signale gehen an den Endpoint, den du unten einträgst — trägst du dort ein lokales
+          Modell ein (Ollama, llama.cpp), bleibt auch das auf deinem Rechner. Alfret inspiziert das Schema,
+          baut ein Register, und setzt aus belegten Signalen einen CUE-geprüften Prüfbericht — Einzelstern
+          oder ganzes Archiv.
         </p>
       </header>
 
