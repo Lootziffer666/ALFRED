@@ -41,6 +41,14 @@ yarn-error.log*
 *.tsbuildinfo
 next-env.d.ts
 
+# Datenbanken bleiben draußen. Das Skriptorium liest die Datei, die man ihm
+# im Browser hereinzieht — es braucht keine mitgelieferte. Zwei Exporte lagen
+# hier einmal im Tree; einer davon bestand zu 14,5 MB aus den READMEs von 823
+# fremden Repositories, die jeweils unter ihrer eigenen Lizenz stehen.
+*.sqlite
+*.sqlite3
+*.db
+
 # build artifacts (organized in .build/)
 .build/artifacts/**
 .build/cache/**

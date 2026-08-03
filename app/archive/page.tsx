@@ -67,9 +67,11 @@ export default function ArchivePage() {
           Die <span style={{ color: "var(--zinnober)" }}>Setzmaschine</span>, die <span style={{ color: "var(--bordeaux)" }}>liest</span>, was daliegt.
         </h1>
         <p className="serif" style={{ color: "var(--paper-dim)", fontSize: 14, maxWidth: "68ch", marginTop: 8 }}>
-          Zieh eine SQLite-Datenbank deiner gestarrten Repos herein (z.B. die im Repo mitgelieferte{" "}
-          <code className="mono">sternkarte.sqlite</code>). Alfret inspiziert das Schema, baut ein Register, und setzt
-          aus belegten Signalen einen CUE-geprüften Prüfbericht — Einzelstern oder ganzes Archiv.
+          Zieh eine SQLite-Datenbank deiner gestarrten Repos herein — deinen eigenen Export, aus deinem
+          eigenen Sternhaufen. Die Datei wird im Browser gelesen und nirgendwo hochgeladen; nur wenn du
+          unten die Modell-Veredelung einschaltest, gehen die daraus gewonnenen Signale an den Endpoint,
+          den du dort einträgst. Alfret inspiziert das Schema, baut ein Register, und setzt aus belegten
+          Signalen einen CUE-geprüften Prüfbericht — Einzelstern oder ganzes Archiv.
         </p>
       </header>
 
@@ -101,7 +103,7 @@ export default function ArchivePage() {
               <div style={{ fontSize: 26, color: "var(--brass)" }}>⛁</div>
               <div className="mono" style={{ fontSize: 11, color: "var(--paper-dim)", marginTop: 7 }}>DB hereinziehen oder klicken</div>
               <div className="mono" style={{ fontSize: 10, color: "var(--mut)", marginTop: 4 }}>
-                {a.files.length ? a.files.map((f) => f.fileName).join(", ") : "Observatory / sternkarte.sqlite / starred-repos export …"}
+                {a.files.length ? a.files.map((f) => f.fileName).join(", ") : "dein starred-repos-Export · .sqlite / .db / .sqlite3"}
               </div>
               <input
                 ref={fileInputRef}
