@@ -7,6 +7,7 @@ import { parseArgs } from "node:util";
 import { createInterface } from "node:readline";
 import { createContext, disposeContext } from "../lib/daemon/context";
 import { createLogger } from "../lib/daemon/log";
+import { scrubKnownSecrets } from "../lib/daemon/secrets";
 import { acquireLock, releaseLock, LockError } from "../lib/daemon/lock";
 import { loadConfig } from "../lib/daemon/config";
 import {
@@ -60,7 +61,7 @@ Commands:
   add-repo <repo>  Register repository for scanning
   arm              Enable writes
   disarm           Disable writes (default)
-  login <token>    Store GitHub token
+  login            Store GitHub token (fragt auf stdin, ohne Echo)
   pause            Pause daemon (SIGTERM → 30s grace, second signal exits 1)
   resume           Resume daemon (resume from tick)
   uninstall        Delete lock, config, credentials, scope
@@ -103,7 +104,8 @@ async function execCommand(cmd: Command, args: string[]): Promise<void> {
     case "disarm":
       return setArmed(false);
     case "login":
-      if (!args[0]) throw new Error("Usage: alfret-daemon login <token>");
+      // Ohne Argument wird das Token von stdin gelesen — das ist der
+      // empfohlene Weg, siehe storeToken().
       return storeToken(args[0]);
     case "pause":
       return pauseDaemon();
@@ -115,7 +117,7 @@ async function execCommand(cmd: Command, args: string[]): Promise<void> {
 }
 
 async function runDaemon(): Promise<void> {
-  const log = createLogger({ minLevel: "info" });
+  const log = createLogger({ minLevel: "info", scrub: scrubKnownSecrets });
 
   try {
     await acquireLock();
@@ -171,7 +173,7 @@ async function runDaemon(): Promise<void> {
 }
 
 async function runOnce(): Promise<void> {
-  const log = createLogger({ minLevel: "info" });
+  const log = createLogger({ minLevel: "info", scrub: scrubKnownSecrets });
 
   try {
     await acquireLock();
@@ -225,7 +227,7 @@ async function showStatus(): Promise<void> {
 }
 
 async function runDoctor(): Promise<void> {
-  const log = createLogger({ minLevel: "info" });
+  const log = createLogger({ minLevel: "info", scrub: scrubKnownSecrets });
 
   console.log("=== ALFRET Daemon Health Check ===\n");
 
@@ -300,7 +302,48 @@ async function setArmed(armed: boolean): Promise<void> {
   console.log(`Daemon ${armed ? "armed" : "disarmed"}`);
 }
 
-async function storeToken(token: string): Promise<void> {
+/**
+ * Liest das Token ohne Echo von stdin.
+ *
+ * Ein Token als Kommandozeilen-Argument landet in der Shell-History und steht
+ * für jeden anderen Nutzer der Maschine in `ps aux` — beides überlebt den
+ * Befehl deutlich länger als nötig. Der Weg über stdin tut das nicht.
+ */
+function promptForToken(): Promise<string> {
+  return new Promise((resolve, reject) => {
+    const output = process.stdout;
+    const rl = createInterface({ input: process.stdin, output, terminal: true });
+
+    // readline schreibt jedes Zeichen zurück; hier wird nur der Prompt
+    // durchgelassen, die Eingabe selbst nicht.
+    let muted = false;
+    const write = output.write.bind(output);
+    (rl as unknown as { _writeToOutput: (s: string) => void })._writeToOutput = (s) => {
+      if (!muted) write(s);
+    };
+
+    rl.question("GitHub-Token (Eingabe bleibt unsichtbar): ", (answer) => {
+      muted = false;
+      rl.close();
+      write("\n");
+      const token = answer.trim();
+      if (!token) return reject(new Error("Kein Token eingegeben."));
+      resolve(token);
+    });
+    muted = true;
+  });
+}
+
+async function storeToken(tokenArg?: string): Promise<void> {
+  if (tokenArg) {
+    console.warn(
+      "⚠ Das Token stand als Argument in der Kommandozeile — es liegt jetzt in\n" +
+        "  deiner Shell-History und war währenddessen in `ps` sichtbar. Lösche es\n" +
+        "  dort, oder rufe künftig `alfret-daemon login` ohne Argument auf.",
+    );
+  }
+
+  const token = tokenArg ?? (await promptForToken());
   await storeCredentials(token);
   console.log("Token stored securely");
 }
@@ -325,7 +368,7 @@ async function pauseDaemon(): Promise<void> {
 }
 
 async function resumeDaemon(): Promise<void> {
-  const log = createLogger({ minLevel: "info" });
+  const log = createLogger({ minLevel: "info", scrub: scrubKnownSecrets });
 
   try {
     await acquireLock();

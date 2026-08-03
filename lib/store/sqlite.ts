@@ -11,7 +11,7 @@
 // collecting page data, because the Next server is Node and has no such
 // module.
 
-import { mkdirSync } from "node:fs";
+import { mkdirSync, chmodSync } from "node:fs";
 import { dirname } from "node:path";
 import type { AlfretStore, Entity } from "./types";
 
@@ -74,8 +74,21 @@ export class SqliteStore implements AlfretStore {
   static async open(path: string): Promise<SqliteStore> {
     // Neither driver creates the parent directory, and the default path lives
     // in ~/.alfret — on a fresh machine that is "unable to open database file".
-    if (path !== ":memory:") mkdirSync(dirname(path), { recursive: true });
+    //
+    // 0o700/0o600 wie alles andere unter ~/.alfret (siehe paths.ts). Der Store
+    // hält Finding-Capsules über Repositories, geplante Schreibvorgänge und das
+    // Audit-Log; ohne das lag er mit 0755/0644 da und war auf einer geteilten
+    // Maschine für jeden lokalen Nutzer lesbar.
+    if (path !== ":memory:") mkdirSync(dirname(path), { recursive: true, mode: 0o700 });
     const db = await openDatabase(path);
+    if (path !== ":memory:") {
+      // Die Treiber legen die Datei selbst an — Modus erst danach setzen.
+      try {
+        chmodSync(path, 0o600);
+      } catch {
+        // Auf Dateisystemen ohne POSIX-Rechte (z. B. FAT) nicht fatal.
+      }
+    }
     // WAL: Daemon schreibt, Next.js liest gleichzeitig — kein SQLITE_BUSY.
     db.exec("PRAGMA journal_mode=WAL");
     db.exec(`

@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { refuseForeignCredentials } from "@/lib/profile/credentialGuard";
 import { z } from "zod";
 import { scout } from "@/lib/homelab/scout";
 
@@ -29,6 +30,10 @@ export async function POST(request: Request) {
   if (!parsed.success) {
     return NextResponse.json({ error: z.prettifyError(parsed.error) }, { status: 400 });
   }
+
+  // Zugangsdaten nur, wo Betreiber und Besitzer dieselbe Person sind.
+  const refusal = refuseForeignCredentials([parsed.data.token]);
+  if (refusal) return refusal;
 
   try {
     const result = await scout(
