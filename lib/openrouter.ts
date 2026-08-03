@@ -10,7 +10,7 @@
 // Diese Datei kann das noch nicht. Sie ist bewusst dünn und modellagnostisch
 // (PRD §5.4/§9) — nur die URL ist es nicht. Solange das so bleibt, gilt:
 // /api/contract-map ist ein Cloud-Pfad, und der Credential-Guard
-// (lib/profile/credentialGuard.ts) lässt ihn nur dort zu, wo Betreiber und
+// (lib/profile/guards.ts) lässt ihn nur dort zu, wo Betreiber und
 // Schlüsselbesitzer dieselbe Person sind.
 const OPENROUTER_URL = "https://openrouter.ai/api/v1/chat/completions";
 

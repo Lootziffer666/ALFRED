@@ -6,7 +6,8 @@ import { describe, it, expect } from "vitest";
 import {
   acceptsForeignCredentials,
   refuseForeignCredentials,
-} from "@/lib/profile/credentialGuard";
+  refuseOutsideHomelab,
+} from "@/lib/profile/guards";
 import { resolveOperatingProfile, DEFAULT_OPERATING_PROFILE } from "@/lib/profile/operating";
 import { scopeActionSchema } from "@/lib/schema/scope";
 import { operatingProfileSchema, type OperatingProfile } from "@/lib/schema/homelab";
@@ -81,5 +82,47 @@ describe("Scope-Vokabular", () => {
     // stehen. Es gibt bewusst keine Sammel-Aktion.
     expect(scopeActionSchema.options).toContain("observe");
     expect(scopeActionSchema.options).not.toContain("all");
+  });
+});
+
+describe("refuseOutsideHomelab", () => {
+  it("bedient den persistenten Store nur im Homelab", () => {
+    const serving = ALL_PROFILES.filter((p) => refuseOutsideHomelab(p) === null).sort();
+    expect(serving).toEqual(["homelab", "local-dev"]);
+  });
+
+  it("antwortet in der Demo mit 404, nicht 403", async () => {
+    // Auf einer flüchtigen Instanz ist nicht einmal die Existenz eines
+    // Homelab-Postfachs eine öffentliche Information.
+    const res = refuseOutsideHomelab("production")!;
+    expect(res.status).toBe(404);
+    expect((await res.json()).reason).toBe("homelab-route-not-served-in-this-profile");
+  });
+
+  it("gilt auch für ci", () => {
+    expect(refuseOutsideHomelab("ci")?.status).toBe(404);
+  });
+});
+
+describe("Demo-Invariante: flüchtig", () => {
+  it("keine Route, die den Daemon-Store öffnet, bleibt ungeschützt", async () => {
+    const { readFileSync, readdirSync, statSync } = await import("node:fs");
+    const { join, resolve } = await import("node:path");
+
+    const apiRoot = resolve(__dirname, "..", "app", "api");
+    const walk = (dir: string): string[] =>
+      readdirSync(dir).flatMap((e) => {
+        const full = join(dir, e);
+        return statSync(full).isDirectory() ? walk(full) : [full];
+      });
+
+    const unguarded = walk(apiRoot)
+      .filter((f) => f.endsWith("route.ts"))
+      .filter((f) => {
+        const src = readFileSync(f, "utf8");
+        return src.includes("openStore(") && !src.includes("refuseOutsideHomelab");
+      });
+
+    expect(unguarded, "jede Route mit openStore() braucht den Homelab-Guard").toEqual([]);
   });
 });

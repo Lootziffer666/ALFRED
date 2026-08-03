@@ -54,3 +54,48 @@ export function refuseForeignCredentials(
     { status: 403 },
   );
 }
+
+// ── Persistenz ───────────────────────────────────────────────────────────────
+//
+// Die Demo ist flüchtig: sie liest ein öffentliches Repository, setzt daraus
+// einen Bericht, und danach ist nichts übrig. Der Daemon-Store ist das
+// Gegenteil — ~/.alfret/store.db hält Findings, geplante Schreibvorgänge,
+// Zeitachsen, Korpus-Entscheidungen und das Audit-Log über die Repositories
+// des BETREIBERS, über Wochen hinweg.
+//
+// Sechs Routen greifen darauf zu, und keine war an ein Profil gebunden. Auf
+// einer öffentlich erreichbaren Instanz gab damit jeder Aufruf von
+// /api/attention den Posteingang des Betreibers heraus, /api/timeline seine
+// Repository-Historie, und POST /api/repair legte sogar neue Einträge an.
+//
+// Das ist keine Demo-Funktionalität. Es ist das Homelab.
+
+/** Profile, in denen der persistente Daemon-Store bedient wird. */
+export function servesHomelabRoutes(profile: OperatingProfile): boolean {
+  return profile === "homelab" || profile === "local-dev";
+}
+
+/**
+ * Gibt 404 zurück, wenn eine Homelab-Route in einem flüchtigen Profil
+ * angefragt wird. `null` heißt: die Route darf bedienen.
+ *
+ * 404 statt 403, weil auf einer Demo-Instanz nicht einmal die Existenz eines
+ * Homelab-Postfachs eine öffentliche Information ist.
+ */
+export function refuseOutsideHomelab(
+  profile: OperatingProfile = resolveOperatingProfile(),
+): NextResponse | null {
+  if (servesHomelabRoutes(profile)) return null;
+
+  return NextResponse.json(
+    {
+      error:
+        "Diese Route gehört zum Homelab-Betrieb und wird auf einer flüchtigen " +
+        "Instanz nicht bedient. In der Demo bleibt nichts liegen — es gibt " +
+        "hier keinen Store, den sie lesen könnte.",
+      profile,
+      reason: "homelab-route-not-served-in-this-profile",
+    },
+    { status: 404 },
+  );
+}

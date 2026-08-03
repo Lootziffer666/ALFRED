@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { refuseForeignCredentials } from "@/lib/profile/credentialGuard";
+import { refuseForeignCredentials } from "@/lib/profile/guards";
 import { z } from "zod";
 import { fetchRepoEvidence, GitHubInputError, normalizeRepoInput } from "@/lib/github";
 
