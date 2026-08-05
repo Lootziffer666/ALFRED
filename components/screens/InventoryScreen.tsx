@@ -2,14 +2,15 @@
 
 import { useSession } from "../session/SessionContext";
 import { AvailabilityBadge, reasonOf } from "../AvailabilityBadge";
+import { CARD_CLASS, CARD_INSET_CLASS, PRIMARY_BUTTON_CLASS, SECTION_KICKER_CLASS } from "./styles";
 
 export function InventoryScreen() {
   const { inventory, contractLoading, contractError, runContractMap, openRouterKey, openRouterModel, demoMode, setStep } = useSession();
 
   if (!inventory) {
     return (
-      <section className="card" style={{ padding: 20 }}>
-        <p className="serif">No repository has been inspected yet. Go back to session setup.</p>
+      <section className={CARD_CLASS}>
+        <p className="font-body-md text-on-surface-variant italic">No repository has been inspected yet. Go back to session setup.</p>
       </section>
     );
   }
@@ -17,28 +18,34 @@ export function InventoryScreen() {
   const { identity } = inventory;
 
   return (
-    <section className="card" style={{ padding: 20 }}>
-      <h2 style={{ fontSize: 20, margin: "0 0 4px" }}>§ 2 · Repository inventory</h2>
-      <p className="serif" style={{ color: "var(--paper-dim)", marginTop: 0, fontSize: 14 }}>
+    <section className={CARD_CLASS}>
+      <div className="flex items-center gap-2 mb-2">
+        <span className={SECTION_KICKER_CLASS}>§ 2</span>
+        <div className="h-px w-8 bg-primary/30" />
+      </div>
+      <h2 className="font-document-heading text-2xl text-on-surface mb-1">Repository Inventory</h2>
+      <p className="font-body-md text-on-surface-variant text-sm italic mt-0 mb-6">
         What is verifiably present in {identity.owner}/{identity.name}@{identity.ref}.
       </p>
 
-      <div className="card-inset" style={{ padding: 14, marginTop: 14 }}>
-        <div style={{ display: "flex", justifyContent: "space-between", flexWrap: "wrap", gap: 8 }}>
+      <div className={`${CARD_INSET_CLASS} mb-2`}>
+        <div className="flex justify-between flex-wrap gap-3">
           <div>
-            <div className="mono" style={{ fontSize: 11, color: "var(--mut)" }}>REPOSITORY</div>
-            <div style={{ fontSize: 15, fontWeight: 600 }}>
-              <a href={identity.url} target="_blank" rel="noreferrer">
+            <div className="font-technical-data text-[11px] text-on-surface-variant/50 uppercase tracking-widest">Repository</div>
+            <div className="text-[15px] font-semibold text-on-surface mt-0.5">
+              <a href={identity.url} target="_blank" rel="noreferrer" className="text-primary hover:brightness-110">
                 {identity.owner}/{identity.name}
               </a>
             </div>
           </div>
           <div>
-            <div className="mono" style={{ fontSize: 11, color: "var(--mut)" }}>REF</div>
-            <div className="mono" style={{ fontSize: 13 }}>{identity.ref}</div>
+            <div className="font-technical-data text-[11px] text-on-surface-variant/50 uppercase tracking-widest">Ref</div>
+            <div className="font-technical-data text-[13px] text-on-surface mt-0.5">{identity.ref}</div>
           </div>
         </div>
-        {identity.description && <p className="serif" style={{ marginTop: 10, marginBottom: 0 }}>{identity.description}</p>}
+        {identity.description && (
+          <p className="font-body-md text-on-surface-variant text-sm mt-3 mb-0">{identity.description}</p>
+        )}
       </div>
 
       <EvidenceRow label="File tree" availability={inventory.tree}>
@@ -72,41 +79,41 @@ export function InventoryScreen() {
       </EvidenceRow>
 
       {inventory.warnings.length > 0 && (
-        <div style={{ marginTop: 14 }}>
-          <div className="mono" style={{ fontSize: 11, color: "var(--mut)", marginBottom: 6 }}>WARNINGS</div>
+        <div className="mt-4">
+          <div className="font-technical-data text-[11px] text-on-surface-variant/50 uppercase tracking-widest mb-1.5">Warnings</div>
           {inventory.warnings.map((w, i) => (
-            <p key={i} className="serif" style={{ fontStyle: "italic", color: "var(--paper-dim)", fontSize: 13, margin: "4px 0" }}>
+            <p key={i} className="font-body-md italic text-on-surface-variant text-[13px] my-1">
               ⚠ {w}
             </p>
           ))}
         </div>
       )}
 
-      <div className="card-inset" style={{ padding: 14, marginTop: 16 }}>
-        <div className="mono" style={{ fontSize: 11, color: "var(--mut)", marginBottom: 8 }}>
-          BUILD CONTRACT MAP — sends the evidence above to the selected OpenRouter model
+      <div className={`${CARD_INSET_CLASS} mt-5`}>
+        <div className="font-technical-data text-[11px] text-on-surface-variant/50 uppercase tracking-widest mb-2">
+          Build Contract Map — sends the evidence above to the selected OpenRouter model
         </div>
         {!demoMode && (!openRouterKey || !openRouterModel) && (
-          <p className="serif" style={{ fontSize: 13, color: "var(--paper-dim)" }}>
+          <p className="font-body-md text-on-surface-variant text-[13px]">
             Add an OpenRouter API key and model on the setup screen first.
           </p>
         )}
         {contractError && (
-          <p className="mono" style={{ color: "var(--zinnober)", fontSize: 12 }} role="alert">
+          <p className="font-technical-data text-xs text-primary" role="alert">
             {contractError}
           </p>
         )}
-        <div style={{ display: "flex", gap: 10, flexWrap: "wrap" }}>
+        <div className="flex gap-3 flex-wrap mt-1">
           {demoMode ? (
-            <button className="primary" type="button" onClick={() => setStep("contract")}>
+            <button type="button" onClick={() => setStep("contract")} className={PRIMARY_BUTTON_CLASS}>
               View demo contract map →
             </button>
           ) : (
             <button
-              className="primary"
               type="button"
               disabled={contractLoading || !openRouterKey || !openRouterModel}
               onClick={runContractMap}
+              className={PRIMARY_BUTTON_CLASS}
             >
               {contractLoading ? "Analyzing with model…" : "Build contract map →"}
             </button>
@@ -127,15 +134,15 @@ function EvidenceRow<T>({
   children: (data: T) => string;
 }) {
   return (
-    <div style={{ marginTop: 12, paddingTop: 12, borderTop: "1px dashed var(--line)" }}>
-      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 8, flexWrap: "wrap" }}>
-        <span className="mono" style={{ fontSize: 12, color: "var(--paper-dim)" }}>{label}</span>
+    <div className="mt-4 pt-4 border-t border-dashed border-outline-variant/15">
+      <div className="flex justify-between items-center gap-2 flex-wrap">
+        <span className="font-technical-data text-xs text-on-surface-variant">{label}</span>
         <AvailabilityBadge status={availability.status as never} />
       </div>
       {availability.status === "loaded" ? (
-        <p className="serif" style={{ fontSize: 13.5, margin: "6px 0 0" }}>{children(availability.data as T)}</p>
+        <p className="font-body-md text-[13.5px] text-on-surface mt-1.5 mb-0">{children(availability.data as T)}</p>
       ) : availability.status !== "loading" ? (
-        <p className="mono" style={{ fontSize: 12, color: "var(--mut)", margin: "6px 0 0" }}>{reasonOf(availability as never)}</p>
+        <p className="font-technical-data text-xs text-on-surface-variant/50 mt-1.5 mb-0">{reasonOf(availability as never)}</p>
       ) : null}
     </div>
   );

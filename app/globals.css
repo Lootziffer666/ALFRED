@@ -1,5 +1,91 @@
 @import "tailwindcss";
 
+/* =====================================================================
+   Scriptorium design tokens — additive Tailwind v4 theme extension.
+   Used by the main session workflow (AppShell + screens/*). Does not
+   replace the --ink/--brass/--zinnober tokens above, which /archive,
+   /homelab, /report and /workshop keep using untouched.
+
+   Fixed palette, taken verbatim from the "Alfret Component Library"
+   reference (colorTokens) — no scroll-driven or otherwise animated color
+   shifting anywhere in this app.
+   ===================================================================== */
+@theme {
+  --color-primary: #ff000c;
+  --color-on-primary: #ffffff;
+  --color-primary-container: #9d0007;
+  --color-on-primary-container: #ffffff;
+
+  --color-secondary: #ffe001;
+  --color-on-secondary: #000000;
+  --color-secondary-container: #ffe001;
+  --color-on-secondary-container: #000000;
+
+  --color-tertiary: #f2f2f2;
+  --color-on-tertiary: #050505;
+  --color-tertiary-container: #2b2330;
+  --color-on-tertiary-container: #f2f2f2;
+
+  --color-background: #000000;
+  --color-surface: #000000;
+  --color-surface-container-lowest: #000000;
+  --color-surface-container-low: #120f15;
+  --color-surface-container: #1c171f;
+  --color-surface-container-high: #2b2330;
+  --color-surface-container-highest: #3a2f3d;
+
+  --color-on-surface: #f2f2f2;
+  --color-on-surface-variant: #c9b8bd;
+  --color-outline: #55404a;
+  --color-outline-variant: #392f38;
+
+  --font-room-heading: var(--font-cormorant-sc), serif;
+  --font-document-heading: var(--font-cormorant-garamond), serif;
+  --font-body-md: var(--font-source-serif), serif;
+  --font-ui-label: var(--font-inter), ui-sans-serif, sans-serif;
+  --font-technical-data: var(--font-ibm-plex-mono), ui-monospace, monospace;
+}
+
+/* Self-hosted (public/fonts/), synced from @material-symbols/font-400 —
+   no runtime dependency on fonts.googleapis.com. */
+@font-face {
+  font-family: "Material Symbols Outlined";
+  font-style: normal;
+  font-weight: 400;
+  font-display: block;
+  src: url("/fonts/material-symbols-outlined.woff2") format("woff2");
+}
+
+.material-symbols-outlined {
+  font-family: "Material Symbols Outlined";
+  font-weight: normal;
+  font-style: normal;
+  font-size: 24px;
+  line-height: 1;
+  letter-spacing: normal;
+  text-transform: none;
+  display: inline-block;
+  white-space: nowrap;
+  word-wrap: normal;
+  direction: ltr;
+  font-feature-settings: "liga";
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
+}
+
+/* Everything below predates the Scriptorium tokens above and was never
+   wrapped in a Tailwind cascade layer. Unlayered CSS always wins over
+   Tailwind's own (layered) utility classes regardless of selector
+   specificity — so a plain `a { color: var(--brass-l) }` here was
+   silently overriding `text-*` utility classes on every <Link> in the
+   Scriptorium screens, no matter how specific. @layer base is where
+   Tailwind expects element-default styling like this to live; it changes
+   nothing for /archive, /homelab, /report (they don't apply competing
+   utility classes to these elements) and fixes the override everywhere
+   a Scriptorium component does. */
+@layer base {
+
 :root {
   --ink: #0b0d12;
   --ink2: #12151c;
@@ -492,3 +578,5 @@ button.ghost {
   --tile-opacity: 1;
   animation: fall 0.45s forwards, fall-fade 0.45s forwards;
 }
+
+} /* @layer base */

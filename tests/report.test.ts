@@ -16,7 +16,7 @@ function build(level: 1 | 2 | 3 | 4 = 1, signals = SHADED_SIGNALS): Report {
   return composeReport("pruefbericht", { atoms: extract(signals), signals, level, repo: REPO, now });
 }
 
-function buildAs(mode: "pruefbericht" | "biografie" | "roast", signals = SHADED_SIGNALS): Report {
+function buildAs(mode: "pruefbericht" | "biografie" | "roast" | "cv", signals = SHADED_SIGNALS): Report {
   return composeReport(mode, { atoms: extract(signals), signals, level: 4, repo: REPO, now });
 }
 
@@ -54,14 +54,14 @@ describe("canonical report structure", () => {
 });
 
 describe("report modes", () => {
-  it("types exactly the three modes of the plan", () => {
-    expect(REPORT_MODE_IDS.sort()).toEqual(["biografie", "pruefbericht", "roast"]);
+  it("types exactly the four modes of the plan", () => {
+    expect(REPORT_MODE_IDS.sort()).toEqual(["biografie", "cv", "pruefbericht", "roast"]);
     expect(isReportMode("pruefbericht")).toBe(true);
     expect(isReportMode("prüfbericht")).toBe(false);
   });
 
-  it("offers all three modes now that each one composes", () => {
-    expect(implementedModes().map((m) => m.id).sort()).toEqual(["biografie", "pruefbericht", "roast"]);
+  it("offers all four modes now that each one composes", () => {
+    expect(implementedModes().map((m) => m.id).sort()).toEqual(["biografie", "cv", "pruefbericht", "roast"]);
   });
 
   it("refuses to compose a mode that is only planned, rather than faking one", () => {
@@ -213,17 +213,44 @@ describe("no second composer engine", () => {
 
 describe("facts survive the tone (all modes)", () => {
   it("renders a byte-identical evidence section in every mode", () => {
-    const evidenceOf = (mode: "pruefbericht" | "biografie" | "roast") =>
+    const evidenceOf = (mode: "pruefbericht" | "biografie" | "roast" | "cv") =>
       buildAs(mode).sections.find((s) => s.key === "evidence")!.blocks;
 
     expect(evidenceOf("biografie")).toEqual(evidenceOf("pruefbericht"));
     expect(evidenceOf("roast")).toEqual(evidenceOf("pruefbericht"));
+    expect(evidenceOf("cv")).toEqual(evidenceOf("pruefbericht"));
   });
 
   it("derives the same assessment regardless of mode", () => {
     const a = buildAs("pruefbericht").assessment;
     expect(buildAs("biografie").assessment).toEqual(a);
     expect(buildAs("roast").assessment).toEqual(a);
+    expect(buildAs("cv").assessment).toEqual(a);
+  });
+});
+
+describe("CV & Anschreiben", () => {
+  it("keeps ALFRET's own voice — the opening names the repo, not a neutral HR summary", () => {
+    const report = buildAs("cv");
+    const opening = section(report, "opening");
+    const text = opening.blocks.flatMap((b) => b.paragraphs).map((p) => p.text).join(" ");
+    expect(text).toContain(`${REPO.owner}/${REPO.name}`);
+  });
+
+  it("frames contradictions as stated unknowns, still every one evidence-free by design", () => {
+    const report = buildAs("cv");
+    const contradictions = section(report, "contradictions");
+    const paragraphs = contradictions.blocks.flatMap((b) => b.paragraphs);
+    expect(paragraphs.length).toBeGreaterThan(report.assessment.unknowns.length);
+    for (const u of report.assessment.unknowns) {
+      expect(paragraphs.some((p) => p.text === u)).toBe(true);
+    }
+  });
+
+  it("carries the same serious reading as every other mode", () => {
+    expect(REPORT_MODES.cv.sections).toContain("surprising-strengths");
+    expect(REPORT_MODES.cv.sections).toContain("donor-fit");
+    expect(REPORT_MODES.cv.sections).toContain("evidence");
   });
 });
 

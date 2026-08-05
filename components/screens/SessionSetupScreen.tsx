@@ -1,6 +1,7 @@
 "use client";
 
 import { useSession } from "../session/SessionContext";
+import { CARD_CLASS, INPUT_CLASS, LABEL_CLASS, PRIMARY_BUTTON_CLASS, SECTION_KICKER_CLASS } from "./styles";
 
 export function SessionSetupScreen() {
   const {
@@ -23,33 +24,44 @@ export function SessionSetupScreen() {
   } = useSession();
 
   return (
-    <section className="card" style={{ padding: 20 }}>
-      <h2 style={{ fontSize: 20, margin: "0 0 4px" }}>§ 1 · Session setup</h2>
-      <p className="serif" style={{ color: "var(--paper-dim)", marginTop: 0, fontSize: 14 }}>
+    <section className={CARD_CLASS}>
+      <div className="flex items-center gap-2 mb-2">
+        <span className={SECTION_KICKER_CLASS}>§ 1</span>
+        <div className="h-px w-8 bg-primary/30" />
+      </div>
+      <h2 className="font-document-heading text-2xl text-on-surface mb-1">Session Setup</h2>
+      <p className="font-body-md text-on-surface-variant text-sm italic mt-0 mb-6">
         Enter a repository and, optionally, credentials. Nothing is stored beyond this browser tab.
       </p>
 
-      <label className="mono" style={{ display: "flex", alignItems: "center", gap: 10, fontSize: 12, margin: "14px 0" }}>
+      <label className="flex items-center gap-3 font-ui-label text-xs uppercase tracking-widest text-on-surface-variant mb-6 cursor-pointer">
         <input
           type="checkbox"
           checked={demoMode}
           onChange={(e) => setDemoMode(e.target.checked)}
-          style={{ width: 18, height: 18 }}
+          className="w-4 h-4 accent-primary-container cursor-pointer"
         />
         Demo mode (deterministic fixtures, no credentials or network needed)
       </label>
 
-      <div style={{ display: "grid", gap: 12, opacity: demoMode ? 0.5 : 1, pointerEvents: demoMode ? "none" : "auto" }}>
+      <div className={`grid gap-5 ${demoMode ? "opacity-40 pointer-events-none" : ""}`}>
         <Field label="Repository (owner/repo or GitHub URL)">
           <input
             type="text"
             value={repoInput}
             onChange={(e) => setRepoInput(e.target.value)}
             placeholder="octo/widget-kit  or  https://github.com/octo/widget-kit"
+            className={INPUT_CLASS}
           />
         </Field>
         <Field label="Branch / ref (optional — defaults to the repository's default branch)">
-          <input type="text" value={refInput} onChange={(e) => setRefInput(e.target.value)} placeholder="main" />
+          <input
+            type="text"
+            value={refInput}
+            onChange={(e) => setRefInput(e.target.value)}
+            placeholder="main"
+            className={INPUT_CLASS}
+          />
         </Field>
         <Field label="GitHub token (optional — higher rate limits, private repos)">
           <input
@@ -58,9 +70,11 @@ export function SessionSetupScreen() {
             onChange={(e) => setGithubToken(e.target.value)}
             placeholder="ghp_…"
             autoComplete="off"
+            className={INPUT_CLASS}
           />
         </Field>
-        <div style={{ display: "grid", gap: 12, gridTemplateColumns: "1fr", borderTop: "1px dashed var(--line)", paddingTop: 12 }}>
+
+        <div className="grid gap-5 border-t border-dashed border-outline-variant/20 pt-5">
           <Field label="OpenRouter API key (required to build a contract map)">
             <input
               type="password"
@@ -68,6 +82,7 @@ export function SessionSetupScreen() {
               onChange={(e) => setOpenRouterKey(e.target.value)}
               placeholder="sk-or-…"
               autoComplete="off"
+              className={INPUT_CLASS}
             />
           </Field>
           <Field label="OpenRouter model ID">
@@ -76,24 +91,30 @@ export function SessionSetupScreen() {
               value={openRouterModel}
               onChange={(e) => setOpenRouterModel(e.target.value)}
               placeholder="openrouter/auto, anthropic/claude-3.5-sonnet, …"
+              className={INPUT_CLASS}
             />
           </Field>
         </div>
       </div>
 
       {inventoryError && !demoMode && (
-        <p className="mono" style={{ color: "var(--zinnober)", fontSize: 12, marginTop: 12 }} role="alert">
+        <p className="font-technical-data text-xs text-primary mt-4" role="alert">
           {inventoryError}
         </p>
       )}
 
-      <div style={{ display: "flex", gap: 10, marginTop: 18, flexWrap: "wrap" }}>
+      <div className="flex gap-3 mt-6 flex-wrap">
         {demoMode ? (
-          <button className="primary" type="button" onClick={() => setStep("inventory")}>
+          <button type="button" onClick={() => setStep("inventory")} className={PRIMARY_BUTTON_CLASS}>
             Enter demo inventory →
           </button>
         ) : (
-          <button className="primary" type="button" disabled={inventoryLoading || !repoInput.trim()} onClick={runInspect}>
+          <button
+            type="button"
+            disabled={inventoryLoading || !repoInput.trim()}
+            onClick={runInspect}
+            className={PRIMARY_BUTTON_CLASS}
+          >
             {inventoryLoading ? "Connecting to GitHub…" : "Start inspection →"}
           </button>
         )}
@@ -104,10 +125,8 @@ export function SessionSetupScreen() {
 
 function Field({ label, children }: { label: string; children: React.ReactNode }) {
   return (
-    <label style={{ display: "block" }}>
-      <span className="mono" style={{ display: "block", fontSize: 10, letterSpacing: "0.05em", textTransform: "uppercase", color: "var(--mut)", marginBottom: 5 }}>
-        {label}
-      </span>
+    <label className="block">
+      <span className={LABEL_CLASS}>{label}</span>
       {children}
     </label>
   );
