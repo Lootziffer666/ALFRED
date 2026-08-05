@@ -3,10 +3,10 @@
 // Holt den Repo-Tree über fetchRepoEvidence, klassifiziert jeden Pfad,
 // speichert den MaidReport unter "${repository}@${commitSha}".
 
-import type { Job, JobContext, JobResult } from "./types.js";
-import type { MaidReport } from "../../maid/types.js";
-import { classifyPath } from "../../maid/classify.js";
-import { fetchRepoEvidence } from "../../github.js";
+import type { Job, JobContext, JobResult } from "./types";
+import type { MaidReport } from "../../maid/types";
+import { classifyPath } from "../../maid/classify";
+import { fetchRepoEvidence } from "../../github";
 
 export const maidScanJob: Job = {
   name: "maid-scan",

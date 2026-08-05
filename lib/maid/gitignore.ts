@@ -10,9 +10,17 @@ export interface GitignoreRule {
   dirOnly: boolean;
   anchored: boolean;
   regex: RegExp;
+  /**
+   * Wie `regex`, verlangt aber mindestens ein weiteres Pfadsegment. Ein
+   * Verzeichnis-Muster (`node_modules/`) trifft nämlich nicht nur das
+   * Verzeichnis selbst, sondern alles darunter — auch wenn man nur den
+   * Dateipfad kennt und nicht weiß, dass ein Elternteil ein Verzeichnis ist.
+   */
+  descendantRegex: RegExp;
 }
 
-export function globToRegExp(glob: string): RegExp {
+/** Baut den Regex-Rumpf einmal, damit beide Varianten identisch übersetzen. */
+function compileGlob(glob: string): { prefix: string; body: string } {
   let pattern = glob;
   let anchored = false;
   if (pattern.startsWith("/")) {
@@ -46,8 +54,17 @@ export function globToRegExp(glob: string): RegExp {
     }
   }
 
-  const prefix = anchored ? "^" : "^(.*/)?";
-  return new RegExp(`${prefix}${out}(/.*)?$`);
+  return { prefix: anchored ? "^" : "^(.*/)?", body: out };
+}
+
+export function globToRegExp(glob: string): RegExp {
+  const { prefix, body } = compileGlob(glob);
+  return new RegExp(`${prefix}${body}(/.*)?$`);
+}
+
+function descendantRegExp(glob: string): RegExp {
+  const { prefix, body } = compileGlob(glob);
+  return new RegExp(`${prefix}${body}/.+$`);
 }
 
 export function parseGitignore(content: string): GitignoreRule[] {
@@ -77,6 +94,7 @@ export function parseGitignore(content: string): GitignoreRule[] {
       dirOnly,
       anchored,
       regex: globToRegExp(pattern),
+      descendantRegex: descendantRegExp(pattern),
     });
   }
 
@@ -91,9 +109,15 @@ export function isIgnored(
 ): boolean {
   let ignored = false;
   for (const rule of rules) {
-    if (rule.dirOnly && !isDirectory) continue;
+    // `node_modules/` trifft das Verzeichnis — und damit auch jede Datei
+    // darunter. Für einen Nicht-Verzeichnis-Pfad zählt deshalb nur ein Treffer
+    // auf einem Elternteil, nicht auf dem Pfad selbst.
+    const matches =
+      rule.dirOnly && !isDirectory
+        ? rule.descendantRegex.test(path)
+        : rule.regex.test(path);
 
-    if (rule.regex.test(path)) {
+    if (matches) {
       ignored = !rule.negated;
     }
   }

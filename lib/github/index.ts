@@ -7,14 +7,14 @@ export {
   planDeleteBranch,
   validatePlannedWrite,
   auditInfoOf,
-} from "./writer.js";
+} from "./writer";
 export type {
   GitHubWriteKind,
   CommitPayload,
   PRPayload,
   UpdatePRPayload,
   DeleteBranchPayload,
-} from "./writer.js";
+} from "./writer";
 
-export { compareRefs } from "./compareRefs.js";
-export type { CompareRefsResult } from "./compareRefs.js";
+export { compareRefs } from "./compareRefs";
+export type { CompareRefsResult } from "./compareRefs";

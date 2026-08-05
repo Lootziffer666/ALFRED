@@ -45,52 +45,10 @@ export function isFlagEnabled(flag: FeatureFlag): boolean {
   return readFlag(flag) === "enabled";
 }
 
-// ── CTA-Logik ──────────────────────────────────────────────────────────────
-
-export type CtaVariant =
-  | "see-local-version"      // Kein Installer bereit — nur "Lokale Version ansehen"
-  | "install-local-version"; // Installer bereit — "ALFRET lokal installieren"
-
-/**
- * Gibt die aktuelle CTA-Variante zurück.
- *
- * Wechselt erst wenn ALFRET_FLAG_LOCAL_INSTALLER_READY=1 gesetzt ist.
- * Default ist immer "see-local-version" um versehentliche Upgrades zu verhindern.
- */
-export function resolveCtaVariant(): CtaVariant {
-  return isFlagEnabled("local-installer-ready")
-    ? "install-local-version"
-    : "see-local-version";
-}
-
-// ── CTA-Texte ──────────────────────────────────────────────────────────────
-
-export interface CtaContent {
-  headline: string;
-  body: string;
-  buttonText: string;
-  buttonHref: string;
-}
-
-export function getCtaContent(variant: CtaVariant): CtaContent {
-  switch (variant) {
-    case "install-local-version":
-      return {
-        headline: "Das bietet ALFRET zusätzlich.",
-        body: "Lokale Runner, private Repositories, Modellwahl, Hermes-Orchestrierung — vollständig auf deiner Hardware.",
-        buttonText: "ALFRET lokal installieren",
-        buttonHref: "/homelab/install",
-      };
-    case "see-local-version":
-    default:
-      return {
-        headline: "Das bietet ALFRET zusätzlich.",
-        body: "Lokale Runner, private Repositories, Modellwahl, Hermes-Orchestrierung — vollständig auf deiner Hardware.",
-        buttonText: "Lokale Version ansehen",
-        buttonHref: "/homelab",
-      };
-  }
-}
+// Die CTA-Logik lag früher hier — ein zweites, nie gerendertes System neben
+// lib/report/capabilities.ts, mit eigenem Env-Flag, eigenen Texten und einem
+// Knopf auf /homelab/install, eine Seite, die es nicht gibt. Zwei Quellen für
+// dieselbe Aussage driften; capabilities.ts ist die, die tatsächlich rendert.
 
 // plan §31 — Daemon Feature Flags (global, nie hardcodiert in Unit-Datei).
 export interface DaemonFeatureFlags {

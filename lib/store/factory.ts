@@ -1,6 +1,6 @@
 // plan §17 — Store-Fabrik: einheitlicher Öffnungspfad für Daemon und Tests.
 
-import type { AlfretStore } from "./types.js";
+import type { AlfretStore } from "./types";
 import { join } from "node:path";
 import { homedir } from "node:os";
 
@@ -23,13 +23,13 @@ export async function openStore(opts: OpenStoreOptions = {}): Promise<AlfretStor
   const kind = opts.kind ?? "sqlite";
 
   if (kind === "memory") {
-    const { MemoryStore } = await import("./memory.js");
+    const { MemoryStore } = await import("./memory");
     return new MemoryStore();
   }
 
   const file = opts.file ?? defaultStorePath();
-  const { SqliteStore } = await import("./sqlite.js");
-  return new SqliteStore(file);
+  const { SqliteStore } = await import("./sqlite");
+  return SqliteStore.open(file);
 }
 
 export async function closeStore(store: AlfretStore): Promise<void> {

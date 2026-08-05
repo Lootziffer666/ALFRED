@@ -1,8 +1,8 @@
 // plan §36 — Unveränderliches Audit-Log: jeder ausgeführte UND jeder verweigerte PlannedWrite.
 
-import type { AlfretStore, Entity } from "../store/types.js";
-import type { PlannedWrite } from "./jobs/types.js";
-import type { ScopeDecision } from "../scope.js";
+import type { AlfretStore, Entity } from "../store/types";
+import type { PlannedWrite } from "./jobs/types";
+import type { ScopeDecision } from "../scope";
 
 export type AuditOutcome = "executed" | "denied" | "dry-run" | "budget-exceeded";
 

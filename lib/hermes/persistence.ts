@@ -2,8 +2,8 @@
 // Entity-Wrapper um HermesOrder und HermesSession.
 // Folgt exakt dem Muster von lib/daemon/jobs/job-state.ts.
 
-import type { AlfretStore } from "../store/types.js";
-import type { HermesOrder, HermesSession } from "./types.js";
+import type { AlfretStore } from "../store/types";
+import type { HermesOrder, HermesSession } from "./types";
 
 // ── Entity-Wrapper-Typen ──────────────────────────────────────────────────
 

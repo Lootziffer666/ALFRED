@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { refuseForeignCredentials } from "@/lib/profile/guards";
 import { z } from "zod";
 import { handoffSchema } from "@/lib/schema";
 import { fetchCompareFiles, fetchPullRequestFiles, parseGitHubResourceUrl, parseUnifiedDiff } from "@/lib/github";
@@ -27,6 +28,10 @@ export async function POST(request: Request) {
   if (!parsed.success) {
     return NextResponse.json({ error: z.prettifyError(parsed.error) }, { status: 400 });
   }
+
+  // Zugangsdaten nur, wo Betreiber und Besitzer dieselbe Person sind.
+  const refusal = refuseForeignCredentials([parsed.data.token]);
+  if (refusal) return refusal;
 
   const { handoff, input, token, agentSummary } = parsed.data;
 

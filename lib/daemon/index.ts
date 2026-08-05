@@ -1,20 +1,20 @@
 // Daemon module entry point: lifecycle, jobs, and utilities.
 
-export { createContext, disposeContext } from "./context.js";
-export type { DaemonContext, GitInfo } from "./context.js";
+export { createContext, disposeContext } from "./context";
+export type { DaemonContext, GitInfo } from "./context";
 
-export { createLogger } from "./log.js";
-export type { DaemonLogger, LogLevel, LogEntry } from "./log.js";
+export { createLogger } from "./log";
+export type { DaemonLogger, LogLevel, LogEntry } from "./log";
 
-export { loadConfig } from "./config.js";
-export { resolveRepoConfig } from "./config.js";
-export type { DaemonConfig, RepoConfig, ResolvedRepoConfig } from "./config.js";
+export { loadConfig } from "./config";
+export { resolveRepoConfig } from "./config";
+export type { DaemonConfig, RepoConfig, ResolvedRepoConfig } from "./config";
 
-export { loadCredentials, storeCredentials, redact, secretsOf, scrubSecrets } from "./credentials.js";
-export type { LoadCredentialsResult } from "./credentials.js";
+export { loadCredentials, storeCredentials, redact, secretsOf, scrubSecrets } from "./credentials";
+export type { LoadCredentialsResult } from "./credentials";
 
-export { loadScopeRegistry, saveScopeRegistry, addRepository } from "./scope.js";
-export type { ScopeRegistry } from "./scope.js";
+export { loadScopeRegistry, saveScopeRegistry, addRepository } from "./scope";
+export type { ScopeRegistry } from "./scope";
 
 export {
   alfretHome,
@@ -26,16 +26,16 @@ export {
   ensureAlfretDirs,
   readJson,
   writeJson,
-} from "./paths.js";
+} from "./paths";
 
-export { acquireLock, releaseLock } from "./lock.js";
-export { LockError } from "./lock.js";
+export { acquireLock, releaseLock } from "./lock";
+export { LockError } from "./lock";
 
-export { startScheduler, runOnce, nextDelayMs } from "./scheduler.js";
-export type { SchedulerOptions, SchedulerHandle } from "./scheduler.js";
+export { startScheduler, runOnce, nextDelayMs } from "./scheduler";
+export type { SchedulerOptions, SchedulerHandle } from "./scheduler";
 
-export { maidScanJob } from "./jobs/maid-scan.js";
-export type { Job, JobContext, JobResult, PlannedWrite, TickResult } from "./jobs/types.js";
+export { maidScanJob } from "./jobs/maid-scan";
+export type { Job, JobContext, JobResult, PlannedWrite, TickResult } from "./jobs/types";
 
-export { startBridge } from "./bridge.js";
-export type { BridgeMessage, BridgeOptions, BridgeHandle, DaemonStatus } from "./bridge.js";
+export { startBridge } from "./bridge";
+export type { BridgeMessage, BridgeOptions, BridgeHandle, DaemonStatus } from "./bridge";

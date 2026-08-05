@@ -5,17 +5,22 @@
 
 import { parseArgs } from "node:util";
 import { createInterface } from "node:readline";
-import { createContext, disposeContext } from "../lib/daemon/context.js";
-import { createLogger } from "../lib/daemon/log.js";
-import { acquireLock, releaseLock, LockError } from "../lib/daemon/lock.js";
-import { loadConfig } from "../lib/daemon/config.js";
-import { loadCredentials, storeCredentials } from "../lib/daemon/credentials.js";
-import { loadScopeRegistry, saveScopeRegistry, addRepository } from "../lib/daemon/scope.js";
-import { openStore } from "../lib/store/factory.js";
-import { startScheduler } from "../lib/daemon/scheduler.js";
-import { maidScanJob } from "../lib/daemon/jobs/maid-scan.js";
-import { readmeFreshnessJob } from "../lib/daemon/jobs/readme-freshness.js";
-import { branchCareJob } from "../lib/daemon/jobs/branch-care.js";
+import { createContext, disposeContext } from "../lib/daemon/context";
+import { createLogger } from "../lib/daemon/log";
+import { scrubKnownSecrets } from "../lib/daemon/secrets";
+import { acquireLock, releaseLock, LockError } from "../lib/daemon/lock";
+import { loadConfig } from "../lib/daemon/config";
+import {
+  loadCredentials,
+  storeCredentials,
+  type LoadCredentialsResult,
+} from "../lib/daemon/credentials";
+import { loadScopeRegistry, addRepository } from "../lib/daemon/scope";
+import { openStore } from "../lib/store/factory";
+import { startScheduler } from "../lib/daemon/scheduler";
+import { maidScanJob } from "../lib/daemon/jobs/maid-scan";
+import { readmeFreshnessJob } from "../lib/daemon/jobs/readme-freshness";
+import { branchCareJob } from "../lib/daemon/jobs/branch-care";
 
 const COMMANDS = [
   "run",
@@ -56,7 +61,7 @@ Commands:
   add-repo <repo>  Register repository for scanning
   arm              Enable writes
   disarm           Disable writes (default)
-  login <token>    Store GitHub token
+  login            Store GitHub token (fragt auf stdin, ohne Echo)
   pause            Pause daemon (SIGTERM → 30s grace, second signal exits 1)
   resume           Resume daemon (resume from tick)
   uninstall        Delete lock, config, credentials, scope
@@ -99,7 +104,8 @@ async function execCommand(cmd: Command, args: string[]): Promise<void> {
     case "disarm":
       return setArmed(false);
     case "login":
-      if (!args[0]) throw new Error("Usage: alfret-daemon login <token>");
+      // Ohne Argument wird das Token von stdin gelesen — das ist der
+      // empfohlene Weg, siehe storeToken().
       return storeToken(args[0]);
     case "pause":
       return pauseDaemon();
@@ -111,7 +117,7 @@ async function execCommand(cmd: Command, args: string[]): Promise<void> {
 }
 
 async function runDaemon(): Promise<void> {
-  const log = createLogger({ minLevel: "info" });
+  const log = createLogger({ minLevel: "info", scrub: scrubKnownSecrets });
 
   try {
     await acquireLock();
@@ -167,7 +173,7 @@ async function runDaemon(): Promise<void> {
 }
 
 async function runOnce(): Promise<void> {
-  const log = createLogger({ minLevel: "info" });
+  const log = createLogger({ minLevel: "info", scrub: scrubKnownSecrets });
 
   try {
     await acquireLock();
@@ -186,7 +192,7 @@ async function runOnce(): Promise<void> {
     const store = await openStore({ kind: "sqlite" });
     const ctx = await createContext({ config, creds: credsResult, store, log });
 
-    const { runOnce } = await import("../lib/daemon/scheduler.js");
+    const { runOnce } = await import("../lib/daemon/scheduler");
     const result = await runOnce(ctx, [maidScanJob, readmeFreshnessJob, branchCareJob]);
 
     log.info("tick complete", {
@@ -201,8 +207,6 @@ async function runOnce(): Promise<void> {
 }
 
 async function showStatus(): Promise<void> {
-  const log = createLogger({ minLevel: "info" });
-
   try {
     await acquireLock();
     console.log("Daemon not running.");
@@ -223,7 +227,7 @@ async function showStatus(): Promise<void> {
 }
 
 async function runDoctor(): Promise<void> {
-  const log = createLogger({ minLevel: "info" });
+  const log = createLogger({ minLevel: "info", scrub: scrubKnownSecrets });
 
   console.log("=== ALFRET Daemon Health Check ===\n");
 
@@ -231,14 +235,32 @@ async function runDoctor(): Promise<void> {
   const config = configResult.config;
   console.log("✓ Config loaded");
 
-  const credsResult = await loadCredentials();
-  console.log(credsResult.token ? "✓ GitHub token found" : "⚠ No GitHub token");
+  // doctor ist genau das Werkzeug für eine Maschine, auf der noch nichts
+  // eingerichtet ist — es darf am fehlenden Token nicht abbrechen, sondern muss
+  // ihn als Befund melden. loadCredentials() wirft in diesem Fall.
+  let credsResult: LoadCredentialsResult = {
+    token: "",
+    source: "env",
+    fingerprint: "",
+  };
+  try {
+    credsResult = await loadCredentials();
+    console.log("✓ GitHub token found");
+  } catch (err) {
+    console.log(`⚠ ${err instanceof Error ? err.message : String(err)}`);
+  }
 
   const scopeResult = await loadScopeRegistry();
   console.log(`✓ Scope: ${Object.keys(scopeResult.registry.repositories).length} repositories`);
 
   const store = await openStore({ kind: "sqlite" });
-  const ctx = await createContext({ config, creds: credsResult, store, log });
+  const ctx = await createContext({
+    config,
+    creds: credsResult,
+    store,
+    log,
+    scope: scopeResult.registry,
+  });
 
   if (ctx.git) {
     console.log(`✓ Git: ${ctx.git.version} at ${ctx.git.path}`);
@@ -265,7 +287,7 @@ async function runDoctor(): Promise<void> {
 }
 
 async function addRepo(repo: string): Promise<void> {
-  const { scopePath } = await import("../lib/daemon/paths.js");
+  const { scopePath } = await import("../lib/daemon/paths");
   await addRepository(repo, scopePath());
   console.log(`Added repository: ${repo}`);
 }
@@ -274,13 +296,54 @@ async function setArmed(armed: boolean): Promise<void> {
   const configResult = await loadConfig({});
   const updated = { ...configResult.config, armed };
 
-  const { configPath, writeJson } = await import("../lib/daemon/paths.js");
+  const { configPath, writeJson } = await import("../lib/daemon/paths");
   await writeJson(configPath(), updated);
 
   console.log(`Daemon ${armed ? "armed" : "disarmed"}`);
 }
 
-async function storeToken(token: string): Promise<void> {
+/**
+ * Liest das Token ohne Echo von stdin.
+ *
+ * Ein Token als Kommandozeilen-Argument landet in der Shell-History und steht
+ * für jeden anderen Nutzer der Maschine in `ps aux` — beides überlebt den
+ * Befehl deutlich länger als nötig. Der Weg über stdin tut das nicht.
+ */
+function promptForToken(): Promise<string> {
+  return new Promise((resolve, reject) => {
+    const output = process.stdout;
+    const rl = createInterface({ input: process.stdin, output, terminal: true });
+
+    // readline schreibt jedes Zeichen zurück; hier wird nur der Prompt
+    // durchgelassen, die Eingabe selbst nicht.
+    let muted = false;
+    const write = output.write.bind(output);
+    (rl as unknown as { _writeToOutput: (s: string) => void })._writeToOutput = (s) => {
+      if (!muted) write(s);
+    };
+
+    rl.question("GitHub-Token (Eingabe bleibt unsichtbar): ", (answer) => {
+      muted = false;
+      rl.close();
+      write("\n");
+      const token = answer.trim();
+      if (!token) return reject(new Error("Kein Token eingegeben."));
+      resolve(token);
+    });
+    muted = true;
+  });
+}
+
+async function storeToken(tokenArg?: string): Promise<void> {
+  if (tokenArg) {
+    console.warn(
+      "⚠ Das Token stand als Argument in der Kommandozeile — es liegt jetzt in\n" +
+        "  deiner Shell-History und war währenddessen in `ps` sichtbar. Lösche es\n" +
+        "  dort, oder rufe künftig `alfret-daemon login` ohne Argument auf.",
+    );
+  }
+
+  const token = tokenArg ?? (await promptForToken());
   await storeCredentials(token);
   console.log("Token stored securely");
 }
@@ -305,7 +368,7 @@ async function pauseDaemon(): Promise<void> {
 }
 
 async function resumeDaemon(): Promise<void> {
-  const log = createLogger({ minLevel: "info" });
+  const log = createLogger({ minLevel: "info", scrub: scrubKnownSecrets });
 
   try {
     await acquireLock();
@@ -323,7 +386,7 @@ async function resumeDaemon(): Promise<void> {
   const store = await openStore({ kind: "sqlite" });
   const ctx = await createContext({ config, creds: credsResult, store, log });
 
-  const { runOnce } = await import("../lib/daemon/scheduler.js");
+  const { runOnce } = await import("../lib/daemon/scheduler");
   await runOnce(ctx, [maidScanJob, readmeFreshnessJob, branchCareJob]);
 
   disposeContext(ctx);
@@ -351,7 +414,7 @@ async function uninstallDaemon(): Promise<void> {
 
     const { promises: fs } = await import("node:fs");
     const { lockPath, configPath, credentialsPath, scopePath } = await import(
-      "../lib/daemon/paths.js"
+      "../lib/daemon/paths"
     );
 
     for (const path of [lockPath(), configPath(), credentialsPath(), scopePath()]) {

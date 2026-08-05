@@ -1,7 +1,7 @@
 // plan §30 — loadPlanFromRepo() -> ParsedPlan, mit optional Caching.
 // Einfach, weil der Parser bereits rein ist.
 
-import { parsePlan, type ParsedPlan } from "./parse.js";
+import { parsePlan, type ParsedPlan } from "./parse";
 
 let cachedPlan: ParsedPlan | null = null;
 let cachedSha: string | null = null;
@@ -38,8 +38,20 @@ export function setCachedPlan(plan: ParsedPlan, sha?: string): void {
   cachedSha = sha || null;
 }
 
-export function getCachedPlan(): ParsedPlan | null {
+/**
+ * Der zusammen mit dem Plan abgelegte SHA wurde bisher nie wieder gelesen —
+ * der Cache konnte also einen Plan zu einem längst überholten Commit
+ * zurückgeben. Wer einen SHA mitgibt, bekommt den Plan nur, wenn er zu genau
+ * diesem Commit gehört.
+ */
+export function getCachedPlan(sha?: string): ParsedPlan | null {
+  if (sha !== undefined && sha !== cachedSha) return null;
   return cachedPlan;
+}
+
+/** Der SHA, zu dem der zwischengespeicherte Plan gehört. */
+export function getCachedPlanSha(): string | null {
+  return cachedSha;
 }
 
 export function clearCache(): void {

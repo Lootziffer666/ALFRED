@@ -1,3 +1,17 @@
+// ACHTUNG — DATENHOHEIT: Dies ist der einzige Modellpfad im Repo mit einem
+// fest verdrahteten Cloud-Endpoint. Wer generateContractMap() aufruft, schickt
+// README-Auszüge, Commit-Nachrichten und PR-Titel des untersuchten
+// Repositories an openrouter.ai.
+//
+// Das Skriptorium (components/archive/useArchive.ts) macht es anders: dort ist
+// der Endpoint ein Freitextfeld, und ein lokales Modell (Ollama, llama.cpp)
+// erfüllt denselben Zweck, ohne dass etwas den Rechner verlässt.
+//
+// Diese Datei kann das noch nicht. Sie ist bewusst dünn und modellagnostisch
+// (PRD §5.4/§9) — nur die URL ist es nicht. Solange das so bleibt, gilt:
+// /api/contract-map ist ein Cloud-Pfad, und der Credential-Guard
+// (lib/profile/guards.ts) lässt ihn nur dort zu, wo Betreiber und
+// Schlüsselbesitzer dieselbe Person sind.
 const OPENROUTER_URL = "https://openrouter.ai/api/v1/chat/completions";
 
 export interface OpenRouterMessage {

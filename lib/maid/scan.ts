@@ -4,15 +4,14 @@
 // Wildcard und Negation-nach-Wildcard (die klassische Falle: .env.example
 // muss wieder unignoriert werden).
 
-import type { MaidReport, MaidFinding } from "./types.js";
+import type { MaidReport, MaidFinding } from "./types";
 import {
-  DEFAULT_CLASSIFY_RULES,
   classifyWith,
   rulesFromSettings,
   classifyAgainstGitignore,
-} from "./rules.js";
-import { parseGitignore } from "./gitignore.js";
-import type { MaidSettings } from "./rules.js";
+} from "./rules";
+import { parseGitignore } from "./gitignore";
+import type { MaidSettings } from "./rules";
 
 export interface ScanInput {
   repository: string;

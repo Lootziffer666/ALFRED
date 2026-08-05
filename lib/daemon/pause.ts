@@ -4,7 +4,7 @@
 
 import { existsSync } from "node:fs";
 import path from "node:path";
-import { alfretHome } from "./paths.js";
+import { alfretHome } from "./paths";
 
 export function pausePath(): string {
   return path.join(alfretHome(), "PAUSED");

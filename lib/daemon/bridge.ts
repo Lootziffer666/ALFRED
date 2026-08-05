@@ -2,8 +2,8 @@
 // Bidirectional: clients poll status, daemon pushes tick results.
 // Note: Requires 'ws' module. Currently a no-op stub for Phase 1.5 stabilization.
 
-import type { DaemonContext } from "./context.js";
-import type { TickResult } from "./jobs/types.js";
+import type { DaemonContext } from "./context";
+import type { TickResult } from "./jobs/types";
 
 export type BridgeMessageKind = "ping" | "pong" | "status" | "tick" | "command" | "error";
 

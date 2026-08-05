@@ -1,4 +1,4 @@
-import type { AlfretStore } from "../store/types.js";
+import type { AlfretStore } from "../store/types";
 
 export interface TimelineSnapshot {
   kind: "timeline-snapshot";

@@ -1,8 +1,8 @@
 // Finding dedup: merge duplicate observations via intent comparison.
 // Groups findings by (repository, path, kind), keeps first + merges metadata.
 
-import type { MaidFinding } from "../maid/types.js";
-import type { FindingCapsule } from "./capsule.js";
+import type { MaidFinding } from "../maid/types";
+import type { FindingCapsule } from "./capsule";
 
 export interface MergedFinding {
   finding: MaidFinding;

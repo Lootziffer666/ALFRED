@@ -4,10 +4,13 @@
 
 import { execFile } from "node:child_process";
 import { promisify } from "node:util";
-import type { DaemonLogger } from "./log.js";
-import type { AlfretStore } from "../store/types.js";
-import type { DaemonConfig } from "./config.js";
-import type { LoadCredentialsResult } from "./credentials.js";
+import type { DaemonLogger } from "./log";
+import type { AlfretStore } from "../store/types";
+import type { DaemonConfig } from "./config";
+import type { LoadCredentialsResult } from "./credentials";
+import type { ScopeRegistry } from "../scope/types";
+import { EMPTY_SCOPE_REGISTRY } from "../scope/index";
+import { loadScopeRegistry } from "./scope";
 
 const exec = promisify(execFile);
 
@@ -23,6 +26,11 @@ export interface DaemonContext {
   log: DaemonLogger;
   /** null, wenn git-Binary nicht verfügbar. */
   git: GitInfo | null;
+  /**
+   * Die Freigaben aus ~/.alfret/scope.json. Jeder mutierende Pfad prüft sie —
+   * ohne Eintrag ist ein Repository nicht freigegeben (fail-closed).
+   */
+  scope: ScopeRegistry;
   /** Injizierbar für Tests; default: () => new Date() */
   now: () => Date;
 }
@@ -46,11 +54,28 @@ export async function createContext(opts: {
   creds: LoadCredentialsResult;
   store: AlfretStore;
   log: DaemonLogger;
+  /** Übersteuert das Laden von der Platte — für Tests. */
+  scope?: ScopeRegistry;
   now?: () => Date;
 }): Promise<DaemonContext> {
   const git = await probeGit();
 
   if (!git) opts.log.warn("git-Binary nicht gefunden — git-abhängige Jobs degradieren");
+
+  let scope = opts.scope;
+  if (!scope) {
+    try {
+      const loaded = await loadScopeRegistry();
+      for (const w of loaded.warnings) opts.log.warn(w);
+      scope = loaded.registry;
+    } catch (err) {
+      // Eine kaputte scope.json darf nicht in "alles erlaubt" umschlagen.
+      opts.log.error("scope.json unlesbar — keine Freigaben aktiv", {
+        error: String(err),
+      });
+      scope = EMPTY_SCOPE_REGISTRY;
+    }
+  }
 
   return {
     config: opts.config,
@@ -58,6 +83,7 @@ export async function createContext(opts: {
     store: opts.store,
     log: opts.log,
     git,
+    scope,
     now: opts.now ?? (() => new Date()),
   };
 }

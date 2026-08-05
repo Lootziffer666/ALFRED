@@ -316,12 +316,23 @@ export const RULES: Rule[] = [
         coAuthMatches.map((m) => m.replace(/Co-Authored-By:\s+/i, "").split("<")[0].trim()),
       );
       if (agents.size < 2) return null;
-      const ev: Array<{ k: string; v: string }> = [];
-      ev.push({ k: "Co-Authors", v: `${agents.size} unterschiedliche Agenten registriert` });
-      Array.from(agents)
-        .slice(0, 4)
-        .forEach((a) => ev.push({ k: "Agent", v: a }));
-      return ev.length > 1 ? ev : null;
+      // Nur die Zahl, nicht die Namen.
+      //
+      // `Co-Authored-By:` ist der Standard-Trailer für Pair Programming — auf
+      // einem gewöhnlichen Repository stehen dort MENSCHEN. Diese Regel listete
+      // bis zu vier davon namentlich als Evidenz auf, und der Bericht ist
+      // herunterladbar und teilbar. Damit standen fremde Klarnamen in einer
+      // Datei, die behauptet, sie beschreibe eine „rotierende Gruppe von
+      // KI-Agenten" — personenbezogen und obendrein womöglich falsch.
+      //
+      // Die E-Mail wurde schon immer abgeschnitten (`.split("<")[0]`); die
+      // Absicht war also da. Die Aussage der Regel ist ohnehin die Struktur —
+      // DASS mehrere Beitragende rotieren —, nicht wer. Die Namen trugen zum
+      // Befund nichts bei und werden nicht mehr ausgegeben.
+      const ev: Array<{ k: string; v: string }> = [
+        { k: "Co-Authors", v: `${agents.size} unterschiedliche Co-Author-Trailer` },
+      ];
+      return ev;
     },
     trope: {
       1: "Mehrere unterschiedliche Coding-Agenten erscheinen als Co-Authors in der Commit-Historie.",

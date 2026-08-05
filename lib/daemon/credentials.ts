@@ -5,7 +5,8 @@
 //   3. redact() never exposes more than the last 4 characters.
 //   4. secretsOf() feeds the log scrubber — every secret string the process knows about.
 
-import { readJson, writeJson, credentialsPath, ensureAlfretDirs, fileMode } from "./paths.js";
+import { readJson, writeJson, credentialsPath, ensureAlfretDirs } from "./paths";
+import { rememberSecret } from "./secrets";
 import { stat } from "node:fs/promises";
 
 export interface StoredCredentials {
@@ -51,6 +52,7 @@ export async function loadCredentials(
   const envToken = process.env.ALFRET_GITHUB_TOKEN;
 
   if (envToken) {
+    rememberSecret(envToken);
     return { token: envToken, source: "env", fingerprint: redact(envToken) };
   }
 
@@ -78,6 +80,8 @@ export async function loadCredentials(
       `credentials.json is missing githubToken. Run: alfret-daemon login`,
     );
   }
+
+  rememberSecret(stored.githubToken);
 
   return {
     token: stored.githubToken,

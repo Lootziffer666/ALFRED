@@ -1,11 +1,11 @@
 // Stage 3 — Baut eine vollständige EvidenceChain aus echten Store-Daten.
 // Kein In-Memory-Stub — echte Capsule + zugehörige Decisions + Sibling-Findings.
 
-import type { AlfretStore } from "../store/types.js";
-import type { FindingCapsule } from "../findings/capsule.js";
-import { loadEvidence } from "../corpus/persistence.js";
-import { loadDecisions } from "../corpus/persistence.js";
-import { evidenceRecordToRef, type EvidenceRef } from "./fromCorpus.js";
+import type { AlfretStore } from "../store/types";
+import type { FindingCapsule } from "../findings/capsule";
+import { loadEvidence } from "../corpus/persistence";
+import { loadDecisions } from "../corpus/persistence";
+import { evidenceRecordToRef, type EvidenceRef } from "./fromCorpus";
 
 export interface EvidenceChain {
   capsuleId: string;

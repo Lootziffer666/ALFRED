@@ -22,13 +22,28 @@ export function IcebergCta() {
 
       <p style={{ color: "var(--paper-dim)", margin: "0 0 16px", fontSize: 14, lineHeight: 1.6 }}>
         Dieser Bericht ist ein Nebenprodukt. ALFRET schreibt ihn, weil es das Repository ohnehin
-        verstehen muss — nicht umgekehrt. Unter der Wasserlinie liegt:
+        verstehen muss — nicht umgekehrt. Hier war das ein Aufwärmprogramm: ein öffentliches
+        Repository, ein Durchgang, danach vergisst diese Instanz alles wieder. Sie nimmt keine
+        Zugangsdaten an und legt nichts an. Zu Hause hört ALFRET an dieser Stelle nicht auf:
       </p>
 
       <ul style={{ listStyle: "none", padding: 0, margin: "0 0 20px", display: "grid", gap: 10 }}>
         {ICEBERG_BELOW.map((item) => (
           <li key={item.title} style={{ display: "grid", gap: 2 }}>
-            <span className="mono" style={{ fontSize: 12, color: "var(--brass-l)" }}>{item.title}</span>
+            <span className="mono" style={{ fontSize: 12, color: "var(--brass-l)" }}>
+              {item.title}
+              {item.routes.length ? (
+                // Die Einträge mit Routen sind die, gegen die ein Besucher hier
+                // tatsächlich läuft. Ein stummes 404 wäre eine kaputte Seite;
+                // so ist es eine Ansage.
+                <span
+                  style={{ color: "var(--mut)", marginLeft: 8, fontSize: 10, letterSpacing: ".08em" }}
+                  title={`In dieser Demo nicht bedient: ${item.routes.join(", ")}`}
+                >
+                  · hier nicht bedient
+                </span>
+              ) : null}
+            </span>
             <span style={{ color: "var(--paper-dim)", fontSize: 13.5, lineHeight: 1.5 }}>{item.detail}</span>
           </li>
         ))}

@@ -19,7 +19,7 @@ export function selectSkillsForRepo(
 }
 
 export async function loadSkillManifest(
-  skillPath: string,
+  _skillPath: string,
 ): Promise<SkillManifest> {
   const manifest: SkillManifest = {
     name: "unknown",

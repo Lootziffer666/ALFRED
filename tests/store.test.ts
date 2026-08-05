@@ -2,22 +2,22 @@
 // Ersetzt den früheren describe.skip-Block gegen eine nie genutzte Store-Klassen-API.
 
 import { describe, it, expect, beforeEach } from "vitest";
-import { MemoryStore } from "../lib/store/memory.js";
-import { saveOrder, getOrder, listOrders } from "../lib/hermes/persistence.js";
+import { MemoryStore } from "../lib/store/memory";
+import { saveOrder, getOrder, listOrders } from "../lib/hermes/persistence";
 import {
   saveSession,
   getSession,
   listSessions,
-} from "../lib/hermes/persistence.js";
-import { saveCueReport, getCueReport, listCueReports } from "../lib/cue/persistence.js";
+} from "../lib/hermes/persistence";
+import { saveCueReport, getCueReport, listCueReports } from "../lib/cue/persistence";
 import {
   saveHeartbeat,
   getLatestHeartbeat,
   listHeartbeats,
-} from "../lib/health/persistence.js";
-import type { HermesOrder, HermesSession } from "../lib/hermes/types.js";
-import type { CueReport } from "../lib/cue/types.js";
-import type { Heartbeat } from "../lib/health/types.js";
+} from "../lib/health/persistence";
+import type { HermesOrder, HermesSession } from "../lib/hermes/types";
+import type { CueReport } from "../lib/cue/types";
+import type { Heartbeat } from "../lib/health/types";
 
 // Minimal stubs — nur die Felder, die die Persistenz-Layer tatsächlich liest.
 function makeOrder(

@@ -6,7 +6,7 @@ import {
   parseGitignore,
   isIgnored,
   globToRegExp,
-} from "../lib/maid/gitignore.js";
+} from "../lib/maid/gitignore";
 
 const OWN_GITIGNORE = `
 # deps

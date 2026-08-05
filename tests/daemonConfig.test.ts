@@ -5,9 +5,9 @@ import { describe, it, expect, beforeEach, afterEach } from "vitest";
 import { mkdtemp, rm, writeFile, chmod } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
-import { loadConfig, resolveRepoConfig, daemonConfigSchema } from "../lib/daemon/config.js";
-import { loadCredentials, storeCredentials, redact, scrubSecrets } from "../lib/daemon/credentials.js";
-import { loadScopeRegistry, EMPTY_SCOPE_REGISTRY } from "../lib/daemon/scope.js";
+import { loadConfig, resolveRepoConfig, daemonConfigSchema } from "../lib/daemon/config";
+import { loadCredentials, redact, scrubSecrets } from "../lib/daemon/credentials";
+import { loadScopeRegistry, EMPTY_SCOPE_REGISTRY } from "../lib/daemon/scope";
 
 // ---------------------------------------------------------------------------
 // Config
@@ -123,7 +123,7 @@ describe("daemonCredentials", () => {
   it("credentials roundtrip: store + load", async () => {
     const file = join(dir, "credentials.json");
 
-    const { writeJson } = await import("../lib/daemon/paths.js");
+    const { writeJson } = await import("../lib/daemon/paths");
 
     await writeJson(file, {
       githubToken: "ghp_testtoken1234",

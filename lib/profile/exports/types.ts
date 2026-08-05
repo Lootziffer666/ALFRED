@@ -46,7 +46,7 @@ export function exportProfile(
   };
 }
 
-function exportAsText(profile: DeveloperProfile, config: ExportConfig): string {
+function exportAsText(profile: DeveloperProfile, _config: ExportConfig): string {
   const lines: string[] = [];
 
   lines.push(`${profile.displayName || profile.login}`);
@@ -82,7 +82,7 @@ function exportAsText(profile: DeveloperProfile, config: ExportConfig): string {
   return lines.join("\n");
 }
 
-function exportAsMarkdown(profile: DeveloperProfile, config: ExportConfig): string {
+function exportAsMarkdown(profile: DeveloperProfile, _config: ExportConfig): string {
   const lines: string[] = [];
 
   lines.push(`# ${profile.displayName || profile.login}`);

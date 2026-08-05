@@ -1,13 +1,18 @@
 // Stage 3 — Suchendpunkt. Folgt dem Muster von app/api/scout/route.ts.
 
 import { NextRequest, NextResponse } from "next/server";
-import { openStore } from "../../../lib/store/factory.js";
-import { buildSearchIndex } from "../../../lib/search/index-source.js";
-import { parseSearchQuery, applyFilters } from "../../../lib/search/query.js";
+import { refuseOutsideHomelab } from "@/lib/profile/guards";
+import { openStore } from "@/lib/store/factory";
+import { buildSearchIndex } from "@/lib/search/index-source";
+import { parseSearchQuery, applyFilters } from "@/lib/search/query";
 
 export async function GET(req: NextRequest): Promise<NextResponse> {
   const q = req.nextUrl.searchParams.get("q") ?? "";
   const repoFilter = req.nextUrl.searchParams.get("repo") ?? undefined;
+
+  // Homelab-Route: in einem flüchtigen Profil gibt es keinen Store.
+  const notHere = refuseOutsideHomelab();
+  if (notHere) return notHere;
 
   const store = await openStore({ kind: "sqlite" });
 

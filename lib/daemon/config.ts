@@ -4,7 +4,7 @@
 // Pattern strings are validated as RegExp at load time — a typo fails at startup.
 
 import { z } from "zod";
-import { readJson, configPath } from "./paths.js";
+import { readJson, configPath } from "./paths";
 
 // ---------------------------------------------------------------------------
 // Zod helpers

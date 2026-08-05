@@ -1,6 +1,6 @@
 // plan §33 — React-Komponente: Evidence-Kette visualisieren.
 
-import type { EvidenceChain } from "../../lib/evidence/ref.js";
+import type { EvidenceChain } from "../../lib/evidence/ref";
 
 interface EvidenceChainProps {
   chain: EvidenceChain;

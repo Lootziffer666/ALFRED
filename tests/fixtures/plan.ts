@@ -3,8 +3,8 @@
 // Note: Disabled due to missing lib/schema/plan.js module
 
 /*
-import type { SignedPlan, RunnerStep } from "../../lib/schema/plan.js";
-import type { RunnerStepKind } from "../../lib/runner/types.js";
+import type { SignedPlan, RunnerStep } from "../../lib/schema/plan";
+import type { RunnerStepKind } from "../../lib/runner/types";
 
 export function fakeStep(overrides: Partial<RunnerStep> = {}): RunnerStep {
   return {

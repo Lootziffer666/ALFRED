@@ -2,7 +2,6 @@ import { describe, it, expect } from "vitest";
 import {
   LLAMACPP_ADAPTER,
   LLAMACPP_MODEL_DIR,
-  OLLAMA_ADAPTER,
   PROBE_ADAPTER,
   TERMUX_ADAPTER,
   VLLM_ADAPTER,

@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { refuseForeignCredentials } from "@/lib/profile/guards";
 import { z } from "zod";
 import { repoEvidenceSchema } from "@/lib/schema";
 import { generateContractMap } from "@/lib/contractMap";
@@ -21,6 +22,10 @@ export async function POST(request: Request) {
   if (!parsed.success) {
     return NextResponse.json({ error: z.prettifyError(parsed.error) }, { status: 400 });
   }
+
+  // Zugangsdaten nur, wo Betreiber und Besitzer dieselbe Person sind.
+  const refusal = refuseForeignCredentials([parsed.data.apiKey]);
+  if (refusal) return refusal;
 
   const result = await generateContractMap(parsed.data.evidence, {
     apiKey: parsed.data.apiKey,

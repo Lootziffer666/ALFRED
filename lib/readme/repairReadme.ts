@@ -2,8 +2,8 @@
 // Wird sowohl vom Job als auch vom manuellen Repair-Endpunkt genutzt.
 // Kein doppelter Implementierungspfad.
 
-import { replaceMarkedBlock } from "./markers.js";
-import type { PlannedWrite } from "../daemon/jobs/types.js";
+import { replaceMarkedBlock } from "./markers";
+import type { PlannedWrite } from "../daemon/jobs/types";
 
 export interface RepairReadmeOpts {
   repository: string;

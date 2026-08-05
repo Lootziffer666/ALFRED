@@ -260,9 +260,9 @@ export class ALFRETNarrator {
   };
 
   daemon = {
-    paused: (ctx: NarrationContext) =>
+    paused: (_ctx: NarrationContext) =>
       this.pickStory(this.stories.daemon.paused),
-    armed: (ctx: NarrationContext) =>
+    armed: (_ctx: NarrationContext) =>
       this.pickStory(this.stories.daemon.armed),
     budget: (ctx: NarrationContext) =>
       this.interpolate(

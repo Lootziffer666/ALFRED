@@ -2,12 +2,10 @@ import { describe, it, expect } from "vitest";
 import {
   classifyConflict,
   verdictFor,
-  buildConflictRecord,
   createSimulation,
   applyConflicts,
   recordPostMergeHealth,
   canMerge,
-  transition,
 } from "@/lib/refinery";
 
 describe("classifyConflict", () => {

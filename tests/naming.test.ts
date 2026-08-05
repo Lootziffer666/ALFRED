@@ -28,8 +28,10 @@ const SCANNED_FILES = [
  * filename, and both sites label it as an earlier prototype.
  */
 const HISTORICAL_ALLOWLIST: { file: string; needle: string }[] = [
-  { file: "README.md", needle: "the earlier `Alfred_new.html` prototype" },
   { file: "lib/atoms/data.ts", needle: "(Alfred_new.html)." },
+  // The glossary is where the name itself is explained. Naming the discarded
+  // spelling is the whole point of the entry — it is not double-naming.
+  { file: "lib/glossary/index.ts", needle: "nicht ALFRED, bewusst ohne D" },
   // Not a product name: the GitHub repository still carries the old name, so
   // this is the address that actually resolves today. It moves when the
   // repository is renamed (the one manual step of Etappe 0).
@@ -42,6 +44,10 @@ const HISTORICAL_ALLOWLIST: { file: string; needle: string }[] = [
   // Same as above: the clone URL the bootstrap script uses has to be the one
   // that resolves today, which is still the old repository name.
   { file: "lib/homelab/bootstrap.ts", needle: "https://github.com/Lootziffer666/ALFRED" },
+  // Demo fixture: the default repository the demo run analyses is this very
+  // repository, addressed by the name that resolves today.
+  { file: "app/api/demo/run/route.ts", needle: "https://github.com/Lootziffer666/ALFRED" },
+  { file: "app/api/demo/run/route.ts", needle: 'repository: "lootziffer666/alfred"' },
 ];
 
 /** Historical documents kept verbatim; each must carry a historical banner. */

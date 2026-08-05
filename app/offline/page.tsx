@@ -5,6 +5,8 @@
  * besteht und die angefragte Seite nicht gecacht ist.
  */
 
+import { RetryButton } from "./RetryButton";
+
 export const metadata = {
   title: "Offline — ALFRET",
 };
@@ -29,12 +31,7 @@ export default function OfflinePage() {
           funktionieren erst wieder mit Verbindung.
         </p>
 
-        <button
-          onClick={() => window.location.reload()}
-          className="mt-8 rounded-lg bg-indigo-600 px-6 py-2.5 text-sm font-medium text-white hover:bg-indigo-500 transition-colors"
-        >
-          Erneut versuchen
-        </button>
+        <RetryButton />
       </div>
     </main>
   );

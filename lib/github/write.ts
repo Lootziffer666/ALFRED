@@ -6,9 +6,11 @@
 // Blob → Tree → Commit → updateRef = vier Requests für beliebig viele Dateien,
 // ein Commit, optimistische Nebenläufigkeit (409 → nächster Tick versucht erneut).
 
-import { ghFetch } from "../github.js";
-import { assertScope, isPathProtected, type ScopeDecision } from "../scope.js";
-import type { PlannedWrite } from "../daemon/jobs/types.js";
+import { ghFetch } from "../github";
+import { assertScope, isPathProtected } from "../scope";
+import { EMPTY_SCOPE_REGISTRY } from "../scope/index";
+import type { ScopeRegistry } from "../scope/types";
+import type { PlannedWrite } from "../daemon/jobs/types";
 
 export const WRITE_KIND_TO_SCOPE_ACTION: Record<PlannedWrite["kind"], string> = {
   "commit-files": "commitFiles",
@@ -29,6 +31,11 @@ export interface ExecuteWriteOptions {
   token: string;
   dryRun: boolean;
   armed: boolean;
+  /**
+   * Die Freigaben aus ~/.alfret/scope.json. Fehlt sie, gilt die leere Registry
+   * — dann ist kein Repository freigegeben und jeder Write wird verweigert.
+   */
+  scope?: ScopeRegistry;
   fetchImpl?: typeof fetch;
 }
 
@@ -37,10 +44,12 @@ export async function executeWrite(
   opts: ExecuteWriteOptions,
 ): Promise<ExecuteWriteResult> {
   const scopeAction = WRITE_KIND_TO_SCOPE_ACTION[write.kind];
+  const scope = opts.scope ?? EMPTY_SCOPE_REGISTRY;
 
-  // 1. Scope-Prüfung zuerst — wirft ScopeViolationError bei unbekanntem/disarmed Repo.
+  // 1. Scope-Prüfung zuerst — wirft bei unbekanntem/disarmed Repo oder bei
+  //    einer Aktion, die dieses Repository nicht freigegeben hat.
   try {
-    assertScope(write.repository, scopeAction as any, { armed: opts.armed });
+    assertScope(scope, write.repository, scopeAction, { armed: opts.armed });
   } catch (err) {
     return { ok: false, applied: false, reason: String(err) };
   }
@@ -48,7 +57,9 @@ export async function executeWrite(
   // 2. Geschützte Pfade — nur relevant bei commit-files. Verweigert GANZ, nicht teilweise.
   if (write.kind === "commit-files") {
     const payload = write.payload as { files: Array<{ path: string }> };
-    const protectedHit = payload.files.find((f) => isPathProtected(write.repository, f.path));
+    const protectedHit = payload.files.find((f) =>
+      isPathProtected(scope, write.repository, f.path),
+    );
     if (protectedHit) {
       return {
         ok: false,

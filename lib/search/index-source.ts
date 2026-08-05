@@ -1,9 +1,9 @@
 // Stage 3 — Baut den Suchindex aus echten Store-Daten.
 // Liest finding-capsule + daemon-audit Entities, mapped auf SearchResult.
 
-import type { AlfretStore } from "../store/types.js";
-import type { FindingCapsule } from "../findings/capsule.js";
-import type { AuditEntry } from "../daemon/audit.js";
+import type { AlfretStore } from "../store/types";
+import type { FindingCapsule } from "../findings/capsule";
+import type { AuditEntry } from "../daemon/audit";
 
 export interface SearchResult {
   id: string;
